@@ -22,13 +22,18 @@ def parse(html):
     return records
 
 
-if __name__ == "__main__":
-    load_env()
-    agent = os.environ.get("SEC_USER_AGENT", "")
+def fetch(agent, path=Path("cases/sec_lines/sic_codes.json")):
     if "@" not in agent or "example.com" in agent:
-        raise SystemExit("Set SEC_USER_AGENT to your name and real email")
+        raise ValueError("Set SEC_USER_AGENT to your name and real email")
     response = requests.get(URL, headers={"User-Agent": agent}, timeout=60)
     response.raise_for_status()
-    path = Path("cases/sec_lines/sic_codes.json")
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(parse(response.text), indent=2, sort_keys=True) + "\n")
     print(f"Pinned {len(parse(response.text))} SEC industry descriptions in {path}")
+    return path
+
+
+if __name__ == "__main__":
+    load_env()
+    fetch(os.environ.get("SEC_USER_AGENT", ""))

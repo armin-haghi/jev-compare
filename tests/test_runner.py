@@ -73,3 +73,21 @@ def test_full_gate_rejects_fixtures(tmp_path):
     (path / "status.json").write_text(json.dumps({"profile": "small", "mode": "fixture", "complete": True, "fingerprint": "abc"}))
     with pytest.raises(ValueError, match="completed small"):
         check_small_gate(tmp_path, "abc")
+
+
+def test_budget_interruption_keeps_partial_evidence(experiment, tmp_path):
+    from benchmark.pricing import BudgetExceeded
+    class Stopped(FakeRuntime):
+        def llm(self, *args):
+            raise BudgetExceeded("Injected spending stop")
+    with pytest.raises(BudgetExceeded):
+        run(experiment, budget_usd=1, results_root=tmp_path / "results", runtime_factory=Stopped)
+    folder = next((tmp_path / "results").iterdir())
+    status = json.loads((folder / "status.json").read_text())
+    assert not status["complete"]
+    assert not status["mechanism_verified"]
+    rows = pd.read_parquet(folder / "predictions.parquet")
+    assert rows.iloc[-1].failed
+    assert json.loads(rows.iloc[-1].diagnostics_json)["error_type"] == "BudgetExceeded"
+    report(folder)
+    assert json.loads((folder / "metrics.json").read_text())["pass_rule"]["label_only"]["outcome"] == "not_evaluated"

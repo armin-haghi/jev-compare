@@ -77,7 +77,7 @@ def records_from_tables(sub, pre, num, tags, config):
     tag_map = mapping()
     tag_statement = {line["id"]: line["statement"] for line in template()["lines"]}
     excluded_tags = {r["tag"]: r["reason"] for r in template()["excluded_tags"]}
-    sic_path = ROOT / "sic_codes.json"
+    sic_path = Path(config.get("sic_file", ROOT / "sic_codes.json"))
     sic = json.loads(sic_path.read_text()) if sic_path.exists() else {}
     submissions = sub.set_index("adsh").to_dict("index")
     tag_defs = tags.drop_duplicates(["tag", "version"]).set_index(["tag", "version"]).to_dict("index")
@@ -209,8 +209,10 @@ def prepare(case_config):
     raw, output = Path(config["raw_dir"]), Path(config["processed_dir"])
     raw.mkdir(parents=True, exist_ok=True)
     output.mkdir(parents=True, exist_ok=True)
-    if not (ROOT / "sic_codes.json").exists():
-        raise ValueError("Run scripts/fetch_sic.py with SEC_USER_AGENT first to pin the SEC industry list")
+    sic_path = Path(config["sic_file"])
+    if not sic_path.exists():
+        from scripts.fetch_sic import fetch
+        fetch(os.environ.get("SEC_USER_AGENT", ""), sic_path)
     all_records, excluded, unmapped, sources = [], [], Counter(), []
     for quarter in quarters(config["quarter_start"], config["quarter_end"]):
         path = download(quarter, raw, os.environ.get("SEC_USER_AGENT", ""))
@@ -242,7 +244,7 @@ def prepare(case_config):
         "sources": sources, "filters": config, "records": len(records),
         "excluded": len(excluded), "exclusion_counts": dict(Counter(r["exclusion_reason"] for r in excluded)),
         "dataset_sha256": file_hash(output / "eligible_records.parquet"),
-        "template_sha256": file_hash(ROOT / "template.yaml"), "sic_sha256": file_hash(ROOT / "sic_codes.json"),
+        "template_sha256": file_hash(ROOT / "template.yaml"), "sic_sha256": file_hash(sic_path),
         "limitations": ["Filed tags are a proxy answer key, not independently audited truth.",
                         "The 2026 Q1 cutoff excludes later filings for fiscal year 2025.",
                         "Only standard mapped tags and consolidated USD values qualify.",

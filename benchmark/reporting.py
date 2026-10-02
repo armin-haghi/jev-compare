@@ -57,6 +57,8 @@ def report(folder):
     manifest = json.loads((folder / "dataset_manifest.json").read_text())
     summary = {"case": read_yaml(folder / "case_config.yaml").get("description", config["case"]),
                "run": status, "dataset": manifest, "methods": metrics["methods"], "pass_rule": metrics["pass_rule"],
+               "provider_metadata": json.loads((folder / "provider_metadata.json").read_text()),
+               "sample_manifest": json.loads((folder / "sample_manifest.json").read_text()),
                "pairwise": metrics["pairwise"], "examples": examples,
                "limitations": manifest.get("limitations", []) + [
                    "Costs use uncached list prices; billed invoice costs may differ.",

@@ -102,8 +102,9 @@ class Runtime:
             time.sleep(min(2 ** attempt, 4))
 
     def llm(self, system, payload, schema):
-        if self.chat is None:
-            self.chat = chat_client(self.config)
+        with self.lock:
+            if self.chat is None:
+                self.chat = chat_client(self.config)
         schema_bytes = len(json.dumps(schema.model_json_schema()).encode())
         input_bound = len((system + json.dumps(payload)).encode()) + schema_bytes + 2048
         bound = cost({"input_tokens": input_bound, "output_tokens": self.config.get("max_tokens", 4096)}, self.price)
@@ -126,13 +127,15 @@ class Runtime:
         return self._call(execute, bound)
 
     def jev(self, payload, questions):
-        if self.jev_api is None:
-            self.jev_api = jev_client(self.config)
+        with self.lock:
+            if self.jev_api is None:
+                self.jev_api = jev_client(self.config)
         bound = cost({"input_tokens": 64000, "output_tokens": 0}, self.price)
 
         def execute():
             response = self.jev_api.system_one(state=payload, questions=questions, model=self.config["model"])
-            raw = response.model_dump(mode="json")
+            # The typed SDK drops provider extension fields; preserve the raw body too.
+            raw = response.raw_http_response.json()
             usage = response.usage.model_dump(mode="json")
             try:
                 if set(response.answers) != set(questions):
@@ -155,6 +158,7 @@ class Runtime:
         calls = list(self.calls)
         known = all(c.get("input_tokens") is not None and c.get("output_tokens") is not None for c in calls)
         return {"calls": calls, "request_count": len(calls), "usage_complete": known,
+                "known_cost_usd": sum(c["cost_usd"] for c in calls if c["cost_usd"] is not None),
                 "input_tokens": sum(c["input_tokens"] for c in calls) if known else None,
                 "output_tokens": sum(c["output_tokens"] for c in calls) if known else None,
                 "cost_usd": sum(c["cost_usd"] for c in calls) if known else None}

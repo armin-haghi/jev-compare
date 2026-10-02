@@ -81,9 +81,32 @@ def preflight(config, methods, prices):
 def check_small_gate(root, fingerprint):
     for status_file in root.glob("*/status.json"):
         status = json.loads(status_file.read_text())
-        if status.get("profile") == "small" and status.get("mode") == "benchmark" and status.get("complete") and status.get("fingerprint") == fingerprint:
+        if status.get("profile") == "small" and status.get("mode") == "benchmark" and status.get("complete") and status.get("mechanism_verified") and status.get("fingerprint") == fingerprint:
             return str(status_file.parent)
     raise ValueError("Full profile requires a completed small profile with matching code, configuration and dataset")
+
+
+def workload(config, profile="small", smoke_per_line=None):
+    case = load_case(config["case"])
+    case_config = read_yaml(config["case_config"])
+    records = case.load_records(case_config)
+    chosen = samples(records, config, profile, smoke_per_line)
+    repeats = {r.record_id for r in chosen["repeat"]}
+    shuffles = {r.record_id for r in chosen["shuffle"]}
+    output = []
+    for method in expand_methods(config):
+        composite = "composite" in method["base_method"] or "decomposed" in method["base_method"]
+        calls, evaluations = 0, 0
+        for record in chosen["composite" if composite else "main"]:
+            multiplier = 1 + (config["profiles"][profile]["repeat_count"]-1 if record.record_id in repeats else 0) + int(record.record_id in shuffles)
+            multiplier *= len(config["context_regimes"])
+            per_record = 2 * len(case.candidates(record, case_config)) if method["strategy"] in ("parallel", "concurrent") else 1
+            calls += multiplier * per_record if method["provider"] != "rules" else 0
+            evaluations += multiplier
+        output.append({"method": method["method"], "evaluations": evaluations, "requests_before_retries": calls,
+                       "maximum_requests": calls * config.get("attempts", 3)})
+    return {"profile": profile, "main_records": len(chosen["main"]), "composite_records": len(chosen["composite"]),
+            "methods": output, "requests_before_retries": sum(m["requests_before_retries"] for m in output)}
 
 
 def run(config, profile="small", budget_usd=None, smoke_per_line=None, results_root="results",
@@ -118,6 +141,11 @@ def run(config, profile="small", budget_usd=None, smoke_per_line=None, results_r
     actual_hash = file_hash(dataset_dir / "eligible_records.parquet")
     if actual_hash != dataset_manifest["dataset_sha256"]:
         raise ValueError("Processed dataset differs from its manifest")
+    case_root = Path(case.__file__).parent
+    for key, filename in (("template_sha256", "template.yaml"), ("sic_sha256", "sic_codes.json")):
+        artifact = Path(case_config.get("sic_file", case_root / filename)) if key == "sic_sha256" else case_root / filename
+        if key in dataset_manifest and file_hash(artifact) != dataset_manifest[key]:
+            raise ValueError(f"{filename} changed after dataset preparation")
     fingerprint = digest({"freeze": frozen["sha256"], "dataset": actual_hash})
     root = Path(results_root)
     mode = "fixture" if runtime_factory else "smoke" if smoke_per_line is not None else "benchmark"
@@ -143,6 +171,7 @@ def run(config, profile="small", budget_usd=None, smoke_per_line=None, results_r
     json_write(folder / "dataset_manifest.json", dataset_manifest)
     json_write(folder / "provider_metadata.json", provider_metadata)
     json_write(folder / "sample_manifest.json", {k: [r.record_id for r in v] if k != "dropped" else v for k, v in chosen.items()})
+    json_write(folder / "workload.json", workload(config, profile, smoke_per_line))
     for source, target in (("label_splits.parquet", "label_splits.parquet"), ("sec_lines_summary.csv", "dataset_summary.csv")):
         if (dataset_dir / source).exists():
             shutil.copyfile(dataset_dir / source, folder / target)
@@ -185,22 +214,22 @@ def run(config, profile="small", budget_usd=None, smoke_per_line=None, results_r
                                 runtime = (runtime_factory or Runtime)(call_config, price, budget)
                             call_config["_runtime"] = runtime
                             before = time.perf_counter()
-                            failed, error_type = False, None
+                            failed, error_type, exhausted = False, None, False
                             try:
                                 module = importlib.import_module(f"benchmark.methods.{method['module']}")
                                 result = MethodResult.model_validate(module.predict(payload, candidates, case_config, call_config))
                                 if result.prediction not in {c["id"] for c in candidates} and not (method["provider"] == "rules" and result.prediction == "ABSTAIN"):
                                     raise ValueError("Prediction is outside the candidate set")
                             except BudgetExceeded:
-                                if runtime and hasattr(runtime, "close"):
-                                    runtime.close()
-                                raise
+                                failed, error_type, exhausted = True, "BudgetExceeded", True
+                                result = MethodResult(prediction="FAILED", confidence=0, confidence_kind="failure")
                             except Exception as error:
                                 failed, error_type = True, type(error).__name__
                                 result = MethodResult(prediction="FAILED", confidence=0, confidence_kind="failure")
                             elapsed = (time.perf_counter() - before) * 1000
                             usage = runtime.evidence() if runtime else {"calls": [], "request_count": 0, "usage_complete": True,
-                                                                       "input_tokens": 0, "output_tokens": 0, "cost_usd": 0}
+                                                                       "input_tokens": 0, "output_tokens": 0, "cost_usd": 0, "known_cost_usd": 0}
+                            usage.setdefault("known_cost_usd", usage["cost_usd"] or 0)
                             if runtime and hasattr(runtime, "close"):
                                 runtime.close()
                             diagnostics = result.diagnostics | {"calls": usage.pop("calls"), "error_type": error_type}
@@ -220,15 +249,30 @@ def run(config, profile="small", budget_usd=None, smoke_per_line=None, results_r
                             rows.append(row)
                             journal.write(json.dumps(row, allow_nan=False) + "\n")
                             journal.flush()
+                            if exhausted:
+                                raise BudgetExceeded(f"Run stopped at its budget; evidence preserved in {folder}")
                     print(f"{method['method']}: {record.record_id[:12]} ({len(rows)} outputs)", flush=True)
         status["complete"] = True
     finally:
+        successful = {(r["method"], r["context_regime"]) for r in rows if not r["failed"] and r["shuffled"]}
+        required = {(m["method"], c) for m in methods for c in config["context_regimes"]}
+        status["mechanism_verified"] = status["complete"] and required <= successful
         status["wall_time_seconds"] = time.perf_counter() - start
         status["budget_accounted_usd"] = budget.spent
         status["output_rows"] = len(rows)
         json_write(folder / "status.json", status)
         if rows:
             pd.DataFrame(rows).to_parquet(folder / "predictions.parquet", index=False)
+            returned = {}
+            for row in rows:
+                for call in json.loads(row["diagnostics_json"])["calls"]:
+                    raw = call.get("raw") or {}
+                    name = raw.get("model") or raw.get("response_metadata", {}).get("model_name")
+                    if name:
+                        returned.setdefault(row["method"], set()).add(name)
+            provider_metadata["returned_model_ids"] = {key: sorted(names) for key, names in returned.items()}
+            provider_metadata["version_limit"] = "Gateway aliases may echo the requested name without exposing immutable underlying weights."
+            json_write(folder / "provider_metadata.json", provider_metadata)
     from benchmark.reporting import report
     report(folder)
     return folder

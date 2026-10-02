@@ -140,15 +140,17 @@ def metric_group(all_rows, splits, expected_repeats):
                          "failed_pairs": len(shuffled) - len(valid_shuffles),
                          "prediction_change_rate": fraction(valid_shuffles.prediction_shuffle != valid_shuffles.prediction_original) if len(valid_shuffles) else None},
         "latency_ms": {"median": float(rows.latency_ms.median()), "p95": float(rows.latency_ms.quantile(.95))},
+        "total_method_wall_seconds": float(all_rows.latency_ms.sum() / 1000),
         "usage": {"request_count": int(all_rows.request_count.sum()), "complete": known_cost,
                   "input_tokens": int(all_rows.input_tokens.sum()) if known_cost else None,
                   "output_tokens": int(all_rows.output_tokens.sum()) if known_cost else None},
         "cost": {"basis": "uncached list-price estimate; failed unknown usage remains unknown",
                  "total_usd": float(all_rows.cost_usd.sum()) if known_cost else None,
-                 "known_usd_lower_bound": float(all_rows.cost_usd.sum()),
+                 "known_usd_lower_bound": float(all_rows.known_cost_usd.sum()) if "known_cost_usd" in all_rows else float(all_rows.cost_usd.sum()),
                  "base_cost_per_record": float(rows.cost_usd.sum() / len(rows)) if base_cost_known and len(rows) else None,
                  "base_cost_per_1000": float(rows.cost_usd.sum() / len(rows) * 1000) if base_cost_known and len(rows) else None},
-        "expected_score_variant": {"records": len(expected), "accuracy": fraction(expected_correct)}
+        "expected_score_variant": {"records_with_scores": len(expected),
+                                   "accuracy": sum(expected_correct) / len(rows) if len(rows) and str(rows.iloc[0].method).startswith("jev_composite") else None}
     }
 
 

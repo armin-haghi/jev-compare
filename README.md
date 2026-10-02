@@ -2,6 +2,8 @@
 
 Source: https://app.notion.com/p/3ec785996df481d3898adc68e3049fb2?pvs=204
 
+This README preserves the parent evaluation plan below. The implementation uses **29 categories**, separating total non-operating income from other non-operating income; see [study review](docs/review.md). Python 3.12 and Vercel AI Gateway are the build defaults. Setup and run commands follow the source plan.
+
 **What:** Evaluation plan for Jev, TypeSafe's decision model, against conventional LLM workflows on repeated finance data decisions. The aim is to find the kind of decision where Jev is the better building block, not to replace LLMs in general.
 **Status:** Case 1 (mapping company financial-statement lines to a standard template, using public SEC data) agreed on 2 Oct 2026 and specified in the build brief below. Earlier ESEF framing retired.
 **Next step:** Hand the build brief to a coding agent. Run the small profile first.
@@ -59,3 +61,72 @@ The harness is built so a new case replaces case 1 without changing the runner, 
 The sub-page below specifies repository structure, data retrieval, the 28-line template, method implementations, metrics, result schemas, commands and acceptance checks, so a coding agent can build the benchmark without choosing experiment semantics.
 [Build Brief: Reusable Jev Benchmark](https://app.notion.com/p/3ec785996df481a7b824fde702c5614d)
 
+## Python runs the benchmark
+
+Use installed Python 3.12 with [uv](https://docs.astral.sh/uv/getting-started/installation/). Dependencies are pinned in uv.lock and installed in the project .venv.
+
+```bash
+uv sync --locked
+cp .env.example .env
+uv run pytest
+uv run python -m benchmark.cli demo
+```
+
+The demo uses synthetic data and local fake responses. Its 160 prediction rows validate execution and reporting; they measure no model quality.
+
+## Vercel serves all three models
+
+Set AI_GATEWAY_API_KEY and SEC_USER_AGENT in .env. The SEC header must contain your requester name and real contact email. Credentials are read at runtime and excluded from Git and run configuration.
+
+| Role | Configured model | Route |
+| --- | --- | --- |
+| Small language model | openai/gpt-5-mini | Vercel chat API |
+| Frontier language model | anthropic/claude-sonnet-4.6 | Vercel chat API |
+| Jev decision model | typesafe-ai/jev | Vercel TypeSafe-compatible API |
+
+Model names, temperature settings and execution limits live in config/experiments/sec_lines.yaml. Changing a model requires a matching dated entry in config/pricing.yaml. OpenAI and Anthropic can also be called directly by changing provider and supplying the corresponding provider key. The TypeSafe direct route uses TYPESAFE_API_KEY; it is optional.
+
+Sources: [Vercel TypeSafe API](https://vercel.com/docs/ai-gateway/sdks-and-apis/typesafe), [model catalog and prices](https://ai-gateway.vercel.sh/v1/models), [TypeSafe SDK](https://github.com/typesafe-ai/typesafe-sdk-python).
+
+## Preparation preserves source evidence
+
+```bash
+uv run python -m scripts.fetch_sic
+uv run python -m benchmark.cli prepare --case sec_lines
+uv run python -m benchmark.cli inspect --case sec_lines
+uv run python -m benchmark.cli plan --experiment config/experiments/sec_lines.yaml --profile small
+```
+
+The industry-list command pins the SEC Standard Industrial Classification descriptions in cases/sec_lines/sic_codes.json. Commit that file before inference. Preparation downloads 21 quarterly archives from 2021 Q1 through 2026 Q1, selects annual reports for fiscal years 2021–2025, and writes eligibility, exclusions, observed label distributions, mapping-review candidates and source hashes under data/processed/sec_lines/. Archives remain under data/raw/sec_lines/. The complete corpus requires several gigabytes of disk space.
+
+Preparation fetches the industry list automatically when it is absent, so the separate industry-list command is optional.
+
+Mappings and rules are established before benchmark answers are inspected. The inspect command reveals references for data auditing; it is not a prompt-tuning workflow. Mapping-review candidates require an explicit decision and a new preparation before freezing.
+
+## Smoke precedes paid study runs
+
+```bash
+# Replace each amount with an approved spending limit.
+uv run python -m benchmark.cli smoke --experiment config/experiments/sec_lines.yaml --records-per-line 1 --budget-usd 5
+uv run python -m benchmark.cli run --experiment config/experiments/sec_lines.yaml --profile small --budget-usd 100
+uv run python -m benchmark.cli run --experiment config/experiments/sec_lines.yaml --profile full --budget-usd 500
+uv run python -m benchmark.cli report --run-id RUN_ID
+```
+
+The example budgets are limits, not cost forecasts. Parallel decomposed methods ask two questions per candidate: the original small profile can require approximately 74,000–79,000 calls before retries. The plan command reports the exact workload for the prepared sample. Smoke uses held-out records and caps its composite/repeat/shuffle subset at five records. Full runs require a matching completed small run with successful option-order responses from every method and context regime.
+
+Calls use at most three attempts. Authentication errors stop retries. Record failures and abstentions count as incorrect; unknown billed usage remains unknown. A conservative reservation checks the spending limit before each request, including concurrent requests. List-price cost estimates exclude caching discounts and are not billing invoices.
+
+## Artifacts support independent review
+
+Each results/RUN_ID/ directory contains resolved configuration, case configuration, prompt and pricing snapshots, freeze hashes, dataset provenance, sample IDs, payload examples, provider metadata, an append-only prediction journal, predictions.parquet, metrics.json, metrics.csv, management_summary.json, report.md and two coverage/error SVG charts.
+
+Reports regenerate from saved outputs without provider calls or current case data. Direct methods use the main sample; composite methods use a nested subset. Pairwise comparisons use matched IDs, and the pass rule compares all methods on their common subset. Both row and filer-cluster bootstrap intervals are retained; the pass rule uses the filer-cluster interval.
+
+Calibration measures selected-answer correctness probabilities. Composite margins rank confidence but are not treated as probabilities. Observed label distribution agreement is reported separately. Failed or partial runs and synthetic fixtures do not receive a study pass/fail conclusion.
+
+## Cases own decision semantics
+
+Shared modules under benchmark/ import cases dynamically. A case implements prepare, load_records, build_payload, candidates and is_correct. Rules-enabled cases also expose rules; composite-enabled cases expose metadata_scores. Candidate dictionaries contain id, label, description and template_order. The independent yes/no fixture under tests/fixtures/toy_case exercises the same runner, methods and metrics.
+
+See [review decisions](docs/review.md), [the build brief](docs/build-brief.md), and [build status](docs/progress.md).

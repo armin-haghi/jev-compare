@@ -2,7 +2,7 @@
 import argparse
 import json
 from pathlib import Path
-from benchmark.config import load_case, load_env, read_yaml
+from benchmark.config import load_case, load_env, read_yaml, resolve
 
 
 def main():
@@ -13,7 +13,7 @@ def main():
         child = commands.add_parser(name)
         child.add_argument("--case", default="sec_lines")
         child.add_argument("--case-config")
-    for name in ("run", "smoke"):
+    for name in ("run", "smoke", "plan"):
         child = commands.add_parser(name)
         child.add_argument("--experiment", default="config/experiments/sec_lines.yaml")
         child.add_argument("--profile", choices=["small", "full"], default="small")
@@ -35,6 +35,12 @@ def main():
             directory = Path(config["processed_dir"])
             print((directory / "sec_lines_summary.csv").read_text())
             print((directory / "dataset_manifest.json").read_text())
+            if (directory / "label_splits.parquet").exists():
+                import pandas as pd
+                splits = pd.read_parquet(directory / "label_splits.parquet")
+                ambiguous = splits[splits.filer_split]
+                print(f"Observed disagreement rows: {len(ambiguous)}; showing the first 20")
+                print(ambiguous.head(20).to_string(index=False))
             records = module.load_records(config)
             for reference in sorted({r.reference for r in records}):
                 for record in [r for r in records if r.reference == reference][:5]:
@@ -43,6 +49,9 @@ def main():
         from benchmark.runner import run
         print(run(read_yaml(args.experiment), args.profile, args.budget_usd,
                   args.records_per_line if args.command == "smoke" else None, args.results_root))
+    elif args.command == "plan":
+        from benchmark.runner import workload
+        print(json.dumps(workload(resolve(read_yaml(args.experiment)), args.profile), indent=2))
     elif args.command == "report":
         from benchmark.reporting import report
         if Path(args.run_id).name != args.run_id or args.run_id in (".", ".."):
