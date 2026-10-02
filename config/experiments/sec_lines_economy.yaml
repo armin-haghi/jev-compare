@@ -4,8 +4,8 @@ case_config: cases/sec_lines/case.yaml
 prompts: cases/sec_lines/prompts.yaml
 pricing: config/pricing.yaml
 seed: 20261001
-record_concurrency: 8
-question_concurrency: 4
+record_concurrency: 4
+question_concurrency: 2
 attempts: 3
 timeout_seconds: 120
 bootstrap_samples: 2000
@@ -15,7 +15,7 @@ conventional_llm:
     model: openai/gpt-5-mini
     temperature: null
     reasoning_effort: minimal
-    max_tokens: 4096
+    max_tokens: 1024
   frontier:
     provider: vercel
     model: anthropic/claude-sonnet-4.6
