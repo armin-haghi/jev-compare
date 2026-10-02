@@ -2,7 +2,7 @@
 name = "jev-compare"
 version = "0.1.0"
 description = "Reproducible decision benchmark for Jev and conventional language models"
-requires-python = ">=3.11,<3.12"
+requires-python = ">=3.12,<3.13"
 dependencies = [
   "pandas", "pyarrow", "pydantic", "pyyaml", "requests",
   "langchain==1.4.0", "langchain-openai==1.6.2",
@@ -15,4 +15,3 @@ dev = ["pytest"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["."]
-

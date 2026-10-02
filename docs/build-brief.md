@@ -47,7 +47,7 @@ The run starts with a small profile (a few hundred records) to prove the mechani
 - [TypeSafe quick start](https://docs.typesafe.ai/introduction/quickstart), [composite scoring](https://docs.typesafe.ai/patterns/composite-scoring), [speculative fan-out](https://docs.typesafe.ai/patterns/fan-out), [confidence](https://docs.typesafe.ai/confidence).
 - [LangChain structured output](https://reference.langchain.com/python/langchain-core/language_models/chat_models/BaseChatModel/with_structured_output).
 ## Stack: use Python consistently
-Use Python 3.11 and uv.
+Use the latest installed Python and uv unless a dependency requires another version. This build uses Python 3.12, the latest installed interpreter, pinned in .python-version for reproducibility.
 Required direct dependencies:
 ```plain text
 pandas
@@ -591,4 +591,3 @@ Never commit API keys, downloaded data sets, or results containing credentials.
 The coding agent's task ends when the benchmark runs, tests pass and result artefacts are produced. It must not change the template after seeing results, tune prompts, rules or weights against benchmark answers, select a preferred method, or write the management conclusion.
 # Later cases: one addition needed
 Cases 2 and 3 (entity matching, loan type) need a yes or no output type in the method contract. Add it when case 2 is specified.
-

@@ -1,0 +1,129 @@
+case_id: sec_lines
+
+statements:
+  IS: income_statement
+  BS: balance_sheet
+
+lines:
+  # Income statement
+  - id: revenue
+    statement: IS
+    label: Revenue
+    tags: [Revenues, RevenueFromContractWithCustomerExcludingAssessedTax, SalesRevenueNet]
+  - id: cost_of_revenue
+    statement: IS
+    label: Cost of revenue
+    tags: [CostOfRevenue, CostOfGoodsAndServicesSold, CostOfGoodsSold]
+  - id: gross_profit
+    statement: IS
+    label: Gross profit
+    tags: [GrossProfit]
+  - id: research_development
+    statement: IS
+    label: Research and development
+    tags: [ResearchAndDevelopmentExpense]
+  - id: sga
+    statement: IS
+    label: Selling, general and administrative
+    tags: [SellingGeneralAndAdministrativeExpense]
+  - id: depreciation_amortization
+    statement: IS
+    label: Depreciation and amortisation
+    tags: [DepreciationDepletionAndAmortization, DepreciationAndAmortization]
+  - id: other_operating
+    statement: IS
+    label: Other operating items
+    tags: [OtherOperatingIncomeExpenseNet, OtherCostAndExpenseOperating]
+  - id: operating_income
+    statement: IS
+    label: Operating income
+    tags: [OperatingIncomeLoss]
+  - id: interest_income
+    statement: IS
+    label: Interest income
+    tags: [InvestmentIncomeInterest, InterestIncomeOther]
+  - id: interest_expense
+    statement: IS
+    label: Interest expense
+    tags: [InterestExpense]
+  - id: other_nonoperating
+    statement: IS
+    label: Other non-operating income or expense
+    tags: [OtherNonoperatingIncomeExpense]
+  - id: total_nonoperating
+    statement: IS
+    label: Total non-operating income or expense
+    tags: [NonoperatingIncomeExpense]
+  - id: income_tax
+    statement: IS
+    label: Income tax
+    tags: [IncomeTaxExpenseBenefit]
+  - id: net_income
+    statement: IS
+    label: Net income
+    tags: [NetIncomeLoss, ProfitLoss]
+  # Balance sheet
+  - id: cash
+    statement: BS
+    label: Cash
+    tags: [CashAndCashEquivalentsAtCarryingValue, CashCashEquivalentsRestrictedCashAndRestrictedCashEquivalents]
+  - id: short_term_investments
+    statement: BS
+    label: Short-term investments
+    tags: [ShortTermInvestments, MarketableSecuritiesCurrent]
+  - id: receivables
+    statement: BS
+    label: Receivables
+    tags: [AccountsReceivableNetCurrent, ReceivablesNetCurrent]
+  - id: inventory
+    statement: BS
+    label: Inventory
+    tags: [InventoryNet]
+  - id: other_current_assets
+    statement: BS
+    label: Other current assets
+    tags: [OtherAssetsCurrent, PrepaidExpenseAndOtherAssetsCurrent]
+  - id: ppe
+    statement: BS
+    label: Property, plant and equipment
+    tags: [PropertyPlantAndEquipmentNet]
+  - id: goodwill_intangibles
+    statement: BS
+    label: Goodwill and intangibles
+    tags: [Goodwill, IntangibleAssetsNetExcludingGoodwill, IntangibleAssetsNetIncludingGoodwill]
+  - id: other_noncurrent_assets
+    statement: BS
+    label: Other non-current assets
+    tags: [OtherAssetsNoncurrent]
+  - id: accounts_payable
+    statement: BS
+    label: Accounts payable
+    tags: [AccountsPayableCurrent]
+  - id: accrued_liabilities
+    statement: BS
+    label: Accrued liabilities
+    tags: [AccruedLiabilitiesCurrent]
+  - id: short_term_debt
+    statement: BS
+    label: Short-term debt
+    tags: [DebtCurrent, LongTermDebtCurrent, ShortTermBorrowings]
+  - id: other_current_liabilities
+    statement: BS
+    label: Other current liabilities
+    tags: [OtherLiabilitiesCurrent]
+  - id: long_term_debt
+    statement: BS
+    label: Long-term debt
+    tags: [LongTermDebtNoncurrent]
+  - id: other_noncurrent_liabilities
+    statement: BS
+    label: Other non-current liabilities
+    tags: [OtherLiabilitiesNoncurrent]
+  - id: total_equity
+    statement: BS
+    label: Total equity
+    tags: [StockholdersEquity, StockholdersEquityIncludingPortionAttributableToNoncontrollingInterest]
+
+excluded_tags:
+  - tag: AccountsPayableAndAccruedLiabilitiesCurrent
+    reason: combines accounts payable and accrued liabilities
