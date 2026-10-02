@@ -186,6 +186,7 @@ def finalise(records, excluded):
                            "filers": count, "total_filers": len(members), "share": count / len(members),
                            "filer_split": flag})
         for record in members:
+            record.groups["normalized_label"] = label
             record.groups["filer_split"] = str(flag).lower()
             result = rules(build_payload(record, "with_context", {}), candidates(record, {}), {})
             record.groups["baseline_miss"] = str(result.prediction != record.reference).lower()
