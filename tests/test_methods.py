@@ -28,6 +28,8 @@ def test_every_method_obeys_contract(module, strategy):
 
 
 def test_probability_validation():
+    validate_probabilities({0: .33, 1: .33, 2: .33, 3: 0, 4: 0}, range(5))
+    validate_probabilities({0: .34, 1: .34, 2: .33, 3: 0, 4: 0}, range(5))
     with pytest.raises(ValueError):
         validate_probabilities({"a": .9, "b": .9}, ["a", "b"])
     with pytest.raises(ValueError):

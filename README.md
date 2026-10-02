@@ -4,6 +4,8 @@ Source: https://app.notion.com/p/3ec785996df481d3898adc68e3049fb2?pvs=204
 
 This README preserves the parent evaluation plan below. The implementation uses **29 categories**, separating total non-operating income from other non-operating income; see [study review](docs/review.md). Python 3.12 and Vercel AI Gateway are the build defaults. Setup and run commands follow the source plan.
 
+Live validation: the GPT-5 mini plus Jev smoke completed 354 outputs with zero final failures, at $0.2862 in estimated list-price cost. The 31-test suite passes. See [validation evidence](docs/smoke-validation.json); this smoke establishes integration, not comparative model quality.
+
 **What:** Evaluation plan for Jev, TypeSafe's decision model, against conventional LLM workflows on repeated finance data decisions. The aim is to find the kind of decision where Jev is the better building block, not to replace LLMs in general.
 **Status:** Case 1 (mapping company financial-statement lines to a standard template, using public SEC data) agreed on 2 Oct 2026 and specified in the build brief below. Earlier ESEF framing retired.
 **Next step:** Hand the build brief to a coding agent. Run the small profile first.
