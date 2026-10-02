@@ -37,7 +37,9 @@ def expand_methods(config):
             raise ValueError(f"Unknown method: {name}")
         module, strategy = METHODS[name]
         if "llm" in name:
-            for tier in ("small", "frontier"):
+            for tier in config.get("llm_tiers", ["small", "frontier"]):
+                if tier not in ("small", "frontier"):
+                    raise ValueError(f"Unknown language-model tier: {tier}")
                 result.append(config["conventional_llm"][tier] |
                               {"method": f"{name}_{tier}", "base_method": name, "module": module, "strategy": strategy, "tier": tier})
         else:
