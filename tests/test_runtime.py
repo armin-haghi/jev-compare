@@ -65,3 +65,13 @@ def test_auth_failure_does_not_retry():
     assert chat.count == 1
     assert r.evidence()["cost_usd"] is None
     assert "Do not copy" not in str(r.evidence())
+
+
+def test_closed_transport_is_nonbillable_and_fatal():
+    chat = Chat(error=RuntimeError("Cannot send a request, as the client has been closed."))
+    r = runtime(chat)
+    with pytest.raises(CallFailed) as failure:
+        r.llm("system", {}, Parsed)
+    assert failure.value.fatal
+    assert r.evidence()["cost_usd"] == 0
+    assert r.budget.spent == 0

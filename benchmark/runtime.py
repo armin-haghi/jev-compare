@@ -47,7 +47,9 @@ def chat_client(config):
 
 
 class CallFailed(RuntimeError):
-    pass
+    def __init__(self, message, fatal=False):
+        super().__init__(message)
+        self.fatal = fatal
 
 
 def retryable(error):
@@ -92,8 +94,11 @@ class Runtime:
                 # Provider exception messages may contain headers; retain type/status only.
                 entry["error_type"] = type(error).__name__
                 entry["status_code"] = getattr(error, "status_code", getattr(error, "status", None))
+                if isinstance(error, RuntimeError) and "client has been closed" in str(error).lower():
+                    # Local transport refusal happens before any request is sent.
+                    entry.update(input_tokens=0, output_tokens=0, cost_usd=0.0, local_failure=True)
                 if not retryable(error) or attempt == self.config.get("attempts", 3) - 1:
-                    raise CallFailed(f"Provider call failed: {type(error).__name__}") from error
+                    raise CallFailed(f"Provider call failed: {type(error).__name__}", fatal=not retryable(error)) from error
             finally:
                 entry["latency_ms"] = (time.perf_counter() - start) * 1000
                 self.budget.settle(bound, entry["cost_usd"])
@@ -167,7 +172,5 @@ class Runtime:
     def close(self):
         if self.jev_api is not None:
             self.jev_api.close()
-        if self.chat is not None:
-            client = getattr(self.chat, "root_client", None)
-            if client is not None and hasattr(client, "close"):
-                client.close()
+        # LangChain shares its default HTTP transport across model instances.
+        # Closing a per-record root client closes that shared pool for later records.

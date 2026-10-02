@@ -14,7 +14,7 @@ import yaml
 
 from benchmark.config import digest, file_hash, json_write, load_case, read_yaml, resolve
 from benchmark.pricing import Budget, BudgetExceeded, lookup
-from benchmark.runtime import Runtime, require_key, jev_client, chat_client
+from benchmark.runtime import Runtime, CallFailed, require_key, jev_client, chat_client
 from benchmark.sampling import samples
 from benchmark.schemas import MethodResult
 
@@ -226,7 +226,7 @@ def run(config, profile="small", budget_usd=None, smoke_per_line=None, results_r
                                 runtime = (runtime_factory or Runtime)(call_config, price, budget)
                             call_config["_runtime"] = runtime
                             before = time.perf_counter()
-                            failed, error_type, exhausted = False, None, False
+                            failed, error_type, exhausted, fatal_error = False, None, False, None
                             try:
                                 module = importlib.import_module(f"benchmark.methods.{method['module']}")
                                 result = MethodResult.model_validate(module.predict(payload, candidates, case_config, call_config))
@@ -237,6 +237,8 @@ def run(config, profile="small", budget_usd=None, smoke_per_line=None, results_r
                                 result = MethodResult(prediction="FAILED", confidence=0, confidence_kind="failure")
                             except Exception as error:
                                 failed, error_type = True, type(error).__name__
+                                if isinstance(error, CallFailed) and error.fatal:
+                                    fatal_error = error
                                 result = MethodResult(prediction="FAILED", confidence=0, confidence_kind="failure")
                             elapsed = (time.perf_counter() - before) * 1000
                             usage = runtime.evidence() if runtime else {"calls": [], "request_count": 0, "usage_complete": True,
@@ -263,6 +265,8 @@ def run(config, profile="small", budget_usd=None, smoke_per_line=None, results_r
                             journal.flush()
                             if exhausted:
                                 raise BudgetExceeded(f"Run stopped at its budget; evidence preserved in {folder}")
+                            if fatal_error:
+                                raise fatal_error
                     print(f"{method['method']}: {record.record_id[:12]} ({len(rows)} outputs)", flush=True)
         status["complete"] = True
     finally:
@@ -270,7 +274,9 @@ def run(config, profile="small", budget_usd=None, smoke_per_line=None, results_r
         required = {(m["method"], c) for m in methods for c in config["context_regimes"]}
         status["mechanism_verified"] = status["complete"] and required <= successful
         status["wall_time_seconds"] = time.perf_counter() - start
-        status["budget_accounted_usd"] = budget.spent
+        status["conservative_budget_used_usd"] = budget.spent
+        status["known_list_price_cost_usd"] = sum(row.get("known_cost_usd", 0) for row in rows)
+        status["budget_note"] = "Conservative budget use includes unknown-call reservations; it is not a billed-charge measurement."
         status["output_rows"] = len(rows)
         json_write(folder / "status.json", status)
         if rows:

@@ -61,3 +61,6 @@ def test_langchain_gateway_uses_structured_output_and_keeps_usage():
     assert runtime.evidence()["input_tokens"] == 30
     assert runtime.evidence()["output_tokens"] == 8
     runtime.close()
+    second = Runtime({"max_tokens": 100}, {"input_per_million": .25, "output_per_million": 2},
+                     Budget(1), chat=client)
+    assert second.llm("Choose one", {"label": "yes"}, Answer).category == "yes"
