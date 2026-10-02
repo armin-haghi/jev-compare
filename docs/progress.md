@@ -23,6 +23,10 @@ Jev required 28 retries because its rounded probability vectors sometimes summed
 
 The structured validation summary is [smoke-validation.json](smoke-validation.json). Detailed local artifacts are under results/20261002T220450Z-7bcbffd4/.
 
+## Jev warrants a larger test
+
+The reviewed verdict is preserved in [smoke-verdict.json](smoke-verdict.json) and included at the top of the local report and in management_summary.json. On the 29 context-rich direct decisions, Jev scored 27/29 versus 26/29 for GPT-5 mini, at 23.1% of its estimated per-record cost. The one-record lead and five-record composite subset do not establish a winner or the study pass rule. The separate-question GPT scoring protocol needs review before its poor result is used for model comparison. The verdict is bound to the original predictions hash and survives report regeneration.
+
 The 444-entry SEC industry list is committed. Dataset preparation emits a mapping-review queue; no additional tags were silently added to the frozen answer key.
 
 ## The study has explicit limits

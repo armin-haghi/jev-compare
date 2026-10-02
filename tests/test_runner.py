@@ -4,7 +4,7 @@ from pathlib import Path
 import pandas as pd
 import pytest
 import yaml
-from benchmark.config import read_yaml
+from benchmark.config import file_hash, read_yaml
 from benchmark.runner import run, check_small_gate, expand_methods
 from benchmark.reporting import report
 from benchmark.sampling import samples
@@ -54,6 +54,26 @@ def test_failure_is_kept(experiment, tmp_path):
     assert llm.failed.all()
     assert not llm.correct.any()
     assert len(llm) > 0
+
+
+def test_reviewed_verdict_survives_regeneration_and_is_bound_to_evidence(experiment, tmp_path):
+    path = run(experiment, budget_usd=1, results_root=tmp_path / "results", runtime_factory=FakeRuntime)
+    evidence_hash = file_hash(path / "predictions.parquet")
+    verdict = {"run_id": path.name, "predictions_sha256": evidence_hash,
+               "headline": "The fixture verifies execution", "assessment": "Synthetic results do not rank models.",
+               "evidence_markdown": "Evidence: [saved predictions](predictions.parquet).",
+               "limitations": ["Synthetic inputs."], "next_step": "Review a live run separately."}
+    (path / "verdict.json").write_text(json.dumps(verdict))
+    report(path)
+    assert (path / "report.md").read_text().startswith("# The fixture verifies execution")
+    assert json.loads((path / "management_summary.json").read_text())["verdict"] == verdict
+    report(path)
+    assert file_hash(path / "predictions.parquet") == evidence_hash
+    assert "Synthetic results do not rank models." in (path / "report.md").read_text()
+    verdict["predictions_sha256"] = "wrong-evidence"
+    (path / "verdict.json").write_text(json.dumps(verdict))
+    with pytest.raises(ValueError, match="does not match"):
+        report(path)
 
 
 def test_smoke_is_disjoint_from_small_and_full(experiment):
