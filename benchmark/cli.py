@@ -19,6 +19,8 @@ def main():
         child.add_argument("--profile", choices=["small", "full"], default="small")
         child.add_argument("--budget-usd", type=float)
         child.add_argument("--results-root", default="results")
+        child.add_argument("--allow-frontier", action="store_true",
+                           help="Explicitly authorize frontier-model inference; omit until approved")
         if name == "smoke":
             child.add_argument("--records-per-line", type=int, default=5)
     child = commands.add_parser("report")
@@ -50,7 +52,8 @@ def main():
     elif args.command in ("run", "smoke"):
         from benchmark.runner import run
         print(run(read_yaml(args.experiment), args.profile, args.budget_usd,
-                  args.records_per_line if args.command == "smoke" else None, args.results_root))
+                  args.records_per_line if args.command == "smoke" else None, args.results_root,
+                  allow_frontier=args.allow_frontier))
     elif args.command == "plan":
         from benchmark.runner import workload
         print(json.dumps(workload(resolve(read_yaml(args.experiment)), args.profile), indent=2))

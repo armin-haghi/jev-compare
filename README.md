@@ -107,7 +107,7 @@ Mappings and rules are established before benchmark answers are inspected. The i
 
 ```bash
 # Replace each amount with an approved spending limit.
-uv run python -m benchmark.cli smoke --experiment config/experiments/sec_lines.yaml --records-per-line 1 --budget-usd 5
+uv run python -m benchmark.cli smoke --experiment config/experiments/sec_lines_smoke.yaml --records-per-line 1 --budget-usd 1
 uv run python -m benchmark.cli run --experiment config/experiments/sec_lines.yaml --profile small --budget-usd 100
 uv run python -m benchmark.cli run --experiment config/experiments/sec_lines.yaml --profile full --budget-usd 500
 uv run python -m benchmark.cli report --run-id RUN_ID
@@ -118,6 +118,8 @@ The example budgets are limits, not cost forecasts. Parallel decomposed methods 
 Calls use at most three attempts. Authentication errors stop retries. Record failures and abstentions count as incorrect; unknown billed usage remains unknown. A conservative reservation checks the spending limit before each request, including concurrent requests. List-price cost estimates exclude caching discounts and are not billing invoices.
 
 ## Artifacts support independent review
+
+The initial smoke configuration runs GPT-5 mini, Jev and rules. Frontier-model inference is blocked unless the caller explicitly supplies --allow-frontier after authorization; the full-study commands above will stop without that flag.
 
 Each results/RUN_ID/ directory contains resolved configuration, case configuration, prompt and pricing snapshots, freeze hashes, dataset provenance, sample IDs, payload examples, provider metadata, an append-only prediction journal, predictions.parquet, metrics.json, metrics.csv, management_summary.json, report.md and two coverage/error SVG charts.
 

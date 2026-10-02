@@ -5,7 +5,7 @@ import pandas as pd
 import pytest
 import yaml
 from benchmark.config import read_yaml
-from benchmark.runner import run, check_small_gate
+from benchmark.runner import run, check_small_gate, expand_methods
 from benchmark.reporting import report
 from benchmark.sampling import samples
 from tests.fixtures.fake_runtime import FakeRuntime
@@ -73,6 +73,20 @@ def test_full_gate_rejects_fixtures(tmp_path):
     (path / "status.json").write_text(json.dumps({"profile": "small", "mode": "fixture", "complete": True, "fingerprint": "abc"}))
     with pytest.raises(ValueError, match="completed small"):
         check_small_gate(tmp_path, "abc")
+
+
+def test_small_only_configuration_omits_frontier():
+    config = read_yaml("tests/fixtures/experiment.yaml")
+    config["llm_tiers"] = ["small"]
+    methods = expand_methods(config)
+    assert len(methods) == 7
+    assert not any(m.get("tier") == "frontier" for m in methods)
+    assert sum(m.get("tier") == "small" for m in methods) == 3
+
+
+def test_frontier_requires_explicit_authorization(experiment, tmp_path):
+    with pytest.raises(ValueError, match="Frontier inference requires explicit authorization"):
+        run(experiment, budget_usd=1, results_root=tmp_path / "results")
 
 
 def test_budget_interruption_keeps_partial_evidence(experiment, tmp_path):

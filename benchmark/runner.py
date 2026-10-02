@@ -124,7 +124,7 @@ def workload(config, profile="small", smoke_per_line=None):
 
 
 def run(config, profile="small", budget_usd=None, smoke_per_line=None, results_root="results",
-        runtime_factory=None, run_id=None):
+        runtime_factory=None, run_id=None, allow_frontier=False):
     config = resolve(config)
     if not 1 <= config.get("attempts", 3) <= 3:
         raise ValueError("attempts must be between one and three")
@@ -147,6 +147,8 @@ def run(config, profile="small", budget_usd=None, smoke_per_line=None, results_r
         raise ValueError("Dataset record IDs are not unique")
     chosen = samples(records, config, profile, smoke_per_line)
     methods = expand_methods(config)
+    if not runtime_factory and not allow_frontier and any(m.get("tier") == "frontier" for m in methods):
+        raise ValueError("Frontier inference requires explicit authorization; use --allow-frontier after approval")
     prompts = read_yaml(config["prompts"])
     prices = read_yaml(config["pricing"])["prices"]
     frozen = freeze(config)
