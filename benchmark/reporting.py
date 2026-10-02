@@ -4,6 +4,7 @@ from pathlib import Path
 import pandas as pd
 from benchmark.config import file_hash, json_write, read_yaml
 from benchmark.metrics import compute
+from benchmark.summary import dataset_summary, dataset_lines, make_verdict, verdict_lines
 
 
 def coverage_svg(metrics):
@@ -30,30 +31,8 @@ def coverage_svg(metrics):
     return "\n".join(parts)
 
 
-def load_verdict(folder):
-    path = folder / "verdict.json"
-    if not path.exists():
-        return None
-    verdict = json.loads(path.read_text())
-    if verdict["run_id"] != folder.name or verdict["predictions_sha256"] != file_hash(folder / "predictions.parquet"):
-        raise ValueError("Reviewed verdict does not match this run's prediction evidence")
-    return verdict
-
-
-def verdict_lines(verdict):
-    if verdict is None:
-        return ["# Results preserve the evidence", ""]
-    return [f"# {verdict['headline']}", "", verdict["assessment"], "",
-            *verdict["evidence_markdown"].splitlines(), "",
-            "## The sample limits inference", "",
-            *[f"- {item}" for item in verdict["limitations"]], "",
-            "## The next test needs focus", "", verdict["next_step"], "",
-            "## Recorded results support review", ""]
-
-
 def report(folder):
     folder = Path(folder)
-    verdict = load_verdict(folder)
     rows = pd.read_parquet(folder / "predictions.parquet")
     config = read_yaml(folder / "resolved_config.yaml")
     splits = pd.read_parquet(folder / "label_splits.parquet") if (folder / "label_splits.parquet").exists() else None
@@ -84,19 +63,20 @@ def report(folder):
                "pairwise": metrics["pairwise"], "examples": examples,
                "limitations": manifest.get("limitations", []) + [
                    "Costs use uncached list prices; billed invoice costs may differ.",
-                   "Composite scores are not correctness probabilities."]}
-    if verdict is not None:
-        summary["verdict"] = verdict
-    else:
-        summary["limitations"].append("A reviewed interpretation has not been attached to this run.")
+                   "Composite scores are not correctness probabilities.",
+                   f"Record concurrency: {config.get('record_concurrency', 1)}; question concurrency: {config.get('question_concurrency', 8)}. Latency is measured under this load."]}
     if status["mode"] != "benchmark" or not status["complete"]:
         summary["limitations"].insert(0, "This is a fixture, smoke, or incomplete run; it cannot establish the study pass rule.")
         for rule in summary["pass_rule"].values():
             rule["outcome"] = "not_evaluated"
         metrics["pass_rule"] = summary["pass_rule"]
         json_write(folder / "metrics.json", metrics)
+    verdict = make_verdict(rows, metrics, status) | {"run_id": folder.name, "predictions_sha256": file_hash(folder / "predictions.parquet")}
+    dataset = dataset_summary(rows, manifest, summary["sample_manifest"])
+    summary.update(verdict=verdict, tested_dataset=dataset)
+    json_write(folder / "verdict.json", verdict)
     json_write(folder / "management_summary.json", summary)
-    lines = verdict_lines(verdict) + [
+    lines = dataset_lines(dataset, summary["case"], manifest) + verdict_lines(verdict) + [
              f"Run: {folder.name}. Mode: {status['mode']}. Complete: {status['complete']}.",
              "Accuracy counts failed calls and abstentions as wrong. Composite and direct sample sizes can differ.", "",
              "| Method | Context | Records | Accuracy | Failures | Cost per 1,000 |",

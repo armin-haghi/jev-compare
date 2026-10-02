@@ -4,6 +4,8 @@ import random
 import shutil
 import subprocess
 import time
+import threading
+from concurrent.futures import ThreadPoolExecutor, wait, FIRST_COMPLETED
 from datetime import datetime, timezone
 from pathlib import Path
 from uuid import uuid4
@@ -123,6 +125,28 @@ def workload(config, profile="small", smoke_per_line=None):
             "methods": output, "requests_before_retries": sum(m["requests_before_retries"] for m in output)}
 
 
+def execute_records(predict, records, concurrency):
+    """Keep at most concurrency records in flight and drain them on failure."""
+    iterator = iter(records)
+    with ThreadPoolExecutor(max_workers=concurrency) as pool:
+        pending = {pool.submit(predict, record) for record in list_next(iterator, concurrency)}
+        try:
+            while pending:
+                done, pending = wait(pending, return_when=FIRST_COMPLETED)
+                for future in done:
+                    future.result()
+                pending.update(pool.submit(predict, record) for record in list_next(iterator, len(done)))
+        except BaseException:
+            for future in pending:
+                future.cancel()
+            raise
+
+
+def list_next(iterator, count):
+    from itertools import islice
+    return list(islice(iterator, count))
+
+
 def run(config, profile="small", budget_usd=None, smoke_per_line=None, results_root="results",
         runtime_factory=None, run_id=None, allow_frontier=False):
     config = resolve(config)
@@ -136,8 +160,8 @@ def run(config, profile="small", budget_usd=None, smoke_per_line=None, results_r
         if any(not isinstance(settings[k], int) or settings[k] < 1 for k in
                ("records_per_line", "composite_records", "repeat_records", "repeat_count", "shuffle_records")):
             raise ValueError(f"Profile sizes must be positive integers: {name}")
-    if config.get("record_concurrency", 1) != 1:
-        raise ValueError("This implementation requires record_concurrency=1; question concurrency is configurable")
+    if not isinstance(config.get("record_concurrency", 1), int) or not 1 <= config.get("record_concurrency", 1) <= 16:
+        raise ValueError("record_concurrency must be an integer between 1 and 16")
     case = load_case(config["case"])
     case_config = read_yaml(config["case_config"])
     records = case.load_records(case_config)
@@ -195,6 +219,8 @@ def run(config, profile="small", budget_usd=None, smoke_per_line=None, results_r
                                                   for regime in config["context_regimes"]})
     start = time.perf_counter()
     rows = []
+    journal_lock = threading.Lock()
+    stop = threading.Event()
     status = {"profile": profile, "mode": mode, "fingerprint": fingerprint, "complete": False,
               "small_predecessor": predecessor, "run_id": run_id}
     json_write(folder / "status.json", status)
@@ -204,7 +230,7 @@ def run(config, profile="small", budget_usd=None, smoke_per_line=None, results_r
         with (folder / "predictions.jsonl").open("a") as journal:
             for method in methods:
                 is_composite = "composite" in method["base_method"] or "decomposed" in method["base_method"]
-                for record in chosen["composite" if is_composite else "main"]:
+                def predict_record(record):
                     for regime in config["context_regimes"]:
                         jobs = [(0, False)]
                         if record.record_id in repeat_ids:
@@ -212,6 +238,8 @@ def run(config, profile="small", budget_usd=None, smoke_per_line=None, results_r
                         if record.record_id in shuffle_ids:
                             jobs.append((0, True))
                         for repeat, shuffled in jobs:
+                            if stop.is_set():
+                                return
                             payload = case.build_payload(record, regime, case_config)
                             candidates = case.candidates(record, case_config)
                             if len({c["id"] for c in candidates}) != len(candidates) or not candidates:
@@ -264,14 +292,18 @@ def run(config, profile="small", budget_usd=None, smoke_per_line=None, results_r
                                    "groups_json": json.dumps(record.groups, sort_keys=True),
                                    "source_json": json.dumps(record.source, sort_keys=True),
                                    "input_json": json.dumps(record.input, sort_keys=True)}
-                            rows.append(row)
-                            journal.write(json.dumps(row, allow_nan=False) + "\n")
-                            journal.flush()
+                            with journal_lock:
+                                rows.append(row)
+                                journal.write(json.dumps(row, allow_nan=False) + "\n")
+                                journal.flush()
                             if exhausted:
+                                stop.set()
                                 raise BudgetExceeded(f"Run stopped at its budget; evidence preserved in {folder}")
                             if fatal_error:
+                                stop.set()
                                 raise fatal_error
                     print(f"{method['method']}: {record.record_id[:12]} ({len(rows)} outputs)", flush=True)
+                execute_records(predict_record, chosen["composite" if is_composite else "main"], config.get("record_concurrency", 1))
         status["complete"] = True
     finally:
         successful = {(r["method"], r["context_regime"]) for r in rows if not r["failed"] and r["shuffled"]}

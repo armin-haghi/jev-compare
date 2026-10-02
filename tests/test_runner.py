@@ -56,24 +56,23 @@ def test_failure_is_kept(experiment, tmp_path):
     assert len(llm) > 0
 
 
-def test_reviewed_verdict_survives_regeneration_and_is_bound_to_evidence(experiment, tmp_path):
+def test_verdict_is_automatic_and_dataset_leads_report(experiment, tmp_path, capsys):
+    from benchmark.summary import print_summary
     path = run(experiment, budget_usd=1, results_root=tmp_path / "results", runtime_factory=FakeRuntime)
     evidence_hash = file_hash(path / "predictions.parquet")
-    verdict = {"run_id": path.name, "predictions_sha256": evidence_hash,
-               "headline": "The fixture verifies execution", "assessment": "Synthetic results do not rank models.",
-               "evidence_markdown": "Evidence: [saved predictions](predictions.parquet).",
-               "limitations": ["Synthetic inputs."], "next_step": "Review a live run separately."}
-    (path / "verdict.json").write_text(json.dumps(verdict))
+    verdict = json.loads((path / "verdict.json").read_text())
+    assert verdict["headline"] == "The fixture verifies execution"
+    assert verdict["predictions_sha256"] == evidence_hash
+    assert (path / "report.md").read_text().startswith("# The sample contains 4 records")
+    assert json.loads((path / "management_summary.json").read_text())["tested_dataset"]["category_counts"] == {"no": 2, "yes": 2}
+    (path / "verdict.json").write_text('{"headline": "stale interpretation"}')
     report(path)
-    assert (path / "report.md").read_text().startswith("# The fixture verifies execution")
     assert json.loads((path / "management_summary.json").read_text())["verdict"] == verdict
-    report(path)
     assert file_hash(path / "predictions.parquet") == evidence_hash
-    assert "Synthetic results do not rank models." in (path / "report.md").read_text()
-    verdict["predictions_sha256"] = "wrong-evidence"
-    (path / "verdict.json").write_text(json.dumps(verdict))
-    with pytest.raises(ValueError, match="does not match"):
-        report(path)
+    print_summary(path)
+    output = capsys.readouterr().out
+    assert "Dataset: 4/4 records, 2 categories" in output
+    assert "These results do not measure model quality." in output
 
 
 def test_smoke_is_disjoint_from_small_and_full(experiment):
@@ -125,3 +124,34 @@ def test_budget_interruption_keeps_partial_evidence(experiment, tmp_path):
     assert json.loads(rows.iloc[-1].diagnostics_json)["error_type"] == "BudgetExceeded"
     report(folder)
     assert json.loads((folder / "metrics.json").read_text())["pass_rule"]["label_only"]["outcome"] == "not_evaluated"
+
+
+def test_concurrent_runner_preserves_every_output(experiment, tmp_path):
+    experiment['record_concurrency'] = 3
+    path = run(experiment, budget_usd=1, results_root=tmp_path / 'results', runtime_factory=FakeRuntime)
+    frame = pd.read_parquet(path / 'predictions.parquet')
+    journal = [json.loads(line) for line in (path / 'predictions.jsonl').read_text().splitlines()]
+    assert len(frame) == len(journal) == 160
+    assert not frame.duplicated(['method', 'record_id', 'context_regime', 'repeat_index', 'shuffled']).any()
+    assert frame.correct.all()
+    assert json.loads((path / 'status.json').read_text())['mechanism_verified']
+
+
+def test_concurrent_stop_keeps_inflight_usage(experiment, tmp_path):
+    from benchmark.pricing import BudgetExceeded
+    import threading
+    experiment['record_concurrency'] = 2
+    experiment['methods'] = ['direct_llm']
+    experiment['llm_tiers'] = ['small']
+    barrier = threading.Barrier(2)
+    class Stopped(FakeRuntime):
+        def llm(self, *args):
+            barrier.wait(timeout=5)
+            raise BudgetExceeded('Injected spending stop')
+    with pytest.raises(BudgetExceeded):
+        run(experiment, budget_usd=1, results_root=tmp_path / 'results', runtime_factory=Stopped)
+    folder = next((tmp_path / 'results').iterdir())
+    rows = pd.read_parquet(folder / 'predictions.parquet')
+    assert len(rows) == 2
+    assert rows.failed.all()
+    assert not json.loads((folder / 'status.json').read_text())['complete']

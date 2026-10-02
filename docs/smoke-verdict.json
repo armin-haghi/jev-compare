@@ -1,16 +1,16 @@
 {
-  "run_id": "20261002T220450Z-7bcbffd4",
-  "predictions_sha256": "6943ff20bd2a240b68e2374b2703ebba54a6412b8bf7751468d35937b15910ca",
+  "caveat": "29 records do not establish a winner. The 5\u00d7 cost target was not met.",
+  "direct_comparison": {
+    "context_regime": "with_context",
+    "cost_ratio": 0.23107271418286537,
+    "jev_correct": 27,
+    "llm_correct": 26,
+    "llm_model": "openai/gpt-5-mini",
+    "records": 29
+  },
   "headline": "Jev warrants a larger test",
-  "decision": "Continue evaluation; comparative superiority and the study pass rule remain unestablished.",
-  "assessment": "Jev is a promising candidate for financial-statement line mapping. In this smoke test, its direct classifier answered one more line correctly than GPT-5 mini, cost about 77% less per record, and had a lower median response time. The evidence supports a larger controlled comparison; 29 distinct lines do not establish a winner. The study pass rule remains not evaluated. [Evidence: direct-method results and paired comparisons](metrics.json).",
-  "evidence_markdown": "The comparison below uses the same 29 lines, the first unshuffled prediction, and the context-rich input containing the line wording, neighbouring lines, amount information and industry. Repeats and alternative context settings are additional measurements of these lines, not additional independent examples. Costs are estimates at uncached list prices, extrapolated to 1,000 records. [Record-level source](predictions.parquet); [metrics](metrics.json).\n\n| Direct method | Correct lines | Accuracy | Cost per 1,000 | Median latency |\n| --- | ---: | ---: | ---: | ---: |\n| Jev | 27/29 | 93.1% | $0.0581 | 636 ms |\n| GPT-5 mini | 26/29 | 89.7% | $0.2515 | 1,186 ms |\n| Rules | 19/29 | 65.5% | $0 | <1 ms |\n\n- Jev's observed accuracy lead is 3.4 percentage points: one line. The paired 95% bootstrap interval is 0.0 to 10.3 points and includes a tie. The exact paired disagreement test gives p=1.0. These results do not demonstrate superior accuracy. [Paired comparisons](metrics.json).\n- Jev's direct calls cost 23.1% of GPT-5 mini's: about 4.3 times cheaper. The brief's cost route requires at most 20%, so this direct comparison falls short of that threshold. This is not a formal study fail; the smoke pass rule is not evaluated. [Cost metrics](metrics.json).\n- Among each method's 24 most confident context-rich answers, Jev got 24 right and GPT-5 mini got 23 right. That retains 82.8% of this small sample; rounding prevents exact 80% coverage. On label-only input both got 24/24. This is an encouraging confidence-ranking signal, not established calibration. [Coverage metrics](metrics.json).\n- Jev's batched and concurrent composite methods scored 5/5; GPT-5 mini's single-call scoring matrix also scored 5/5 with context. Five records do not distinguish these approaches. [Composite results](metrics.json).\n- GPT-5 mini's separate-question scoring method scored 0/5 without context and 1/5 with context. All five context-rich records produced tied top scores. This method needs a protocol review before its poor result is used to argue for Jev. The implementation reuses an instruction to score every candidate while requesting one candidate/dimension score; that mismatch is a possible explanation, not a proven cause. [Stored scores](predictions.parquet); [run-time prompt snapshot](prompts.yaml).\n- The complete smoke produced 354 outputs across seven method variants, with zero final failures, at an estimated $0.2862. There were 28 Jev retries because rounded probability vectors totalled 0.99 or 1.01. A subsequent validation correction passed offline replay; this report retains the original retry costs and timings. [Run status](status.json); [stored attempts](predictions.parquet).",
-  "limitations": [
-    "One held-out line per category gives 29 distinct records; the composite comparison uses five. The 354 output rows include repeated measurements and must not be treated as 354 independent examples. [Sample membership](sample_manifest.json).",
-    "The current sample has label-only and context-rich measurements of the same records. Context did not change either direct model's overall correct count. [Context results](metrics.json).",
-    "Company-filed tags provide a proxy answer key; they are not independently audited accounting truth. [Dataset provenance](dataset_manifest.json).",
-    "Frontier models were excluded from this completed test and require explicit authorization before inference. [Executed configuration](resolved_config.yaml).",
-    "The bootstrap interval and cost/coverage signals are exploratory. The full small-profile benchmark, its method review and the full-profile study remain outstanding. [Run scope](status.json)."
-  ],
-  "next_step": "Review the separate-question scoring protocol, then run the pre-specified larger held-out sample with Jev direct, GPT-5 mini direct and rules as the primary comparison. Treat the single-call matrix and batched Jev scoring as secondary comparisons. Freeze any protocol correction before that run, and keep the smoke records outside its sample. Frontier inference remains blocked until explicitly approved."
+  "next_step": "Review tied parallel scoring before choosing a model.",
+  "predictions_sha256": "6943ff20bd2a240b68e2374b2703ebba54a6412b8bf7751468d35937b15910ca",
+  "result": "Direct calls with context: Jev 27/29 correct versus openai/gpt-5-mini 26/29; 4.3\u00d7 cheaper at list prices.",
+  "run_id": "20261002T220450Z-7bcbffd4"
 }

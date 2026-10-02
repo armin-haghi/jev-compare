@@ -3,6 +3,7 @@ import argparse
 import json
 from pathlib import Path
 from benchmark.config import load_case, load_env, read_yaml, resolve
+from benchmark.summary import print_summary
 
 
 def main():
@@ -51,9 +52,10 @@ def main():
                     print(record.model_dump_json())
     elif args.command in ("run", "smoke"):
         from benchmark.runner import run
-        print(run(read_yaml(args.experiment), args.profile, args.budget_usd,
+        folder = run(read_yaml(args.experiment), args.profile, args.budget_usd,
                   args.records_per_line if args.command == "smoke" else None, args.results_root,
-                  allow_frontier=args.allow_frontier))
+                  allow_frontier=args.allow_frontier)
+        print_summary(folder)
     elif args.command == "plan":
         from benchmark.runner import workload
         print(json.dumps(workload(resolve(read_yaml(args.experiment)), args.profile), indent=2))
@@ -62,14 +64,14 @@ def main():
         if Path(args.run_id).name != args.run_id or args.run_id in (".", ".."):
             parser.error("--run-id must be a directory name")
         report(Path(args.results_root) / args.run_id)
-        print(Path(args.results_root) / args.run_id / "report.md")
+        print_summary(Path(args.results_root) / args.run_id)
     elif args.command == "demo":
         from tests.fixtures.toy_case import prepare
         from tests.fixtures.fake_runtime import FakeRuntime
         from benchmark.runner import run
         config = read_yaml("tests/fixtures/experiment.yaml")
         prepare(read_yaml(config["case_config"]))
-        print(run(config, budget_usd=1, runtime_factory=FakeRuntime))
+        print_summary(run(config, budget_usd=1, runtime_factory=FakeRuntime))
     elif args.command == "check":
         from benchmark.runner import preflight, expand_methods
         config = resolve(read_yaml(args.experiment))

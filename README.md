@@ -110,22 +110,22 @@ Mappings and rules are established before benchmark answers are inspected. The i
 ```bash
 # Replace each amount with an approved spending limit.
 uv run python -m benchmark.cli smoke --experiment config/experiments/sec_lines_smoke.yaml --records-per-line 1 --budget-usd 1
-uv run python -m benchmark.cli run --experiment config/experiments/sec_lines.yaml --profile small --budget-usd 100
-uv run python -m benchmark.cli run --experiment config/experiments/sec_lines.yaml --profile full --budget-usd 500
+uv run python -m benchmark.cli run --experiment config/experiments/sec_lines_economy.yaml --profile small --budget-usd 1
+uv run python -m benchmark.cli run --experiment config/experiments/sec_lines_economy.yaml --profile full --budget-usd 5
 uv run python -m benchmark.cli report --run-id RUN_ID
 ```
 
-The example budgets are limits, not cost forecasts. Parallel decomposed methods ask two questions per candidate: the original small profile can require approximately 74,000–79,000 calls before retries. The plan command reports the exact workload for the prepared sample. Smoke uses held-out records and caps its composite/repeat/shuffle subset at five records. Full runs require a matching completed small run with successful option-order responses from every method and context regime.
+The example budgets are limits, not cost forecasts. The economy configuration uses GPT-5 mini and Jev across 58 prerequisite records, then 2,900 main records and 100 composite records, with eight records in flight. Its estimated combined cost is $4.95 using the saved smoke rates; retries and response lengths can change this. Parallel decomposed methods ask two questions per candidate: the original small profile can require approximately 74,000–79,000 calls before retries. The plan command reports the exact workload for the prepared sample. Smoke uses held-out records and caps its composite/repeat/shuffle subset at five records. Full runs require a matching completed small run with successful option-order responses from every method and context regime.
 
 Calls use at most three attempts. Authentication errors stop retries. Record failures and abstentions count as incorrect; unknown billed usage remains unknown. A conservative reservation checks the spending limit before each request, including concurrent requests. List-price cost estimates exclude caching discounts and are not billing invoices.
 
 ## Artifacts support independent review
 
-The initial smoke configuration runs GPT-5 mini, Jev and rules. Frontier-model inference is blocked unless the caller explicitly supplies --allow-frontier after authorization; the full-study commands above will stop without that flag.
+The initial smoke configuration runs GPT-5 mini, Jev and rules. Frontier-model inference is blocked unless the caller explicitly supplies --allow-frontier after authorization; the original sec_lines.yaml configuration will stop without that flag. The economy commands above exclude the frontier tier.
 
 Each results/RUN_ID/ directory contains resolved configuration, case configuration, prompt and pricing snapshots, freeze hashes, dataset provenance, sample IDs, payload examples, provider metadata, an append-only prediction journal, predictions.parquet, metrics.json, metrics.csv, management_summary.json, report.md and two coverage/error SVG charts.
 
-Reports regenerate from saved outputs without provider calls or current case data. Direct methods use the main sample; composite methods use a nested subset. Pairwise comparisons use matched IDs, and the pass rule compares all methods on their common subset. Both row and filer-cluster bootstrap intervals are retained; the pass rule uses the filer-cluster interval.
+Reports lead with properties of the tested dataset and generate a short verdict from saved evidence. The same dataset summary, verdict, known list-price cost and report path appear after smoke, run, demo and report commands. verdict.json preserves the generated conclusion and predictions hash; regeneration refreshes it automatically. Reports regenerate from saved outputs without provider calls or current case data. Direct methods use the main sample; composite methods use a nested subset. Pairwise comparisons use matched IDs, and the pass rule compares all methods on their common subset. Both row and filer-cluster bootstrap intervals are retained; the pass rule uses the filer-cluster interval.
 
 Calibration measures selected-answer correctness probabilities. Composite margins rank confidence but are not treated as probabilities. Observed label distribution agreement is reported separately. Failed or partial runs and synthetic fixtures do not receive a study pass/fail conclusion.
 

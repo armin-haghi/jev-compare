@@ -25,7 +25,7 @@ The structured validation summary is [smoke-validation.json](smoke-validation.js
 
 ## Jev warrants a larger test
 
-The reviewed verdict is preserved in [smoke-verdict.json](smoke-verdict.json) and included at the top of the local report and in management_summary.json. On the 29 context-rich direct decisions, Jev scored 27/29 versus 26/29 for GPT-5 mini, at 23.1% of its estimated per-record cost. The one-record lead and five-record composite subset do not establish a winner or the study pass rule. The separate-question GPT scoring protocol needs review before its poor result is used for model comparison. The verdict is bound to the original predictions hash and survives report regeneration.
+The automatically generated verdict is preserved in [smoke-verdict.json](smoke-verdict.json) and included after the tested dataset properties in the local report and in management_summary.json. On the 29 context-rich direct decisions, Jev scored 27/29 versus 26/29 for GPT-5 mini, at 23.1% of its estimated per-record cost. The one-record lead and five-record composite subset do not establish a winner or the study pass rule. The separate-question GPT scoring protocol needs review before its poor result is used for model comparison. The concise verdict appears in the standard command output and regenerates from the saved predictions, with their hash attached.
 
 The 444-entry SEC industry list is committed. Dataset preparation emits a mapping-review queue; no additional tags were silently added to the frozen answer key.
 
@@ -34,3 +34,7 @@ The 444-entry SEC industry list is committed. Dataset preparation emits a mappin
 The parent plan's 28-line taxonomy becomes 29 lines so that total and component non-operating income remain distinct. Selected-answer calibration and population-distribution agreement are separate metrics. Reports mark fixture, smoke and incomplete runs as non-evidence.
 
 The complete small and full study profiles have not run. Smoke results test integration and execution; they do not establish a model-quality conclusion. Gateway model aliases may expose a requested model name without an immutable underlying weight version.
+
+## The larger run excludes frontier
+
+The economy configuration retains all seven methods, using GPT-5 mini, Jev and rules. A 58-record prerequisite precedes 2,900 records balanced across 29 categories; composite methods use 100 records. Estimated combined list-price cost is $4.95, based on the stored smoke. New software limits total $6 inside the existing $10 key limit. Eight records run concurrently, with four questions per record; a shared reservation ledger bounds spending. Prompts and the answer key remain frozen.
