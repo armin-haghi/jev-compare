@@ -23,6 +23,7 @@ conventional_llm:
 jev:
   provider: vercel
   model: typesafe-ai/jev
+  request_model: jev
   base_url: https://ai-gateway.vercel.sh/typesafe
 methods:
   - rules_baseline

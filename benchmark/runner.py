@@ -9,6 +9,7 @@ from pathlib import Path
 from uuid import uuid4
 
 import pandas as pd
+import requests
 import yaml
 
 from benchmark.config import digest, file_hash, json_write, load_case, read_yaml, resolve
@@ -65,14 +66,25 @@ def preflight(config, methods, prices):
             require_key(method["provider"])
             lookup(prices, method["provider"], method["model"])
     metadata = {"temperature_policy": {m["method"]: m.get("temperature") for m in methods}}
+    gateway_models = {m["model"] for m in methods if m["provider"] == "vercel"}
+    if gateway_models:
+        response = requests.get("https://ai-gateway.vercel.sh/v1/models", timeout=60)
+        response.raise_for_status()
+        catalog = {m["id"]: m for m in response.json()["data"]}
+        if gateway_models - catalog.keys():
+            raise ValueError(f"Models absent from Vercel catalog: {sorted(gateway_models - catalog.keys())}")
+        metadata["vercel_models"] = {key: {field: catalog[key].get(field) for field in
+                                    ("id", "name", "pricing", "temperature", "type")} for key in sorted(gateway_models)}
     if any(m["base_method"].startswith("jev") for m in methods):
         client = jev_client(config["jev"])
         try:
             available = client.models.list()
             metadata["jev_models"] = available.model_dump(mode="json")
             names = {m.name for m in available.models}
-            if config["jev"]["model"] not in names:
-                raise ValueError(f"Configured Jev model is absent from models.list(): {config['jev']['model']}")
+            requested = config["jev"].get("request_model", config["jev"]["model"])
+            metadata["jev_request_model"] = requested
+            if requested not in names:
+                raise ValueError(f"Configured Jev model is absent from models.list(): {config['jev']['model']}; available names: {sorted(names)}")
         finally:
             client.close()
     return metadata

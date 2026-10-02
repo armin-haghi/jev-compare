@@ -1,9 +1,20 @@
 import re
+from functools import lru_cache
 from benchmark.schemas import MethodResult
 from benchmark.config import read_yaml
 from .template import ROOT
 
 ALLOWLIST = {"label", "statement", "lines_above", "lines_below", "sign", "scale_ratio", "sic_description"}
+
+
+@lru_cache(maxsize=1)
+def rules_config():
+    return read_yaml(ROOT / "rules.yaml")
+
+
+@lru_cache(maxsize=1)
+def metadata_config():
+    return read_yaml(ROOT / "case.yaml")["metadata"]
 
 
 def normalize(text):
@@ -18,7 +29,7 @@ def build_payload(record, context_regime, case_config):
 
 
 def rules(payload, candidates, case_config):
-    config = read_yaml(ROOT / "rules.yaml")
+    config = rules_config()
     label = normalize(payload["label"])
     available = {c["id"] for c in candidates}
     above = [normalize(x) for x in payload.get("lines_above", [])]
@@ -37,7 +48,7 @@ def rules(payload, candidates, case_config):
 
 
 def metadata_scores(payload, candidates, case_config):
-    config = read_yaml(ROOT / "case.yaml")["metadata"]
+    config = metadata_config()
     scores = {}
     for candidate in candidates:
         expected = config.get(candidate["id"], config["default"])

@@ -25,6 +25,8 @@ def main():
     child.add_argument("--run-id", required=True)
     child.add_argument("--results-root", default="results")
     commands.add_parser("demo", help="Run every method against deterministic local fixture responses; no paid calls")
+    child = commands.add_parser("check", help="Validate credentials, pricing and model discovery without inference")
+    child.add_argument("--experiment", default="config/experiments/sec_lines.yaml")
     args = parser.parse_args()
     if args.command in ("prepare", "inspect"):
         module = load_case(args.case)
@@ -65,6 +67,11 @@ def main():
         config = read_yaml("tests/fixtures/experiment.yaml")
         prepare(read_yaml(config["case_config"]))
         print(run(config, budget_usd=1, runtime_factory=FakeRuntime))
+    elif args.command == "check":
+        from benchmark.runner import preflight, expand_methods
+        config = resolve(read_yaml(args.experiment))
+        metadata = preflight(config, expand_methods(config), read_yaml(config["pricing"])["prices"])
+        print(json.dumps(metadata, indent=2))
 
 
 if __name__ == "__main__":

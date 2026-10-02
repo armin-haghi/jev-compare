@@ -133,7 +133,8 @@ class Runtime:
         bound = cost({"input_tokens": 64000, "output_tokens": 0}, self.price)
 
         def execute():
-            response = self.jev_api.system_one(state=payload, questions=questions, model=self.config["model"])
+            response = self.jev_api.system_one(state=payload, questions=questions,
+                                              model=self.config.get("request_model", self.config["model"]))
             # The typed SDK drops provider extension fields; preserve the raw body too.
             raw = response.raw_http_response.json()
             usage = response.usage.model_dump(mode="json")

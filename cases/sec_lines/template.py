@@ -26,10 +26,14 @@ def mapping():
     return {tag: line["id"] for line in template()["lines"] for tag in line["tags"]}
 
 
+@lru_cache(maxsize=1)
+def descriptions():
+    return read_yaml(ROOT / "case.yaml")["descriptions"]
+
+
 def candidates(record, case_config):
-    descriptions = read_yaml(ROOT / "case.yaml")["descriptions"]
     return [
-        {"id": line["id"], "label": line["label"], "description": descriptions[line["id"]],
+        {"id": line["id"], "label": line["label"], "description": descriptions()[line["id"]],
          "template_order": index}
         for index, line in enumerate(template()["lines"])
         if line["statement"] == record.input["statement"]
