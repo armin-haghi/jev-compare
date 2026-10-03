@@ -19,9 +19,15 @@ The original 28-line template merges the two non-operating categories used in th
 
 ## Comparisons need matched records
 
-Direct methods run on the main sample; composite methods run on a nested subset. Pairwise statistics and the best-language-model pass rule use the common composite subset when composite comparators exist. Results remain separate by context regime. The best comparator is selected by accuracy, then method name; this exploratory selection is disclosed rather than represented as a confirmatory statistical claim.
+Direct methods run on the main sample; composite methods run on a nested subset. Each pairwise comparison uses the records shared by that pair: the economy run's direct comparison uses 2,900 records. The best-language-model pass rule uses the intersection across Jev direct and all conventional-model methods, which reduces its economy sample to 100 records. Results remain separate by context regime. The best comparator is selected by accuracy, then method name; this exploratory selection is disclosed rather than represented as a confirmatory statistical claim.
 
 Smoke records are reserved outside the full-profile sample, so smoke answers cannot later enter either benchmark profile. Small samples are nested in full samples; repeat and shuffle samples for composite methods are drawn from their evaluated intersection.
+
+## The brief supplied the cutoffs
+
+The [brief imported before implementation](https://github.com/armin-haghi/jev-compare/blob/e05b745/docs/build-brief.md#L39) specifies the 2-percentage-point accuracy margin, 95% interval, one-fifth cost target and 80% retained-answer comparison. The snapshot does not identify the individual who selected those values. Applying the criterion to the common method intersection and resampling companies were implementation choices documented in this review before paid testing.
+
+The original criterion requires the accuracy bound plus either cost at most one-fifth of the comparator or higher accuracy among each method's most confident 80%. Higher retained-answer accuracy therefore satisfies the benefit test even when cost savings fall short of 5×. These are project acceptance targets, not a boundary between useful and useless results. Reports lead with measured accuracy, cost and uncertainty, then retain the unchanged criterion in a separate audit.
 
 ## Calibration needs precise names
 
@@ -33,7 +39,7 @@ Observed label distributions use one vote per filer within a statement. Conflict
 
 Freeze code, prompts, rules, template, sampling configuration and pricing before smoke inference. Never tune against benchmark answers. Store attempts, raw responses, usage, resolved model names, source hashes and original configuration. Unknown pricing or credentials stop execution before paid calls. Failed calls count as wrong; unknown billable usage is reported as unknown, never silently free.
 
-The small profile must finish its repeats and option-order checks before a matching full run is allowed. Reports distinguish offline fixture checks from real benchmark evidence. The software computes pass-rule fields but makes no management recommendation.
+The small profile must finish its repeats and option-order checks before a matching full run is allowed. Reports distinguish offline fixture checks from real benchmark evidence. The software generates an evidence-based interpretation separately from the original pass-rule fields.
 
 ## Sources establish the constraints
 

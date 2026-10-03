@@ -21,11 +21,11 @@ Source: [validation snapshot](economy-validation.json), including dataset proven
 - Eligibility requires standard mapped tags and consolidated values denominated in United States dollars.
 - Available SEC presentation rows may omit headings.
 
-## Jev misses the study thresholds
+## Jev cuts direct costs 77%
 
-Direct with context (2,900 records): Jev 95.8% vs openai/gpt-5-mini 95.2%; 4.3× cheaper at list prices.
+Direct with context (2,900 records): Jev 95.76% vs openai/gpt-5-mini 95.24%; cost 76.9% lower (4.3× cheaper) at list prices. The observed direct comparison favors Jev on accuracy and cost.
 
-Study rule: label only fail (n=100); with context fail (n=100). The shared sample cannot rule out an accuracy loss above 2 percentage points. Review tied composite scoring before choosing a method.
+Accuracy difference: +0.52 percentage points; 95% interval -0.14 to +1.20, resampling companies. An accuracy advantage is not established. Review direct-method errors on the intended workload; assess composite scoring separately.
 
 Source: [computed metrics](economy-validation.json).
 
@@ -58,6 +58,25 @@ Direct methods choose a category. Composite methods combine wording, position an
 | typesafe-ai/jev | 14,284 | 17,166,474 | 1,254,165 | $0.7210 |
 
 This run cost $4.1840. All five recorded runs total $5.6677 in known list-price usage. The interrupted prerequisite contains 40 requests with unknown usage; its additional $0.3788 reservation is not a measured charge. See the [cost ledger](economy-validation.json).
+
+## The brief sets acceptance targets
+
+The original criterion requires an accuracy loss no greater than 2 percentage points at the lower end of a 95% interval, plus either cost at most one-fifth of the comparator or higher accuracy among the most confident 80% of answers.
+
+Source: [brief as imported before implementation](https://github.com/armin-haghi/jev-compare/blob/e05b745/docs/build-brief.md#L39). The snapshot does not identify who originally selected the cutoffs.
+
+The implementation applies the criterion to records shared by Jev direct and all conventional-model methods, and resamples companies to account for correlated records.
+
+These are project acceptance targets. Practical value is assessed separately from measured accuracy, cost and uncertainty.
+
+| Context | Shared records | Accuracy-difference interval | Cost relative to comparator | Higher accuracy at 80% coverage | Original criterion |
+| --- | ---: | --- | --- | --- | --- |
+| label only | 100 | -6.06 to +2.00 points | 23.1% (target ≤20%) | Yes | Unmet |
+| with context | 100 | -3.00 to +3.00 points | 23.1% (target ≤20%) | Yes | Unmet |
+
+The shared-sample interval extends below the allowed 2-point loss. That explains the unmet original criterion; the full direct comparison above uses its own larger sample and interval.
+
+Where retained-answer accuracy is higher, that satisfies the alternative benefit test; the 5× cost target is not required. Each method retains its own most confident 80%, so accepted records can differ.
 
 ## Confidence ranks retained answers
 

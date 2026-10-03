@@ -1,5 +1,6 @@
+from copy import deepcopy
 import pandas as pd
-from benchmark.summary import make_verdict
+from benchmark.summary import make_verdict, verdict_lines, criterion_lines
 
 
 def test_verdict_uses_matched_records_and_known_costs():
@@ -16,7 +17,8 @@ def test_verdict_uses_matched_records_and_known_costs():
     assert verdict['direct_comparison']['records'] == 2
     assert verdict['direct_comparison']['cost_ratio'] == .25
     assert '4.0× cheaper' in verdict['result']
-    assert '5× cost target was not met' in verdict['caveat']
+    assert 'at list prices' in verdict['result']
+    assert 'do not establish a winner' in verdict['caveat']
     frame.loc[0, 'cost_usd'] = 999  # Unmatched costs cannot change the comparison.
     assert make_verdict(frame, metrics, status) == verdict
     frame.loc[1, 'usage_complete'] = False
@@ -36,9 +38,40 @@ def test_study_verdict_explains_the_smaller_shared_sample():
              shuffled=False, correct=True, usage_complete=True, cost_usd=.1 if method == 'jev_direct' else .4,
              model='jev' if method == 'jev_direct' else 'mini')
         for method in ['jev_direct', 'direct_llm_small'] for i in range(10)])
-    metrics = {'methods': [], 'pass_rule': {'with_context': {'outcome': 'fail', 'records': 2, 'noninferior': False}}}
+    metrics = {'methods': [], 'pass_rule': {'with_context': {
+        'outcome': 'fail', 'records': 2, 'noninferior': False, 'cost_ratio': .25,
+        'higher_accuracy_at_80_coverage': True,
+        'comparison': {'filer_cluster_bootstrap_95': [-.5, .5]}}},
+        'pairwise': [{'left': 'jev_direct', 'right': 'direct_llm_small', 'context_regime': 'with_context',
+                      'records': 10, 'filer_cluster_bootstrap_95': [-.01, .01]}]}
+    original = deepcopy(metrics)
     verdict = make_verdict(rows, metrics, {'mode': 'benchmark', 'complete': True})
     assert '(10 records)' in verdict['result']
-    assert '(n=2)' in verdict['caveat']
-    assert 'cannot rule out an accuracy loss above 2 percentage points' in verdict['caveat']
-    assert verdict['headline'] == 'Jev misses the study thresholds'
+    assert '4.0× cheaper' in verdict['result']
+    assert '95% interval -1.00 to +1.00' in verdict['caveat']
+    assert 'An accuracy advantage is not established' in verdict['caveat']
+    assert verdict['headline'] == 'Jev cuts direct costs 75%'
+    assert 'cutoff' not in '\n'.join(verdict_lines(verdict))
+    audit = '\n'.join(criterion_lines(verdict))
+    assert '| with context | 2 | -50.00 to +50.00 points |' in audit
+    assert 'The snapshot does not identify who originally selected the cutoffs' in audit
+    assert '5× cost target is not required' in audit
+    assert metrics == original  # Interpretations cannot change the original criterion.
+
+
+def test_cheaper_method_with_lower_accuracy_reports_tradeoff():
+    rows = pd.DataFrame([
+        dict(method=method, record_id=str(i), context_regime='with_context', repeat_index=0,
+             shuffled=False, correct=method != 'jev_direct' or i > 1, usage_complete=True,
+             cost_usd=.1 if method == 'jev_direct' else .4, model=method)
+        for method in ['jev_direct', 'direct_llm_small'] for i in range(10)])
+    pair = {'left': 'jev_direct', 'right': 'direct_llm_small', 'context_regime': 'with_context',
+            'records': 10, 'filer_cluster_bootstrap_95': [-.4, -.1]}
+    verdict = make_verdict(rows, {'pairwise': [pair]}, {'mode': 'benchmark', 'complete': True})
+    assert verdict['headline'] == 'Direct results show a tradeoff'
+    assert 'supports lower accuracy' in verdict['caveat']
+    assert 'favors Jev on accuracy' not in verdict['result']
+    pair['records'] = 2  # An interval from a different sample cannot describe all 10 records.
+    verdict = make_verdict(rows, {'pairwise': [pair]}, {'mode': 'benchmark', 'complete': True})
+    assert verdict['direct_comparison']['filer_cluster_bootstrap_95'] is None
+    assert 'uncertainty was not estimated' in verdict['caveat']

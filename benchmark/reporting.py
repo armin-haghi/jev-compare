@@ -4,7 +4,7 @@ from pathlib import Path
 import pandas as pd
 from benchmark.config import file_hash, json_write, read_yaml
 from benchmark.metrics import compute
-from benchmark.summary import dataset_summary, dataset_lines, make_verdict, verdict_lines
+from benchmark.summary import dataset_summary, dataset_lines, make_verdict, verdict_lines, criterion_lines
 
 
 def coverage_svg(metrics):
@@ -85,7 +85,8 @@ def report(folder):
     for row in flat:
         price = f"$ {row['cost_per_1000_usd']:.4f}" if row["cost_per_1000_usd"] is not None else "unknown"
         lines.append(f"| {row['method']} | {row['context_regime']} | {row['records']} | {row['accuracy']:.2%} | {row['failure_rate']:.2%} | {price} |")
-    lines += ["", "## Confidence ranks retained answers", ""]
+    lines += [""] + criterion_lines(verdict)
+    lines += ["## Confidence ranks retained answers", ""]
     for regime in sorted(rows.context_regime.unique()):
         filename = f"coverage-{regime}.svg"
         (folder / filename).write_text(coverage_svg([m for m in metrics["methods"] if m["context_regime"] == regime]))

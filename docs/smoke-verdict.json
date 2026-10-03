@@ -1,16 +1,90 @@
 {
-  "caveat": "29 records do not establish a winner. The 5\u00d7 cost target was not met.",
+  "caveat": "29 records do not establish a winner.",
+  "criterion_audit": {
+    "implementation": "The implementation applies the criterion to records shared by Jev direct and all conventional-model methods, and resamples companies to account for correlated records.",
+    "interpretation": "These are project acceptance targets. Practical value is assessed separately from measured accuracy, cost and uncertainty.",
+    "origin": "The imported build brief specified the 2-point accuracy margin, 95% interval, one-fifth cost target and 80% coverage comparison. Its individual author is not recorded in the snapshot.",
+    "outcomes": {
+      "label_only": {
+        "at_most_one_fifth_cost": false,
+        "best_llm": "direct_llm_small",
+        "comparison": {
+          "accuracy_difference": 0.0,
+          "available": true,
+          "filer_cluster_bootstrap_95": [
+            0.0,
+            0.0
+          ],
+          "filers": 5,
+          "left_only_correct": 0,
+          "mcnemar_exact_p": 1.0,
+          "paired_bootstrap_95": [
+            0.0,
+            0.0
+          ],
+          "records": 5,
+          "right_only_correct": 0
+        },
+        "cost_ratio": 0.23038366652488304,
+        "higher_accuracy_at_80_coverage": false,
+        "limitations": [
+          "Best comparator is selected on this sample; this is exploratory.",
+          "Pass rule uses filer-cluster bootstrap on the common method intersection."
+        ],
+        "noninferior": true,
+        "outcome": "not_evaluated",
+        "records": 5
+      },
+      "with_context": {
+        "at_most_one_fifth_cost": true,
+        "best_llm": "decomposed_llm_matrix_small",
+        "comparison": {
+          "accuracy_difference": 0.0,
+          "available": true,
+          "filer_cluster_bootstrap_95": [
+            0.0,
+            0.0
+          ],
+          "filers": 5,
+          "left_only_correct": 0,
+          "mcnemar_exact_p": 1.0,
+          "paired_bootstrap_95": [
+            0.0,
+            0.0
+          ],
+          "records": 5,
+          "right_only_correct": 0
+        },
+        "cost_ratio": 0.07614808979913353,
+        "higher_accuracy_at_80_coverage": false,
+        "limitations": [
+          "Best comparator is selected on this sample; this is exploratory.",
+          "Pass rule uses filer-cluster bootstrap on the common method intersection."
+        ],
+        "noninferior": true,
+        "outcome": "not_evaluated",
+        "records": 5
+      }
+    },
+    "rule": "Accuracy lower bound >= -2 percentage points AND (cost ratio <= 20% OR higher accuracy among each method's most confident 80%).",
+    "source": "https://github.com/armin-haghi/jev-compare/blob/e05b745/docs/build-brief.md#L39"
+  },
   "direct_comparison": {
+    "accuracy_difference": 0.034482758620689655,
     "context_regime": "with_context",
     "cost_ratio": 0.23107271418286537,
+    "filer_cluster_bootstrap_95": [
+      0.0,
+      0.10344827586206896
+    ],
     "jev_correct": 27,
     "llm_correct": 26,
     "llm_model": "openai/gpt-5-mini",
     "records": 29
   },
   "headline": "Jev warrants a larger test",
-  "next_step": "Review tied composite scoring before choosing a method.",
+  "next_step": "Review direct-method errors on the intended workload; assess composite scoring separately.",
   "predictions_sha256": "6943ff20bd2a240b68e2374b2703ebba54a6412b8bf7751468d35937b15910ca",
-  "result": "Direct with context (29 records): Jev 93.1% vs openai/gpt-5-mini 89.7%; 4.3\u00d7 cheaper at list prices.",
+  "result": "Direct with context (29 records): Jev 93.10% vs openai/gpt-5-mini 89.66%; cost 76.9% lower (4.3\u00d7 cheaper) at list prices.",
   "run_id": "20261002T220450Z-7bcbffd4"
 }

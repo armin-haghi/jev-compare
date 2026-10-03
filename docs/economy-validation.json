@@ -9520,8 +9520,8 @@
   },
   "prediction_rows": 18760,
   "report_generator_hashes": {
-    "benchmark/reporting.py": "627becae1522ebe7d462278d92f8caf4d16e1fa0fa7ee1fc24f52afe6727e4f2",
-    "benchmark/summary.py": "9c70a7b7cab52542c2d993f03540f74af5baed914d025f5da82d1731b1c9ae09"
+    "benchmark/reporting.py": "5b72dd31d647b5d50281a5a26176514c6bea0880c60bca477dff1a20b95a2991",
+    "benchmark/summary.py": "93d9da4f9506ff4243f2020feb0e340fdd05d08bbf129ec072e5d4bc235394e2"
   },
   "run_id": "20261002T232137Z-571ebdd4",
   "sample_manifest": {
@@ -12580,7 +12580,7 @@
     "freeze.json": "ad23c32c29597fe008303b72fa744647ab1e9c4df87c3e81a46b192d2b89dc7e",
     "metrics.json": "ccff23b701811443419d120d0abba2f5d9154e0cc3414a9f9bfad44618d65c6c",
     "predictions.parquet": "f28270deeb4460a1d56f9f6162c496c2959bdaca5bca11727f939d9dedba5537",
-    "report.md": "356919e1b8daf10b1fff1ca4744d353c7d87dad6cd1d63dd3b9f332728a69d93",
+    "report.md": "95f2d185d9e3694ad194f64ce2d8d2523a46fd46d058e9cecfca83164f9acbdc",
     "resolved_config.yaml": "4a7429c708e946a456272e52e4b7bedb29ecac65b1e73adf1daf9db7413be4b7",
     "sample_manifest.json": "ba7e6cdcb96e0f8c42f23d76874ff6f1f018601d8c999c2d072692aea11d0c4f"
   },
@@ -12660,19 +12660,93 @@
   },
   "unknown_usage_outputs": 0,
   "verdict": {
-    "caveat": "Study rule: label only fail (n=100); with context fail (n=100). The shared sample cannot rule out an accuracy loss above 2 percentage points.",
+    "caveat": "Accuracy difference: +0.52 percentage points; 95% interval -0.14 to +1.20, resampling companies. An accuracy advantage is not established.",
+    "criterion_audit": {
+      "implementation": "The implementation applies the criterion to records shared by Jev direct and all conventional-model methods, and resamples companies to account for correlated records.",
+      "interpretation": "These are project acceptance targets. Practical value is assessed separately from measured accuracy, cost and uncertainty.",
+      "origin": "The imported build brief specified the 2-point accuracy margin, 95% interval, one-fifth cost target and 80% coverage comparison. Its individual author is not recorded in the snapshot.",
+      "outcomes": {
+        "label_only": {
+          "at_most_one_fifth_cost": false,
+          "best_llm": "direct_llm_small",
+          "comparison": {
+            "accuracy_difference": -0.02,
+            "available": true,
+            "filer_cluster_bootstrap_95": [
+              -0.06060606060606061,
+              0.02
+            ],
+            "filers": 99,
+            "left_only_correct": 1,
+            "mcnemar_exact_p": 0.6249999999999994,
+            "paired_bootstrap_95": [
+              -0.06,
+              0.02
+            ],
+            "records": 100,
+            "right_only_correct": 3
+          },
+          "cost_ratio": 0.2312529252925293,
+          "higher_accuracy_at_80_coverage": true,
+          "limitations": [
+            "Best comparator is selected on this sample; this is exploratory.",
+            "Pass rule uses filer-cluster bootstrap on the common method intersection."
+          ],
+          "noninferior": false,
+          "outcome": "fail",
+          "records": 100
+        },
+        "with_context": {
+          "at_most_one_fifth_cost": false,
+          "best_llm": "direct_llm_small",
+          "comparison": {
+            "accuracy_difference": 0.0,
+            "available": true,
+            "filer_cluster_bootstrap_95": [
+              -0.03,
+              0.03
+            ],
+            "filers": 99,
+            "left_only_correct": 1,
+            "mcnemar_exact_p": 1.0,
+            "paired_bootstrap_95": [
+              -0.03,
+              0.03
+            ],
+            "records": 100,
+            "right_only_correct": 1
+          },
+          "cost_ratio": 0.23119048376830048,
+          "higher_accuracy_at_80_coverage": true,
+          "limitations": [
+            "Best comparator is selected on this sample; this is exploratory.",
+            "Pass rule uses filer-cluster bootstrap on the common method intersection."
+          ],
+          "noninferior": false,
+          "outcome": "fail",
+          "records": 100
+        }
+      },
+      "rule": "Accuracy lower bound >= -2 percentage points AND (cost ratio <= 20% OR higher accuracy among each method's most confident 80%).",
+      "source": "https://github.com/armin-haghi/jev-compare/blob/e05b745/docs/build-brief.md#L39"
+    },
     "direct_comparison": {
+      "accuracy_difference": 0.005172413793103448,
       "context_regime": "with_context",
       "cost_ratio": 0.23118068207576328,
+      "filer_cluster_bootstrap_95": [
+        -0.0013784789047092052,
+        0.0119580448923579
+      ],
       "jev_correct": 2777,
       "llm_correct": 2762,
       "llm_model": "openai/gpt-5-mini",
       "records": 2900
     },
-    "headline": "Jev misses the study thresholds",
-    "next_step": "Review tied composite scoring before choosing a method.",
+    "headline": "Jev cuts direct costs 77%",
+    "next_step": "Review direct-method errors on the intended workload; assess composite scoring separately.",
     "predictions_sha256": "f28270deeb4460a1d56f9f6162c496c2959bdaca5bca11727f939d9dedba5537",
-    "result": "Direct with context (2,900 records): Jev 95.8% vs openai/gpt-5-mini 95.2%; 4.3\u00d7 cheaper at list prices.",
+    "result": "Direct with context (2,900 records): Jev 95.76% vs openai/gpt-5-mini 95.24%; cost 76.9% lower (4.3\u00d7 cheaper) at list prices. The observed direct comparison favors Jev on accuracy and cost.",
     "run_id": "20261002T232137Z-571ebdd4"
   }
 }
