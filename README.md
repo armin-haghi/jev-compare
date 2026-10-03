@@ -4,7 +4,7 @@ Source: https://app.notion.com/p/3ec785996df481d3898adc68e3049fb2?pvs=204
 
 This README preserves the parent evaluation plan below. The implementation uses **29 categories**, separating total non-operating income from other non-operating income; see [study review](docs/review.md). Python 3.12 and Vercel AI Gateway are the build defaults. Setup and run commands follow the source plan.
 
-Live validation: the completed 2,900-record comparison measured 95.76% accuracy for Jev versus 95.24% for GPT-5 mini with context, at 77% lower direct-call cost. The observed accuracy lead is not statistically established. The full run cost $4.1840 at list prices, with zero final failures. All 38 local tests pass. See the [dataset-first report](docs/economy-report.md).
+Live validation: the completed 2,900-record comparison measured 95.76% accuracy for Jev versus 95.24% for GPT-5 mini with context, at 77% lower direct-call cost. The observed accuracy lead is not statistically established. The full run cost $4.1840 at list prices, with zero final failures. All 42 local tests pass. See the [external-audience report](docs/economy-report.md) and [reusable report format](docs/report-format.md).
 
 **What:** Evaluation plan for Jev, TypeSafe's decision model, against conventional LLM workflows on repeated finance data decisions. The aim is to find the kind of decision where Jev is the better building block, not to replace LLMs in general.
 **Status:** Case 1 (mapping company financial-statement lines to a standard template, using public SEC data) agreed on 2 Oct 2026 and specified in the build brief below. Earlier ESEF framing retired.
@@ -123,9 +123,19 @@ Calls use at most three attempts. Authentication errors stop retries. Record fai
 
 The initial smoke configuration runs GPT-5 mini, Jev and rules. Frontier-model inference is blocked unless the caller explicitly supplies --allow-frontier after authorization; the original sec_lines.yaml configuration will stop without that flag. The economy commands above exclude the frontier tier.
 
-Each results/RUN_ID/ directory contains resolved configuration, case configuration, prompt and pricing snapshots, freeze hashes, dataset provenance, sample IDs, payload examples, provider metadata, an append-only prediction journal, predictions.parquet, metrics.json, metrics.csv, management_summary.json, report.md and two coverage/error SVG charts.
+Each results/RUN_ID/ directory contains resolved configuration, case configuration, prompt and pricing snapshots, freeze hashes, dataset provenance, sample IDs, payload examples, provider metadata, an append-only prediction journal, predictions.parquet, metrics.json, metrics.csv, analysis.json, management_summary.json, report.md, details.md, criterion-audit.md and two coverage/error SVG charts.
 
-Reports lead with properties of the tested dataset and generate a short verdict from measured accuracy, cost and uncertainty. The brief's original acceptance targets appear in a separate audit with their provenance and sample size; they do not decide whether a cost saving is practically useful. The same dataset summary, verdict, criterion audit, known list-price cost and report path appear after smoke, run, demo and report commands. verdict.json preserves the generated conclusion and predictions hash; regeneration refreshes it automatically. Reports regenerate from saved outputs without provider calls or current case data. Direct methods use the main sample; composite methods use a nested subset. Pairwise comparisons use matched IDs, and the pass rule compares Jev direct and conventional-model methods on their common subset. Both row and filer-cluster bootstrap intervals are retained; the pass rule uses the filer-cluster interval. See [criterion provenance](docs/review.md#the-brief-supplied-the-cutoffs).
+Reports follow the [report format](docs/report-format.md): dataset, test purpose, results and recommendation. The short main report explains Jev and the alternatives for an external reader; a linked detail report contains category breakdowns, stability checks, costs and charts. Recommendations use observed tradeoffs, uncertainty and counterevidence. The original criterion remains in a linked historical audit and machine-readable metrics. Command output gives dataset, purpose, result and recommendation, followed by cost and report path.
+
+The report command regenerates every table and conclusion from saved outputs without provider calls or current case data. analysis.json preserves recommendation evidence; verdict.json preserves the direct comparison and predictions hash. Direct methods use the main sample; composite methods use a nested subset. Pairwise comparisons use matched IDs, while the historical criterion uses the common subset across Jev direct and conventional-model methods. Both row and company-resampling intervals are retained. See [criterion provenance](docs/review.md#the-brief-supplied-the-cutoffs).
+
+Generate the local report and a shareable package with the same renderer:
+
+```bash
+uv run python -m benchmark.cli report --run-id RUN_ID --publish-dir docs --publish-prefix economy
+```
+
+This writes economy-report.md, economy-details.md, economy-validation.json, economy-criterion-audit.md and two figures. The evidence snapshot contains analysis, configurations, prompts, dataset properties, selected IDs, metrics and hashes of the local raw evidence. It excludes credentials. The original inference evidence remains unchanged.
 
 Calibration measures selected-answer correctness probabilities. Composite margins rank confidence but are not treated as probabilities. Observed label distribution agreement is reported separately. Failed or partial runs and synthetic fixtures do not receive a study pass/fail conclusion.
 

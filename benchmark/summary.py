@@ -1,6 +1,7 @@
 """Short, evidence-derived dataset descriptions and conclusions."""
 import json
 from collections import Counter
+from benchmark.analysis import model_name
 
 
 def dataset_summary(rows, manifest, sample):
@@ -42,12 +43,11 @@ def dataset_lines(dataset, description, manifest):
         names = {'BS': 'Balance sheet', 'IS': 'Income statement'}
         lines.append('| Statements | ' + '; '.join(f'{names.get(key, key)}: {count:,}' for key, count in sorted(dataset['statements'].items())) + ' |')
         lines.append(f"| Label properties | {dataset['filer_split_records']:,} have wording mapped differently across filers; {dataset['label_differs_records']:,} differ from the standard label |")
-    lines.append(f"| Subsets | Composite: {dataset['composite_records']:,}; repeat: {dataset['repeat_records']:,}; option shuffle: {dataset['shuffle_records']:,} |")
+    lines.append(f"| Subsets | Multi-question comparison: {dataset['composite_records']:,}; repeat checks: {dataset['repeat_records']:,}; answer-order checks: {dataset['shuffle_records']:,} |")
     if dataset['quarter_start']:
         lines.append(f"| Filing archives | {dataset['quarter_start']}–{dataset['quarter_end']} |")
     lines += ['', 'Sampling balances answer categories; aggregate accuracy does not estimate the natural filing mix.',
-              'Source: [dataset manifest](dataset_manifest.json), [selected record IDs](sample_manifest.json), [record-level evidence](predictions.parquet).', '']
-    lines += [f'- {limit}' for limit in manifest.get('limitations', [])]
+              'Source: [dataset manifest](dataset_manifest.json), [selected record IDs](sample_manifest.json).', '']
     return lines + ['']
 
 
@@ -86,7 +86,7 @@ def make_verdict(rows, metrics, status):
     if ratio is not None and ratio > 0:
         price = f'{1 / ratio:.1f}× cheaper' if ratio < 1 else f'{ratio:.1f}× the cost'
     context = regime.replace('_', ' ')
-    result = f"Direct {context} ({count:,} records): Jev {jev_correct/count:.1%} vs {right.iloc[0].model} {llm_correct/count:.1%}; {price} at list prices."
+    result = f"Direct {context} ({count:,} records): Jev {jev_correct/count:.1%} vs {model_name(right.iloc[0].model)} {llm_correct/count:.1%}; {price} at list prices."
     pair = next((item for item in metrics.get('pairwise', [])
                  if item.get('left') == 'jev_direct' and item.get('right') == right.iloc[0].method
                  and item.get('context_regime') == regime and item.get('records') == count), None)
@@ -118,7 +118,7 @@ def make_verdict(rows, metrics, status):
             caveat = 'Accuracy uncertainty was not estimated; these are observed results.'
     if cheaper:
         result = (f'Direct {context} ({count:,} records): Jev {jev_correct/count:.2%} vs '
-                  f'{right.iloc[0].model} {llm_correct/count:.2%}; '
+                  f'{model_name(right.iloc[0].model)} {llm_correct/count:.2%}; '
                   f'cost {1-ratio:.1%} lower' + (f' ({1/ratio:.1f}× cheaper) at list prices.' if ratio > 0 else ' at list prices.'))
     if status['mode'] == 'benchmark' and cheaper and difference > 0:
         result += ' The observed direct comparison favors Jev on accuracy and cost.'
@@ -172,12 +172,12 @@ def print_summary(folder):
     summary = json.loads((folder / 'management_summary.json').read_text())
     dataset, verdict = summary['tested_dataset'], summary['verdict']
     print(f"Dataset: {dataset['observed_records']:,}/{dataset['selected_records']:,} records, {dataset['categories']} categories, {dataset['composite_records']} composite records.")
+    analysis = summary.get('analysis', {})
+    if analysis:
+        print('Purpose: ' + analysis['purpose'])
     print(verdict['headline'] + '.')
     print(verdict['result'])
-    print(verdict['caveat'] + ' ' + verdict['next_step'])
-    audit = verdict.get('criterion_audit')
-    if audit and audit['outcomes']:
-        outcomes = '; '.join(f"{key.replace('_', ' ')}: {'unmet' if value['outcome'] == 'fail' else value['outcome']} on {value.get('records', 0)} shared records" for key, value in audit['outcomes'].items())
-        print('Original brief criterion (separate audit): ' + outcomes + '.')
+    print(verdict['caveat'])
+    print('Recommendation: ' + analysis.get('recommendation', verdict['next_step']))
     print(f"Known list-price cost: ${summary['run'].get('known_list_price_cost_usd', 0):.4f}")
     print(f"Report: {folder / 'report.md'}")

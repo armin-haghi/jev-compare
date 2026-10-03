@@ -27,6 +27,8 @@ def main():
     child = commands.add_parser("report")
     child.add_argument("--run-id", required=True)
     child.add_argument("--results-root", default="results")
+    child.add_argument("--publish-dir", help="Also write a shareable report and evidence package to this directory")
+    child.add_argument("--publish-prefix", default="benchmark")
     commands.add_parser("demo", help="Run every method against deterministic local fixture responses; no paid calls")
     child = commands.add_parser("check", help="Validate credentials, pricing and model discovery without inference")
     child.add_argument("--experiment", default="config/experiments/sec_lines.yaml")
@@ -60,11 +62,13 @@ def main():
         from benchmark.runner import workload
         print(json.dumps(workload(resolve(read_yaml(args.experiment)), args.profile), indent=2))
     elif args.command == "report":
-        from benchmark.reporting import report
+        from benchmark.reporting import report, publish_report
         if Path(args.run_id).name != args.run_id or args.run_id in (".", ".."):
             parser.error("--run-id must be a directory name")
         report(Path(args.results_root) / args.run_id)
         print_summary(Path(args.results_root) / args.run_id)
+        if args.publish_dir:
+            print('Shareable report: ' + str(publish_report(Path(args.results_root) / args.run_id, args.publish_dir, args.publish_prefix)))
     elif args.command == "demo":
         from tests.fixtures.toy_case import prepare
         from tests.fixtures.fake_runtime import FakeRuntime

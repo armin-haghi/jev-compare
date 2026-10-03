@@ -6,7 +6,7 @@ import pytest
 import yaml
 from benchmark.config import file_hash, read_yaml
 from benchmark.runner import run, check_small_gate, expand_methods
-from benchmark.reporting import report
+from benchmark.reporting import report, publish_report
 from benchmark.sampling import samples
 from tests.fixtures.fake_runtime import FakeRuntime
 from tests.fixtures.toy_case import prepare, load_records
@@ -73,6 +73,34 @@ def test_verdict_is_automatic_and_dataset_leads_report(experiment, tmp_path, cap
     output = capsys.readouterr().out
     assert "Dataset: 4/4 records, 2 categories" in output
     assert "These results do not measure model quality." in output
+    assert 'Purpose:' in output and 'Recommendation:' in output
+    assert 'Original brief criterion' not in output
+    assert 'does not support a deployment recommendation' in output
+
+
+def test_shared_report_preserves_local_evidence_and_scope(experiment, tmp_path):
+    path = run(experiment, budget_usd=1, results_root=tmp_path / 'results', runtime_factory=FakeRuntime)
+    destination = tmp_path / 'shared'
+    destination.mkdir()
+    (destination / 'study-validation.json').write_text('{"run_id":"old", "cost_ledger":"stale"}')
+    output = publish_report(path, destination, 'study')
+    text = output.read_text()
+    snapshot = json.loads((destination / 'study-validation.json').read_text())
+    assert snapshot['analysis'] == json.loads((path / 'analysis.json').read_text())
+    assert snapshot['source_artifact_hashes']['predictions.parquet'] == file_hash(path / 'predictions.parquet')
+    assert 'cost_ledger' not in snapshot
+    assert text.startswith('# The sample contains 4 records')
+    sections = ['Tests compare decision workflows', 'The fixture verifies execution', 'The evidence bounds the choice']
+    # The fixture status also appears before its tables; locate section headings.
+    positions = [text.index('## ' + title) for title in sections]
+    assert positions == sorted(positions)
+    assert 'The original criterion requires' not in text
+    assert '](study-criterion-audit.md)' in text
+    assert '](analysis.json)' not in text
+    assert '](study-validation.json)' in text
+    assert '](study-details.md)' in text
+    assert 'Jev direct leads its combinations' in (destination / 'study-details.md').read_text()
+    assert (destination / 'study-coverage-with_context.svg').exists()
 
 
 def test_smoke_is_disjoint_from_small_and_full(experiment):

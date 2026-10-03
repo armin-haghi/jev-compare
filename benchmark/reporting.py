@@ -1,10 +1,14 @@
 import html
 import json
+import re
+import shutil
 from pathlib import Path
 import pandas as pd
 from benchmark.config import file_hash, json_write, read_yaml
 from benchmark.metrics import compute
-from benchmark.summary import dataset_summary, dataset_lines, make_verdict, verdict_lines, criterion_lines
+from benchmark.summary import dataset_summary, make_verdict, criterion_lines
+from benchmark.analysis import build_analysis, method_name, is_direct
+from benchmark.narrative import render_report, render_details
 
 
 def coverage_svg(metrics):
@@ -25,7 +29,7 @@ def coverage_svg(metrics):
         coords = " ".join(f'{left+r["coverage"]*plot_w:.1f},{top+(r["accuracy"] or 0)*plot_h:.1f}' for r in points)
         color = colors[i % len(colors)]
         parts.append(f'<polyline points="{coords}" fill="none" stroke="{color}" stroke-width="2"/>')
-        parts.append(f'<text x="695" y="{55+i*22}" fill="{color}">{html.escape(method["method"])}</text>')
+        parts.append(f'<text x="695" y="{55+i*22}" style="fill:{color}">{html.escape(method_name(method["method"], method["model"]))}</text>')
     parts += [f'<text x="250" y="{height-25}">Share of records retained</text>',
               '<text x="16" y="300" transform="rotate(-90 16 300)">Error rate on retained records</text>', '</svg>']
     return "\n".join(parts)
@@ -66,34 +70,65 @@ def report(folder):
                    "Composite scores are not correctness probabilities.",
                    f"Record concurrency: {config.get('record_concurrency', 1)}; question concurrency: {config.get('question_concurrency', 8)}. Latency is measured under this load."]}
     if status["mode"] != "benchmark" or not status["complete"]:
-        summary["limitations"].insert(0, "This is a fixture, smoke, or incomplete run; it cannot establish the study pass rule.")
+        summary["limitations"].insert(0, "This is a fixture, smoke, or incomplete run; it cannot support a deployment recommendation.")
         for rule in summary["pass_rule"].values():
             rule["outcome"] = "not_evaluated"
         metrics["pass_rule"] = summary["pass_rule"]
         json_write(folder / "metrics.json", metrics)
     verdict = make_verdict(rows, metrics, status) | {"run_id": folder.name, "predictions_sha256": file_hash(folder / "predictions.parquet")}
     dataset = dataset_summary(rows, manifest, summary["sample_manifest"])
-    summary.update(verdict=verdict, tested_dataset=dataset)
+    analysis = build_analysis(rows, metrics, config, verdict)
+    summary.update(verdict=verdict, tested_dataset=dataset, analysis=analysis)
+    json_write(folder / "analysis.json", analysis)
     json_write(folder / "verdict.json", verdict)
     json_write(folder / "management_summary.json", summary)
-    lines = dataset_lines(dataset, summary["case"], manifest) + verdict_lines(verdict) + [
-             f"Run: {folder.name}. Mode: {status['mode']}. Complete: {status['complete']}.",
-             f"Known list-price cost: ${rows.known_cost_usd.sum():.4f}; provider requests: {int(rows.request_count.sum()):,}.",
-             "Accuracy counts failed calls and abstentions as wrong. Composite and direct sample sizes can differ.", "",
-             "| Method | Context | Records | Accuracy | Failures | Cost per 1,000 |",
-             "| --- | --- | ---: | ---: | ---: | ---: |"]
-    for row in flat:
-        price = f"$ {row['cost_per_1000_usd']:.4f}" if row["cost_per_1000_usd"] is not None else "unknown"
-        lines.append(f"| {row['method']} | {row['context_regime']} | {row['records']} | {row['accuracy']:.2%} | {row['failure_rate']:.2%} | {price} |")
-    lines += [""] + criterion_lines(verdict)
-    lines += ["## Confidence ranks retained answers", ""]
+    audit = ['# The original criterion remains archived', ''] + criterion_lines(verdict)
+    if not verdict.get('criterion_audit'):
+        audit += ['This run does not evaluate the original criterion. See the run status and metrics.']
+    (folder / 'criterion-audit.md').write_text('\n'.join(audit) + '\n')
     for regime in sorted(rows.context_regime.unique()):
         filename = f"coverage-{regime}.svg"
-        (folder / filename).write_text(coverage_svg([m for m in metrics["methods"] if m["context_regime"] == regime]))
-        lines += [f"![Coverage and error rate for {regime}]({filename})", ""]
-    lines += ["## Limits bound these measurements", ""]
-    lines.extend(f"- {text}" for text in summary["limitations"])
-    lines += ["", "Source configuration, freeze hashes, dataset manifest and record-level outputs are stored beside this report.",
-              "See metrics.json for matched comparisons, calibration, repeatability and option-order sensitivity."]
-    (folder / "report.md").write_text("\n".join(lines) + "\n")
+        (folder / filename).write_text(coverage_svg([m for m in metrics["methods"] if m["context_regime"] == regime
+                                                   and (is_direct(m['method']) or m['method'] == 'rules_baseline')]))
+    (folder / "report.md").write_text(render_report(summary, analysis, config))
+    (folder / "details.md").write_text(render_details(summary, analysis, config))
     return metrics
+
+
+def publish_report(folder, destination, prefix):
+    """Package an offline report for sharing; no hand-written summary diverges."""
+    if not re.fullmatch(r'[A-Za-z0-9_-]+', prefix):
+        raise ValueError('Report prefix must contain letters, digits, underscores or hyphens')
+    folder, destination = Path(folder), Path(destination)
+    destination.mkdir(parents=True, exist_ok=True)
+    summary = json.loads((folder / 'management_summary.json').read_text())
+    metrics = json.loads((folder / 'metrics.json').read_text())
+    evidence = destination / f'{prefix}-validation.json'
+    previous = json.loads(evidence.read_text()) if evidence.exists() else {}
+    snapshot = previous if previous.get('run_id') == folder.name else {}
+    artifacts = ['predictions.parquet', 'metrics.json', 'analysis.json', 'report.md', 'details.md', 'criterion-audit.md',
+                 'freeze.json', 'resolved_config.yaml', 'case_config.yaml', 'prompts.yaml', 'pricing.yaml',
+                 'dataset_manifest.json', 'sample_manifest.json']
+    snapshot.update(run_id=folder.name, status=summary['run'], configuration=read_yaml(folder / 'resolved_config.yaml'),
+                    case_configuration=read_yaml(folder / 'case_config.yaml'), prompts=read_yaml(folder / 'prompts.yaml'),
+                    pricing=read_yaml(folder / 'pricing.yaml'), dataset_manifest=summary['dataset'],
+                    sample_manifest=summary['sample_manifest'], tested_dataset=summary['tested_dataset'],
+                    methods=metrics['methods'], pairwise=metrics['pairwise'], pass_rule=metrics['pass_rule'],
+                    jev_execution_comparison=metrics.get('jev_execution_comparison', []),
+                    verdict=summary['verdict'], analysis=summary['analysis'], limitations=summary['limitations'],
+                    source_artifact_hashes={name: file_hash(folder / name) for name in artifacts if (folder / name).exists()},
+                    report_generator_hashes={f'benchmark/{name}': file_hash(Path(__file__).parent / name)
+                                            for name in ['reporting.py', 'summary.py', 'analysis.py', 'narrative.py']})
+    json_write(evidence, snapshot)
+    for path in sorted(folder.glob('coverage-*.svg')):
+        shutil.copyfile(path, destination / f'{prefix}-{path.name}')
+    for document in ['report.md', 'details.md']:
+        text = (folder / document).read_text()
+        for filename in ['analysis.json', 'metrics.json', 'dataset_manifest.json', 'sample_manifest.json',
+                         'resolved_config.yaml', 'prompts.yaml']:
+            text = text.replace(f']({filename})', f']({evidence.name})')
+        for filename in ['details.md', 'criterion-audit.md'] + [path.name for path in folder.glob('coverage-*.svg')]:
+            text = text.replace(f']({filename})', f']({prefix}-{filename})')
+        (destination / f'{prefix}-{document}').write_text(text)
+    shutil.copyfile(folder / 'criterion-audit.md', destination / f'{prefix}-criterion-audit.md')
+    return destination / f'{prefix}-report.md'
