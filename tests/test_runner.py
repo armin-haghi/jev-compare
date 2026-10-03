@@ -73,7 +73,7 @@ def test_verdict_is_automatic_and_dataset_leads_report(experiment, tmp_path, cap
     output = capsys.readouterr().out
     assert "Dataset: 4/4 records, 2 categories" in output
     assert "These results do not measure model quality." in output
-    assert 'Purpose:' in output and 'Recommendation:' in output
+    assert 'Task:' in output and 'Recommendation:' in output
     assert 'Original brief criterion' not in output
     assert 'does not support a deployment recommendation' in output
 
@@ -90,7 +90,7 @@ def test_shared_report_preserves_local_evidence_and_scope(experiment, tmp_path):
     assert snapshot['source_artifact_hashes']['predictions.parquet'] == file_hash(path / 'predictions.parquet')
     assert 'cost_ledger' not in snapshot
     assert text.startswith('# The sample contains 4 records')
-    sections = ['Tests compare decision workflows', 'The fixture verifies execution', 'The evidence bounds the choice']
+    sections = ['The fixture verifies execution', 'The evidence bounds the choice']
     # The fixture status also appears before its tables; locate section headings.
     positions = [text.index('## ' + title) for title in sections]
     assert positions == sorted(positions)
@@ -99,6 +99,18 @@ def test_shared_report_preserves_local_evidence_and_scope(experiment, tmp_path):
     assert '](analysis.json)' not in text
     assert '](study-validation.json)' in text
     assert '](study-details.md)' in text
+    assert '](study-methodology.md)' in text
+    methodology = (destination / 'study-methodology.md').read_text()
+    assert 'Direct models versus programmed rules' in methodology
+    assert snapshot['methodology']['sha256'] == file_hash(destination / 'study-methodology.md')
+    for document in [text, (destination / 'study-details.md').read_text()]:
+        assert 'Tests compare decision workflows' not in document
+        assert 'Scores use a five-level scale' not in document
+        assert 'does a model improve coverage' not in document
+    (path / 'methodology.md').write_text(methodology + '\nArchived documentation version.\n')
+    report(path)
+    assert (path / 'methodology.md').read_text().endswith('Archived documentation version.\n')
+    assert json.loads((path / 'management_summary.json').read_text())['methodology']['sha256'] == file_hash(path / 'methodology.md')
     assert 'Jev direct leads its combinations' in (destination / 'study-details.md').read_text()
     assert (destination / 'study-coverage-with_context.svg').exists()
 

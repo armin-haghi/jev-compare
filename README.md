@@ -125,7 +125,7 @@ The initial smoke configuration runs GPT-5 mini, Jev and rules. Frontier-model i
 
 Each results/RUN_ID/ directory contains resolved configuration, case configuration, prompt and pricing snapshots, freeze hashes, dataset provenance, sample IDs, payload examples, provider metadata, an append-only prediction journal, predictions.parquet, metrics.json, metrics.csv, analysis.json, management_summary.json, report.md, details.md, criterion-audit.md and two coverage/error SVG charts.
 
-Reports follow the [report format](docs/report-format.md): dataset, test purpose, results and recommendation. The short main report explains Jev and the alternatives for an external reader; a linked detail report contains category breakdowns, stability checks, costs and charts. Recommendations use observed tradeoffs, uncertainty and counterevidence. The original criterion remains in a linked historical audit and machine-readable metrics. Command output gives dataset, purpose, result and recommendation, followed by cost and report path.
+The [methodology](docs/methodology.md) explains the shared workflows, scoring and uncertainty. Run reports follow the [report format](docs/report-format.md): dataset, findings and recommendation. They link the methodology and focus on measured tradeoffs, surprises and counterevidence; a detail report contains the run's full breakdowns and charts. The original criterion remains in a linked historical audit and machine-readable metrics. Command output gives dataset, task, result and recommendation, followed by cost and report path.
 
 The report command regenerates every table and conclusion from saved outputs without provider calls or current case data. analysis.json preserves recommendation evidence; verdict.json preserves the direct comparison and predictions hash. Direct methods use the main sample; composite methods use a nested subset. Pairwise comparisons use matched IDs, while the historical criterion uses the common subset across Jev direct and conventional-model methods. Both row and company-resampling intervals are retained. See [criterion provenance](docs/review.md#the-brief-supplied-the-cutoffs).
 
@@ -135,7 +135,7 @@ Generate the local report and a shareable package with the same renderer:
 uv run python -m benchmark.cli report --run-id RUN_ID --publish-dir docs --publish-prefix economy
 ```
 
-This writes economy-report.md, economy-details.md, economy-validation.json, economy-criterion-audit.md and two figures. The evidence snapshot contains analysis, configurations, prompts, dataset properties, selected IDs, metrics and hashes of the local raw evidence. It excludes credentials. The original inference evidence remains unchanged.
+This writes economy-report.md, economy-details.md, economy-methodology.md, economy-validation.json, economy-criterion-audit.md and two figures. The methodology copy is captured when a run is first reported and preserved on regeneration; its hash is included in the evidence snapshot. The snapshot also contains analysis, configurations, prompts, dataset properties, selected IDs, metrics and raw-evidence hashes. It excludes credentials. The original inference evidence remains unchanged.
 
 Calibration measures selected-answer correctness probabilities. Composite margins rank confidence but are not treated as probabilities. Observed label distribution agreement is reported separately. Failed or partial runs and synthetic fixtures do not receive a study pass/fail conclusion.
 

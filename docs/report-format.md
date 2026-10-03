@@ -1,31 +1,19 @@
-# Reports support a workflow choice
+# Methodology and findings stay separate
 
-Each report answers: **How does Jev compare with the tested alternatives for this finance data-management task, and which workflow does the evidence support using?** Write for someone encountering Jev for the first time. Aim for a short main report; link detailed analysis separately.
+The [methodology](methodology.md) explains the study question, workflows, task setup, scoring, uncertainty and limits once. It contains no run-specific winners, costs or sample sizes.
 
-## Four sections carry the argument
+## Run reports explain the findings
 
-| Section | Required content |
+| Part | Content |
 | --- | --- |
-| **The sample contains 2,900 records.** | Define the task and Jev in plain language. Show data source, dates, sample size, companies, categories, category balance, difficulty properties and the answer key. Distinguish the main sample from smaller checks. |
-| **Tests compare decision workflows.** | Explain direct decisions, programmed rules and combined judgments. State what each comparison tries to find and why accuracy, cost, speed, confidence and consistency matter. |
-| **Jev cuts direct costs 77%.** | Show accuracy with and without context, cost and speed. Explain uncertainty, rules' unanswered cases, confidence-based review and direct-versus-combined results on the same records. |
-| **The evidence favors Jev direct.** | Recommend a tested workflow for the tested task. Give supporting evidence, counterevidence and scope limits. Link the detailed results, configuration and historical audit. |
+| Dataset | Task, tested models, source, dates, counts, category balance, difficult records and subset sizes. Link the methodology instead of repeating it. |
+| Findings | Measured accuracy, cost, speed and review tradeoffs; notable failures, category differences and whether combined judgments helped. Keep denominators and uncertainty beside the results. |
+| Recommendation | Preferred tested workflow, supporting evidence, counterevidence and limits that affect this run's interpretation. |
 
-Headings state each run's finding; the headings above illustrate the current test.
+Headings state the run's findings. Keep the main report short and dataset-first. A linked detail report contains the run's full breakdowns and figures, without repeating general method explanations.
 
-## Evidence determines the recommendation
+## Evidence keeps reports reproducible
 
-- Show counts and denominators. Compare workflows on matching records.
-- Separate observed accuracy differences from a statistically established advantage.
-- Report rules' accuracy when they answer alongside their unanswered share.
-- Show absolute and relative costs; identify unmeasured review and integration costs.
-- Treat retaining 80% of answers as an illustration of review workload, not an acceptance gate.
-- Include an alternative's strength or a weakness in the recommended workflow.
-- Preserve original criteria in a linked historical audit. Add no numerical pass/fail gates.
-- Synthetic, smoke and incomplete runs do not support deployment recommendations.
+The same renderer produces local and shareable reports from saved predictions. Each package includes a methodology snapshot and hash, configurations, metrics and raw-evidence hashes. Historical criteria remain in a linked audit, separate from the recommendation. Command output gives the dataset, task, result and recommendation.
 
-## Saved outputs generate both versions
-
-The command-line summary gives dataset, purpose, result and recommendation. The main report stays concise; a linked detail report contains category breakdowns, stability checks, costs and charts. Both versions and the shareable evidence package use the same saved predictions and renderer. Regeneration makes no model calls.
-
-See the [current report](economy-report.md), [detailed analysis](economy-details.md) and [evidence snapshot](economy-validation.json).
+See the [current report](economy-report.md), [run details](economy-details.md) and [evidence snapshot](economy-validation.json).

@@ -1,6 +1,6 @@
 # The sample contains 2,900 records
 
-This study maps company financial-statement labels to standard categories using public United States Securities and Exchange Commission (SEC) filings. Company-filed tags supply the answer key. Jev selects from predefined answers and returns probabilities. We compare it with a conventional language model and programmed rules.
+This run maps company financial-statement labels using public United States Securities and Exchange Commission (SEC) filings and company-filed tags as the answer key. Tested models: GPT-5 mini, Jev. See the [methodology](economy-methodology.md) for workflow definitions and scoring.
 
 | Property | Tested sample |
 | --- | --- |
@@ -17,15 +17,6 @@ Sampling balances answer categories; aggregate accuracy does not estimate the na
 Source: [dataset manifest](economy-validation.json), [selected record IDs](economy-validation.json).
 
 
-## Tests compare decision workflows
-
-Tested models: GPT-5 mini, Jev. Direct workflows choose the final category in one call. Combined workflows score wording, position and numerical fit separately, then combine the scores in code. We test bundled and separate calls.
-
-- **Direct versus rules:** does a model improve coverage and accuracy at a useful cost and speed?
-- **Labels versus context:** do neighbouring lines and numerical context help resolve the mapping?
-- **Confidence:** can uncertain answers be deferred to concentrate review on errors?
-- **Combined judgments and consistency:** do extra judgments improve the answer, and does it survive repeats and reordered options?
-
 ## Jev cuts direct costs 77%
 
 Direct with context (2,900 records): Jev 95.76% vs GPT-5 mini 95.24%; cost 76.9% lower (4.3× cheaper) at list prices. The observed direct comparison favors Jev on accuracy and cost.
@@ -38,7 +29,7 @@ Accuracy difference: +0.52 percentage points; 95% interval -0.14 to +1.20, resam
 | Jev direct | 94.21% (2,732/2,900) | 95.76% (2,777/2,900) | $0.0580 | 0.627s |
 | Programmed rules | 69.79% (2,024/2,900) | 69.79% (2,024/2,900) | $0.0000 | 0.083ms |
 
-Accuracy counts abstentions and failed calls as wrong. Cost and time use the primary input condition shown above; prices are uncached estimates in United States dollars. Timing reflects this run’s concurrent load.
+Cost and timing use with context; costs are estimated United States dollars.
 
 Rules answered 2,035/2,900 records at 99.46% accuracy among answers, leaving 865 unresolved.
 
@@ -69,4 +60,4 @@ This supports a choice for this task and these configurations. Public filed tags
 
 Run 20261002T232137Z-571ebdd4: 18,760 outputs across all variants and checks, 28,568 requests, 0 failed outputs; $4.1840 known list-price cost. Unknown-usage outputs: 0.
 
-Sources: [detailed analysis](economy-details.md), [results and uncertainty](economy-validation.json), [recommendation evidence](economy-validation.json), [configuration](economy-validation.json). The [historical criterion](economy-criterion-audit.md) is retained for audit; it does not decide the recommendation.
+Sources: [methodology](economy-methodology.md), [detailed analysis](economy-details.md), [results and uncertainty](economy-validation.json), [recommendation evidence](economy-validation.json), [configuration](economy-validation.json). The [historical criterion](economy-criterion-audit.md) is retained for audit; it does not decide the recommendation.

@@ -1,6 +1,6 @@
 # The sample contains 2,900 records
 
-This study tests financial-statement line mapping: assigning a company's wording to a standard category. It compares Jev, a model that selects predefined answers and returns probabilities, with a conventional language model and programmed rules. The records come from public United States Securities and Exchange Commission (SEC) filings; company-filed accounting tags supply the answer key.
+This run maps company financial-statement labels using public United States Securities and Exchange Commission (SEC) filings and company-filed tags as the answer key. Tested models: GPT-5 mini, Jev. See the [methodology](economy-methodology.md) for workflow definitions and scoring.
 
 | Property | Tested sample |
 | --- | --- |
@@ -17,51 +17,19 @@ Sampling balances answer categories; aggregate accuracy does not estimate the na
 Source: [dataset manifest](economy-validation.json), [selected record IDs](economy-validation.json).
 
 
-## The study compares decision workflows
-
-The decision is whether Jev offers a useful accuracy, cost and speed tradeoff for this repeated data-management task, and whether its confidence can help route uncertain answers for review.
-
-For example, a line labelled ‘Other income, net’ must be assigned to a category such as total non-operating income or another non-operating component. These are different template answers; neighbouring lines can help distinguish them.
-
-The answer set contains 29 categories across two statements; each record receives the candidates belonging to its statement. Labels and statement type are supplied in both conditions. The context condition also supplies up to two neighbouring lines on each side, the amount's sign and relative size, and industry description. Filed tags and company identifiers are withheld from the model input.
-
-A direct call chooses the final category. A combined-score workflow asks how well each candidate fits the wording and position, scores numeric compatibility in code, and combines the three scores with equal weight. Scores use a five-level scale from 0 to 4; ties use the fixed template order. The same combination rule is used for both model families.
-
-| Tested workflow | What it does |
-| --- | --- |
-| GPT-5 mini combined scores, one bundled call | All candidate judgments are requested in one call; code combines the scores. |
-| GPT-5 mini combined scores, separate calls | Each candidate judgment uses a separate call; code combines the scores. |
-| GPT-5 mini direct | One call returns the category and a self-reported confidence number. |
-| Jev combined scores, separate calls | Each candidate judgment uses a separate call; code combines the scores. |
-| Jev combined scores, one bundled call | All candidate judgments are requested in one call; code combines the scores. |
-| Jev direct | One call chooses a category. Jev also supplies probabilities for every option. |
-| Programmed rules | Keyword and position rules; abstain when no unique category is selected. |
-
-| Comparison | What it tries to find | Why it matters |
-| --- | --- | --- |
-| Direct models versus rules | Accuracy, cost and response time on the main sample | A model must add value beyond deterministic matching. |
-| Labels versus context | Whether surrounding information improves mapping | Similar finance labels can mean different things. |
-| Confidence-based deferral | Errors remaining after doubtful answers are set aside | Review effort can focus on uncertain mappings. |
-| Direct versus combined scores | Whether decomposition improves the final decision | Extra calls and scoring logic must justify their cost. |
-| Repeats and reordered answers | Whether unchanged records receive changed decisions | Inconsistent mappings create reconciliation work. |
-
-Tested models: GPT-5 mini, Jev. Results describe these model configurations and prompts; they do not isolate architecture from prompting or pricing. Source: [stored configuration](economy-validation.json), [stored prompts](economy-validation.json).
-
 ## Jev cuts direct costs 77%
 
 Direct with context (2,900 records): Jev 95.76% vs GPT-5 mini 95.24%; cost 76.9% lower (4.3× cheaper) at list prices. The observed direct comparison favors Jev on accuracy and cost.
 
 Accuracy difference: +0.52 percentage points; 95% interval -0.14 to +1.20, resampling companies. An accuracy advantage is not established.
 
-The table uses surrounding context. Accuracy is agreement with the answer key; failed calls and abstentions count as wrong in the overall score.
+The table uses surrounding context.
 
 | Workflow | Correct / records | Accuracy | Abstentions | Cost / 1,000 | Median / 95th-percentile time |
 | --- | --- | --- | --- | --- | --- |
 | GPT-5 mini direct | 2,762 / 2,900 | 95.24% | 0 | $0.2510 | 1.296s / 1.773s |
 | Jev direct | 2,777 / 2,900 | 95.76% | 0 | $0.0580 | 0.627s / 0.911s |
 | Programmed rules | 2,024 / 2,900 | 69.79% | 865 | $0.0000 | 0.083ms / 0.201ms |
-
-The 95th percentile is the response time within which 95% of measured decisions completed. Timing includes this run’s execution overhead and concurrent load; it is not a throughput guarantee.
 
 Rules answered 2,035/2,900 records (70.17%); 99.46% of those answers matched the key. Their 865 abstentions are unresolved work, not incorrect emitted labels. Model-service cost is zero; implementation and maintenance costs are not measured.
 
@@ -95,7 +63,7 @@ Source: [saved analysis](economy-validation.json), [computed metrics](economy-va
 
 ## Jev confidence leaves fewer errors
 
-Confidence is the score a method attaches to its selected answer. The table keeps each direct method’s most confident 80% and defers the remaining 20%. This is an illustration from the measured curve, not an acceptance target or a recommended production setting.
+The table retains each method’s most confident 80% in this run.
 
 | Workflow | Retained | Deferred | Errors retained | Retained accuracy |
 | --- | --- | --- | --- | --- |
@@ -104,13 +72,11 @@ Confidence is the score a method attaches to its selected answer. The table keep
 
 At the same retained volume, Jev’s confidence ranking leaves fewer incorrect mappings in the accepted work. This supports using confidence to identify records needing review.
 
-Each method selects its own retained records, so these accepted subsets differ. The result measures error concentration, not the outcome of human review or a tested end-to-end review workflow. Retained errors remain errors. Confidence calibration details and additional retained shares are available in the [metrics](economy-validation.json).
-
 Source: [saved analysis](economy-validation.json), [computed metrics](economy-validation.json).
 
 ## Jev direct leads its combinations
 
-All rows below use the same intersection of evaluated records, including the direct methods. This avoids comparing a small combined-score sample with a larger direct sample.
+Every row below uses the same shared records in this run.
 
 | Workflow | Correct / shared records | Accuracy | Cost / 1,000 | Tied top scores |
 | --- | --- | --- | --- | --- |
@@ -124,8 +90,6 @@ All rows below use the same intersection of evaluated records, including the dir
 
 The tested Jev combinations add cost without improving accuracy over Jev direct on the same records. Prefer the direct workflow for this task on this evidence.
 
-Ties mean that the scoring protocol cannot distinguish its highest-ranked candidates, so fixed template order decides the answer. Poor combined-score results are evidence about these tested prompts and scoring rules; they do not establish a general inability of the model to decompose a task.
-
 | Workflow | Changed on repeat / checked | Changed after reordering / checked |
 | --- | --- | --- |
 | GPT-5 mini combined scores, one bundled call | 4 / 20 | 6 / 20 |
@@ -135,8 +99,6 @@ Ties mean that the scoring protocol cannot distinguish its highest-ranked candid
 | Jev combined scores, one bundled call | 3 / 20 | 0 / 20 |
 | Jev direct | 0 / 20 | 0 / 20 |
 | Programmed rules | 0 / 20 | 0 / 20 |
-
-Repeat and order checks use small subsets; zero observed changes do not establish universal stability. Incomplete or failed comparisons are excluded from change rates and counted separately in the metrics.
 
 Source: [saved analysis](economy-validation.json), [computed metrics](economy-validation.json).
 

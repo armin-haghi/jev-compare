@@ -1215,6 +1215,10 @@
     "Composite scores are not correctness probabilities.",
     "Record concurrency: 4; question concurrency: 2. Latency is measured under this load."
   ],
+  "methodology": {
+    "file": "methodology.md",
+    "sha256": "14a78c876285b443b052bf77ea7ba3d9eb15dd41110a6ddc9ac320d2f169eb45"
+  },
   "methods": [
     {
       "accuracy": 0.34,
@@ -10368,9 +10372,9 @@
   },
   "report_generator_hashes": {
     "benchmark/analysis.py": "2887f3b6ca473fae0fab87fbc8df411d8d1eb03b3fd5bac9145d726a877ff823",
-    "benchmark/narrative.py": "db87972a150137ebf63470dc1c5427ab6e3b8a1e5896f1da34d1634713f3cea6",
-    "benchmark/reporting.py": "56d6c0bda61c23bab05c63862b592c0bf27ef801bd140dfe7e0482c4344733a9",
-    "benchmark/summary.py": "27e97ec918c6305f005b86cbe223b690e64a978b0b7a4f55ca1b6a7059b17f43"
+    "benchmark/narrative.py": "66ded9b221ff5a097b18c3addf329814781eb96bd383cd015a4fc125919aa980",
+    "benchmark/reporting.py": "3aaebf4507acbbc5fb64978b472b42ba26d500e83e4ffc3823177a7abe5ae660",
+    "benchmark/summary.py": "48f9fa8176070f7995065b4852cd424914278b66c9d38fd23fe51c4831eebb76"
   },
   "run_id": "20261002T232137Z-571ebdd4",
   "sample_manifest": {
@@ -13429,13 +13433,14 @@
     "case_config.yaml": "19e2708ac458a3d36d9b848b83f68f012434381431b623d42d7f8587d60b6274",
     "criterion-audit.md": "3946cf4a78bac024d9ad42951c8181b0d8fcb1c937aba7c48aa717aabce65ac9",
     "dataset_manifest.json": "d0bfba212a49668f57c9bdf22d30078c44c6d9af623aa4b0fd580c731e49bac9",
-    "details.md": "3be798b23ae5d8fa92e221466f77e1240e4d45e9775d76480b8023fe4a4e02a8",
+    "details.md": "a99db8facf3a40cbd8389374a2f9949ba6089a53d6d2aeed9c371d6cfcbd76be",
     "freeze.json": "ad23c32c29597fe008303b72fa744647ab1e9c4df87c3e81a46b192d2b89dc7e",
+    "methodology.md": "14a78c876285b443b052bf77ea7ba3d9eb15dd41110a6ddc9ac320d2f169eb45",
     "metrics.json": "ccff23b701811443419d120d0abba2f5d9154e0cc3414a9f9bfad44618d65c6c",
     "predictions.parquet": "f28270deeb4460a1d56f9f6162c496c2959bdaca5bca11727f939d9dedba5537",
     "pricing.yaml": "35bf4d711b84a195a1b2a6e019c4e9d6b0eea6496fcf0a0b69e9088ab8e70bd7",
     "prompts.yaml": "6f69df29910ca53d00f27480b0926c931492b0e168dcc2c6385402aa2058b0c7",
-    "report.md": "8d7cc5dcf5c01cc0f7d113b91c862aa2b169820ba1083724b4cbc03c1f65df84",
+    "report.md": "f13c613abf162cde0b6438968adfe7d62ad4cd2711605d3ab04fee01f8b6c0a1",
     "resolved_config.yaml": "4a7429c708e946a456272e52e4b7bedb29ecac65b1e73adf1daf9db7413be4b7",
     "sample_manifest.json": "ba7e6cdcb96e0f8c42f23d76874ff6f1f018601d8c999c2d072692aea11d0c4f"
   },

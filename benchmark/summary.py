@@ -174,7 +174,7 @@ def print_summary(folder):
     print(f"Dataset: {dataset['observed_records']:,}/{dataset['selected_records']:,} records, {dataset['categories']} categories, {dataset['composite_records']} composite records.")
     analysis = summary.get('analysis', {})
     if analysis:
-        print('Purpose: ' + analysis['purpose'])
+        print('Task: ' + summary['case'])
     print(verdict['headline'] + '.')
     print(verdict['result'])
     print(verdict['caveat'])

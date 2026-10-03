@@ -37,6 +37,9 @@ def coverage_svg(metrics):
 
 def report(folder):
     folder = Path(folder)
+    methodology = folder / 'methodology.md'
+    if not methodology.exists():
+        shutil.copyfile(Path(__file__).resolve().parents[1] / 'docs' / 'methodology.md', methodology)
     rows = pd.read_parquet(folder / "predictions.parquet")
     config = read_yaml(folder / "resolved_config.yaml")
     splits = pd.read_parquet(folder / "label_splits.parquet") if (folder / "label_splits.parquet").exists() else None
@@ -78,7 +81,8 @@ def report(folder):
     verdict = make_verdict(rows, metrics, status) | {"run_id": folder.name, "predictions_sha256": file_hash(folder / "predictions.parquet")}
     dataset = dataset_summary(rows, manifest, summary["sample_manifest"])
     analysis = build_analysis(rows, metrics, config, verdict)
-    summary.update(verdict=verdict, tested_dataset=dataset, analysis=analysis)
+    summary.update(verdict=verdict, tested_dataset=dataset, analysis=analysis,
+                   methodology={'file': 'methodology.md', 'sha256': file_hash(methodology)})
     json_write(folder / "analysis.json", analysis)
     json_write(folder / "verdict.json", verdict)
     json_write(folder / "management_summary.json", summary)
@@ -106,7 +110,7 @@ def publish_report(folder, destination, prefix):
     evidence = destination / f'{prefix}-validation.json'
     previous = json.loads(evidence.read_text()) if evidence.exists() else {}
     snapshot = previous if previous.get('run_id') == folder.name else {}
-    artifacts = ['predictions.parquet', 'metrics.json', 'analysis.json', 'report.md', 'details.md', 'criterion-audit.md',
+    artifacts = ['predictions.parquet', 'metrics.json', 'analysis.json', 'report.md', 'details.md', 'methodology.md', 'criterion-audit.md',
                  'freeze.json', 'resolved_config.yaml', 'case_config.yaml', 'prompts.yaml', 'pricing.yaml',
                  'dataset_manifest.json', 'sample_manifest.json']
     snapshot.update(run_id=folder.name, status=summary['run'], configuration=read_yaml(folder / 'resolved_config.yaml'),
@@ -116,6 +120,7 @@ def publish_report(folder, destination, prefix):
                     methods=metrics['methods'], pairwise=metrics['pairwise'], pass_rule=metrics['pass_rule'],
                     jev_execution_comparison=metrics.get('jev_execution_comparison', []),
                     verdict=summary['verdict'], analysis=summary['analysis'], limitations=summary['limitations'],
+                    methodology=summary['methodology'],
                     source_artifact_hashes={name: file_hash(folder / name) for name in artifacts if (folder / name).exists()},
                     report_generator_hashes={f'benchmark/{name}': file_hash(Path(__file__).parent / name)
                                             for name in ['reporting.py', 'summary.py', 'analysis.py', 'narrative.py']})
@@ -127,8 +132,9 @@ def publish_report(folder, destination, prefix):
         for filename in ['analysis.json', 'metrics.json', 'dataset_manifest.json', 'sample_manifest.json',
                          'resolved_config.yaml', 'prompts.yaml']:
             text = text.replace(f']({filename})', f']({evidence.name})')
-        for filename in ['details.md', 'criterion-audit.md'] + [path.name for path in folder.glob('coverage-*.svg')]:
+        for filename in ['details.md', 'methodology.md', 'criterion-audit.md'] + [path.name for path in folder.glob('coverage-*.svg')]:
             text = text.replace(f']({filename})', f']({prefix}-{filename})')
         (destination / f'{prefix}-{document}').write_text(text)
     shutil.copyfile(folder / 'criterion-audit.md', destination / f'{prefix}-criterion-audit.md')
+    shutil.copyfile(folder / 'methodology.md', destination / f'{prefix}-methodology.md')
     return destination / f'{prefix}-report.md'
