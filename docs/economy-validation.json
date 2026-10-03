@@ -1,5 +1,799 @@
 {
   "all_runs_known_list_price_cost_usd": 5.667669716,
+  "analysis": {
+    "case_id": "sec_lines",
+    "complete": true,
+    "composition_conclusion": "The tested Jev combinations add cost without improving accuracy over Jev direct on the same records. Prefer the direct workflow for this task on this evidence.",
+    "composition_headline": "Jev direct leads its combinations",
+    "confidence_deferral": [
+      {
+        "accuracy": 0.9788793103448276,
+        "deferred": 580,
+        "errors": 49,
+        "method": "direct_llm_small",
+        "name": "GPT-5 mini direct",
+        "records": 2900,
+        "retained": 2320
+      },
+      {
+        "accuracy": 0.9935344827586207,
+        "deferred": 580,
+        "errors": 15,
+        "method": "jev_direct",
+        "name": "Jev direct",
+        "records": 2900,
+        "retained": 2320
+      }
+    ],
+    "context_comparisons": [
+      {
+        "context_accuracy": 0.9524137931034483,
+        "label_accuracy": 0.9424137931034483,
+        "method": "direct_llm_small",
+        "name": "GPT-5 mini direct",
+        "records": 2900
+      },
+      {
+        "context_accuracy": 0.9575862068965517,
+        "label_accuracy": 0.9420689655172414,
+        "method": "jev_direct",
+        "name": "Jev direct",
+        "records": 2900
+      },
+      {
+        "context_accuracy": 0.6979310344827586,
+        "label_accuracy": 0.6979310344827586,
+        "method": "rules_baseline",
+        "name": "Programmed rules",
+        "records": 2900
+      }
+    ],
+    "difficulty_slices": [
+      {
+        "accuracy": 0.8538812785388128,
+        "correct": 748,
+        "dimension": "baseline_miss",
+        "method": "direct_llm_small",
+        "name": "GPT-5 mini direct",
+        "records": 876,
+        "value": "true"
+      },
+      {
+        "accuracy": 0.9085086916742909,
+        "correct": 993,
+        "dimension": "filer_split",
+        "method": "direct_llm_small",
+        "name": "GPT-5 mini direct",
+        "records": 1093,
+        "value": "true"
+      },
+      {
+        "accuracy": 0.8618721461187214,
+        "correct": 755,
+        "dimension": "baseline_miss",
+        "method": "jev_direct",
+        "name": "Jev direct",
+        "records": 876,
+        "value": "true"
+      },
+      {
+        "accuracy": 0.9231473010064044,
+        "correct": 1009,
+        "dimension": "filer_split",
+        "method": "jev_direct",
+        "name": "Jev direct",
+        "records": 1093,
+        "value": "true"
+      }
+    ],
+    "direct_results": [
+      {
+        "abstained": 0,
+        "accuracy": 0.9424137931034483,
+        "answered": 2900,
+        "answered_accuracy": 0.9424137931034483,
+        "context_regime": "label_only",
+        "correct": 2733,
+        "cost_per_1000_usd": 0.2332525,
+        "failed": 0,
+        "median_seconds": 1.2950457705010194,
+        "method": "direct_llm_small",
+        "model": "openai/gpt-5-mini",
+        "name": "GPT-5 mini direct",
+        "p95_seconds": 1.8242883631479343,
+        "records": 2900,
+        "ties": 0
+      },
+      {
+        "abstained": 0,
+        "accuracy": 0.9420689655172414,
+        "answered": 2900,
+        "answered_accuracy": 0.9420689655172414,
+        "context_regime": "label_only",
+        "correct": 2732,
+        "cost_per_1000_usd": 0.05393970206896553,
+        "failed": 0,
+        "median_seconds": 0.6260841665061889,
+        "method": "jev_direct",
+        "model": "typesafe-ai/jev",
+        "name": "Jev direct",
+        "p95_seconds": 0.9128582395962433,
+        "records": 2900,
+        "ties": 0
+      },
+      {
+        "abstained": 869,
+        "accuracy": 0.6979310344827586,
+        "answered": 2031,
+        "answered_accuracy": 0.9965534219596258,
+        "context_regime": "label_only",
+        "correct": 2024,
+        "cost_per_1000_usd": 0.0,
+        "failed": 0,
+        "median_seconds": 7.147950236685574e-05,
+        "method": "rules_baseline",
+        "model": "rules-v1",
+        "name": "Programmed rules",
+        "p95_seconds": 0.0002056625220575368,
+        "records": 2900,
+        "ties": 0
+      },
+      {
+        "abstained": 0,
+        "accuracy": 0.9524137931034483,
+        "answered": 2900,
+        "answered_accuracy": 0.9524137931034483,
+        "context_regime": "with_context",
+        "correct": 2762,
+        "cost_per_1000_usd": 0.25100862068965524,
+        "failed": 0,
+        "median_seconds": 1.2959451880160486,
+        "method": "direct_llm_small",
+        "model": "openai/gpt-5-mini",
+        "name": "GPT-5 mini direct",
+        "p95_seconds": 1.7732901913521342,
+        "records": 2900,
+        "ties": 0
+      },
+      {
+        "abstained": 0,
+        "accuracy": 0.9575862068965517,
+        "answered": 2900,
+        "answered_accuracy": 0.9575862068965517,
+        "context_regime": "with_context",
+        "correct": 2777,
+        "cost_per_1000_usd": 0.05802834413793103,
+        "failed": 0,
+        "median_seconds": 0.6274298755015479,
+        "method": "jev_direct",
+        "model": "typesafe-ai/jev",
+        "name": "Jev direct",
+        "p95_seconds": 0.9105824044891049,
+        "records": 2900,
+        "ties": 0
+      },
+      {
+        "abstained": 865,
+        "accuracy": 0.6979310344827586,
+        "answered": 2035,
+        "answered_accuracy": 0.9945945945945946,
+        "context_regime": "with_context",
+        "correct": 2024,
+        "cost_per_1000_usd": 0.0,
+        "failed": 0,
+        "median_seconds": 8.299999171867967e-05,
+        "method": "rules_baseline",
+        "model": "rules-v1",
+        "name": "Programmed rules",
+        "p95_seconds": 0.00020093781204195683,
+        "records": 2900,
+        "ties": 0
+      }
+    ],
+    "evidence_status": "benchmark",
+    "failed_outputs": 0,
+    "format_version": 1,
+    "lowest_jev_categories": [
+      {
+        "accuracy": 0.88,
+        "correct": 88,
+        "dimension": "template_line",
+        "method": "direct_llm_small",
+        "name": "GPT-5 mini direct",
+        "records": 100,
+        "value": "other_current_liabilities"
+      },
+      {
+        "accuracy": 0.88,
+        "correct": 88,
+        "dimension": "template_line",
+        "method": "direct_llm_small",
+        "name": "GPT-5 mini direct",
+        "records": 100,
+        "value": "other_nonoperating"
+      },
+      {
+        "accuracy": 0.58,
+        "correct": 58,
+        "dimension": "template_line",
+        "method": "direct_llm_small",
+        "name": "GPT-5 mini direct",
+        "records": 100,
+        "value": "other_operating"
+      },
+      {
+        "accuracy": 0.92,
+        "correct": 92,
+        "dimension": "template_line",
+        "method": "jev_direct",
+        "name": "Jev direct",
+        "records": 100,
+        "value": "other_current_liabilities"
+      },
+      {
+        "accuracy": 0.74,
+        "correct": 74,
+        "dimension": "template_line",
+        "method": "jev_direct",
+        "name": "Jev direct",
+        "records": 100,
+        "value": "other_nonoperating"
+      },
+      {
+        "accuracy": 0.52,
+        "correct": 52,
+        "dimension": "template_line",
+        "method": "jev_direct",
+        "name": "Jev direct",
+        "records": 100,
+        "value": "other_operating"
+      }
+    ],
+    "model_costs": [
+      {
+        "input_tokens": 9791643,
+        "known_cost_usd": 3.46297875,
+        "model": "openai/gpt-5-mini",
+        "name": "GPT-5 mini",
+        "output_tokens": 507534,
+        "requests": 14284,
+        "usage_complete": true
+      },
+      {
+        "input_tokens": 17166474,
+        "known_cost_usd": 0.7209919080000001,
+        "model": "typesafe-ai/jev",
+        "name": "Jev",
+        "output_tokens": 1254165,
+        "requests": 14284,
+        "usage_complete": true
+      }
+    ],
+    "output_rows": 18760,
+    "preferred_context": "with_context",
+    "provider_requests": 28568,
+    "purpose": "Compare Jev with the tested alternatives for a repeated data-management decision, using accuracy, cost, speed, confidence and consistency.",
+    "recommendation": "Prefer Jev direct for this tested task: it costs less than the direct language-model comparator without an observed aggregate accuracy loss. This is a recommendation about the measured tradeoff; the acceptable error rate depends on the business.",
+    "recommendation_headline": "The evidence favors Jev direct",
+    "shared_results": [
+      {
+        "abstained": 0,
+        "accuracy": 0.34,
+        "answered": 100,
+        "answered_accuracy": 0.34,
+        "context_regime": "label_only",
+        "correct": 34,
+        "cost_per_1000_usd": 0.7779250000000001,
+        "failed": 0,
+        "median_seconds": 3.0607910834951326,
+        "method": "decomposed_llm_matrix_small",
+        "model": "openai/gpt-5-mini",
+        "name": "GPT-5 mini combined scores, one bundled call",
+        "p95_seconds": 4.6850332330257505,
+        "records": 100,
+        "ties": 71
+      },
+      {
+        "abstained": 0,
+        "accuracy": 0.11,
+        "answered": 100,
+        "answered_accuracy": 0.11,
+        "context_regime": "label_only",
+        "correct": 11,
+        "cost_per_1000_usd": 6.225695,
+        "failed": 0,
+        "median_seconds": 17.970471312495647,
+        "method": "decomposed_llm_parallel_small",
+        "model": "openai/gpt-5-mini",
+        "name": "GPT-5 mini combined scores, separate calls",
+        "p95_seconds": 20.520478243098477,
+        "records": 100,
+        "ties": 76
+      },
+      {
+        "abstained": 0,
+        "accuracy": 0.95,
+        "answered": 100,
+        "answered_accuracy": 0.95,
+        "context_regime": "label_only",
+        "correct": 95,
+        "cost_per_1000_usd": 0.23331,
+        "failed": 0,
+        "median_seconds": 1.3427287499944214,
+        "method": "direct_llm_small",
+        "model": "openai/gpt-5-mini",
+        "name": "GPT-5 mini direct",
+        "p95_seconds": 1.809289789882314,
+        "records": 100,
+        "ties": 0
+      },
+      {
+        "abstained": 0,
+        "accuracy": 0.93,
+        "answered": 100,
+        "answered_accuracy": 0.93,
+        "context_regime": "label_only",
+        "correct": 93,
+        "cost_per_1000_usd": 1.1949235200000001,
+        "failed": 0,
+        "median_seconds": 7.925064042006852,
+        "method": "jev_composite_concurrent",
+        "model": "typesafe-ai/jev",
+        "name": "Jev combined scores, separate calls",
+        "p95_seconds": 8.860788925318047,
+        "records": 100,
+        "ties": 3
+      },
+      {
+        "abstained": 0,
+        "accuracy": 0.93,
+        "answered": 100,
+        "answered_accuracy": 0.93,
+        "context_regime": "label_only",
+        "correct": 93,
+        "cost_per_1000_usd": 0.14272146,
+        "failed": 0,
+        "median_seconds": 0.6588764164771419,
+        "method": "jev_composite_fanout",
+        "model": "typesafe-ai/jev",
+        "name": "Jev combined scores, one bundled call",
+        "p95_seconds": 0.9426319145641173,
+        "records": 100,
+        "ties": 2
+      },
+      {
+        "abstained": 0,
+        "accuracy": 0.93,
+        "answered": 100,
+        "answered_accuracy": 0.93,
+        "context_regime": "label_only",
+        "correct": 93,
+        "cost_per_1000_usd": 0.05395362000000002,
+        "failed": 0,
+        "median_seconds": 0.6236604165023891,
+        "method": "jev_direct",
+        "model": "typesafe-ai/jev",
+        "name": "Jev direct",
+        "p95_seconds": 0.8659772035491186,
+        "records": 100,
+        "ties": 0
+      },
+      {
+        "abstained": 22,
+        "accuracy": 0.78,
+        "answered": 78,
+        "answered_accuracy": 1.0,
+        "context_regime": "label_only",
+        "correct": 78,
+        "cost_per_1000_usd": 0.0,
+        "failed": 0,
+        "median_seconds": 7.39170063752681e-05,
+        "method": "rules_baseline",
+        "model": "rules-v1",
+        "name": "Programmed rules",
+        "p95_seconds": 0.0001856351125752553,
+        "records": 100,
+        "ties": 0
+      },
+      {
+        "abstained": 0,
+        "accuracy": 0.64,
+        "answered": 100,
+        "answered_accuracy": 0.64,
+        "context_regime": "with_context",
+        "correct": 64,
+        "cost_per_1000_usd": 0.818975,
+        "failed": 0,
+        "median_seconds": 3.2002218960114988,
+        "method": "decomposed_llm_matrix_small",
+        "model": "openai/gpt-5-mini",
+        "name": "GPT-5 mini combined scores, one bundled call",
+        "p95_seconds": 4.804321301447635,
+        "records": 100,
+        "ties": 30
+      },
+      {
+        "abstained": 0,
+        "accuracy": 0.09,
+        "answered": 100,
+        "answered_accuracy": 0.09,
+        "context_regime": "with_context",
+        "correct": 9,
+        "cost_per_1000_usd": 6.749600000000002,
+        "failed": 0,
+        "median_seconds": 18.038567124996916,
+        "method": "decomposed_llm_parallel_small",
+        "model": "openai/gpt-5-mini",
+        "name": "GPT-5 mini combined scores, separate calls",
+        "p95_seconds": 20.30041384935612,
+        "records": 100,
+        "ties": 84
+      },
+      {
+        "abstained": 0,
+        "accuracy": 0.98,
+        "answered": 100,
+        "answered_accuracy": 0.98,
+        "context_regime": "with_context",
+        "correct": 98,
+        "cost_per_1000_usd": 0.25136000000000003,
+        "failed": 0,
+        "median_seconds": 1.2724657914950512,
+        "method": "direct_llm_small",
+        "model": "openai/gpt-5-mini",
+        "name": "GPT-5 mini direct",
+        "p95_seconds": 1.8495915354098542,
+        "records": 100,
+        "ties": 0
+      },
+      {
+        "abstained": 0,
+        "accuracy": 0.95,
+        "answered": 100,
+        "answered_accuracy": 0.95,
+        "context_regime": "with_context",
+        "correct": 95,
+        "cost_per_1000_usd": 1.3156147200000001,
+        "failed": 0,
+        "median_seconds": 8.086747687499155,
+        "method": "jev_composite_concurrent",
+        "model": "typesafe-ai/jev",
+        "name": "Jev combined scores, separate calls",
+        "p95_seconds": 9.10465932086081,
+        "records": 100,
+        "ties": 5
+      },
+      {
+        "abstained": 0,
+        "accuracy": 0.94,
+        "answered": 100,
+        "answered_accuracy": 0.94,
+        "context_regime": "with_context",
+        "correct": 94,
+        "cost_per_1000_usd": 0.14687988,
+        "failed": 0,
+        "median_seconds": 0.6584904584888136,
+        "method": "jev_composite_fanout",
+        "model": "typesafe-ai/jev",
+        "name": "Jev combined scores, one bundled call",
+        "p95_seconds": 0.9302017708629136,
+        "records": 100,
+        "ties": 5
+      },
+      {
+        "abstained": 0,
+        "accuracy": 0.98,
+        "answered": 100,
+        "answered_accuracy": 0.98,
+        "context_regime": "with_context",
+        "correct": 98,
+        "cost_per_1000_usd": 0.058112040000000004,
+        "failed": 0,
+        "median_seconds": 0.6214313545060577,
+        "method": "jev_direct",
+        "model": "typesafe-ai/jev",
+        "name": "Jev direct",
+        "p95_seconds": 0.7676064339539153,
+        "records": 100,
+        "ties": 0
+      },
+      {
+        "abstained": 22,
+        "accuracy": 0.78,
+        "answered": 78,
+        "answered_accuracy": 1.0,
+        "context_regime": "with_context",
+        "correct": 78,
+        "cost_per_1000_usd": 0.0,
+        "failed": 0,
+        "median_seconds": 8.90205119503662e-05,
+        "method": "rules_baseline",
+        "model": "rules-v1",
+        "name": "Programmed rules",
+        "p95_seconds": 0.00029413123993435845,
+        "records": 100,
+        "ties": 0
+      }
+    ],
+    "stability": [
+      {
+        "method": "decomposed_llm_matrix_small",
+        "name": "GPT-5 mini combined scores, one bundled call",
+        "option_order": {
+          "attempted_records": 20,
+          "failed_pairs": 0,
+          "prediction_change_rate": 0.3,
+          "records": 20
+        },
+        "repeatability": {
+          "all_predictions_same": 0.8,
+          "at_least_one_change": 0.2,
+          "incomplete_or_failed": 0,
+          "mean_confidence_range": 0.05833333333333333,
+          "records": 20
+        }
+      },
+      {
+        "method": "decomposed_llm_parallel_small",
+        "name": "GPT-5 mini combined scores, separate calls",
+        "option_order": {
+          "attempted_records": 20,
+          "failed_pairs": 0,
+          "prediction_change_rate": 0.8,
+          "records": 20
+        },
+        "repeatability": {
+          "all_predictions_same": 0.7,
+          "at_least_one_change": 0.3,
+          "incomplete_or_failed": 0,
+          "mean_confidence_range": 0.020833333333333332,
+          "records": 20
+        }
+      },
+      {
+        "method": "direct_llm_small",
+        "name": "GPT-5 mini direct",
+        "option_order": {
+          "attempted_records": 20,
+          "failed_pairs": 0,
+          "prediction_change_rate": 0.0,
+          "records": 20
+        },
+        "repeatability": {
+          "all_predictions_same": 1.0,
+          "at_least_one_change": 0.0,
+          "incomplete_or_failed": 0,
+          "mean_confidence_range": 0.043499999999999976,
+          "records": 20
+        }
+      },
+      {
+        "method": "jev_composite_concurrent",
+        "name": "Jev combined scores, separate calls",
+        "option_order": {
+          "attempted_records": 20,
+          "failed_pairs": 0,
+          "prediction_change_rate": 0.05,
+          "records": 20
+        },
+        "repeatability": {
+          "all_predictions_same": 1.0,
+          "at_least_one_change": 0.0,
+          "incomplete_or_failed": 0,
+          "mean_confidence_range": 0.04166666666666668,
+          "records": 20
+        }
+      },
+      {
+        "method": "jev_composite_fanout",
+        "name": "Jev combined scores, one bundled call",
+        "option_order": {
+          "attempted_records": 20,
+          "failed_pairs": 0,
+          "prediction_change_rate": 0.0,
+          "records": 20
+        },
+        "repeatability": {
+          "all_predictions_same": 0.85,
+          "at_least_one_change": 0.15,
+          "incomplete_or_failed": 0,
+          "mean_confidence_range": 0.10416666666666666,
+          "records": 20
+        }
+      },
+      {
+        "method": "jev_direct",
+        "name": "Jev direct",
+        "option_order": {
+          "attempted_records": 20,
+          "failed_pairs": 0,
+          "prediction_change_rate": 0.0,
+          "records": 20
+        },
+        "repeatability": {
+          "all_predictions_same": 1.0,
+          "at_least_one_change": 0.0,
+          "incomplete_or_failed": 0,
+          "mean_confidence_range": 0.013500000000000002,
+          "records": 20
+        }
+      },
+      {
+        "method": "rules_baseline",
+        "name": "Programmed rules",
+        "option_order": {
+          "attempted_records": 20,
+          "failed_pairs": 0,
+          "prediction_change_rate": 0.0,
+          "records": 20
+        },
+        "repeatability": {
+          "all_predictions_same": 1.0,
+          "at_least_one_change": 0.0,
+          "incomplete_or_failed": 0,
+          "mean_confidence_range": 0.0,
+          "records": 20
+        }
+      }
+    ],
+    "unknown_usage_outputs": 0
+  },
+  "case_configuration": {
+    "case_id": "sec_lines",
+    "description": "Map a company's financial statement wording to 29 standard lines using its filed accounting tag as the answer key.",
+    "descriptions": {
+      "accounts_payable": "Amounts owed to suppliers for goods and services already received.",
+      "accrued_liabilities": "Expenses incurred but not yet paid.",
+      "cash": "Cash and cash equivalents, including restricted cash when reported together.",
+      "cost_of_revenue": "Direct costs of producing the goods and services sold.",
+      "depreciation_amortization": "Charges allocating the cost of tangible and intangible assets over time.",
+      "goodwill_intangibles": "Goodwill or other intangible assets reported separately or together.",
+      "gross_profit": "Revenue remaining after the direct costs of sales.",
+      "income_tax": "Income tax expense or benefit for the period.",
+      "interest_expense": "Interest costs incurred on borrowings.",
+      "interest_income": "Income earned from lending money or interest-bearing investments.",
+      "inventory": "Goods and materials held for sale or production.",
+      "long_term_debt": "Borrowings due beyond the current period.",
+      "net_income": "The bottom-line profit or loss after expenses and income tax.",
+      "operating_income": "Profit or loss from ordinary operations before non-operating items and tax.",
+      "other_current_assets": "Current assets other than cash, investments, receivables and inventory.",
+      "other_current_liabilities": "Current obligations outside supplier payables, accruals and debt.",
+      "other_noncurrent_assets": "Long-term assets outside property, goodwill and intangible categories.",
+      "other_noncurrent_liabilities": "Long-term obligations outside long-term borrowings.",
+      "other_nonoperating": "A component of non-operating income or expense distinct from the total.",
+      "other_operating": "Other income or costs included in operating profit.",
+      "ppe": "Property, plant and equipment after accumulated depreciation.",
+      "receivables": "Current amounts customers and other parties owe the company.",
+      "research_development": "Costs of researching and developing products and technology.",
+      "revenue": "Income earned from the company's ordinary sales and services.",
+      "sga": "Selling and general administrative costs of operating the business.",
+      "short_term_debt": "Borrowings and portions of long-term debt due in the current period.",
+      "short_term_investments": "Investments expected to be realised within the current operating cycle.",
+      "total_equity": "The owners' residual interest in assets after liabilities.",
+      "total_nonoperating": "Total income or expense outside operations, including interest when present."
+    },
+    "fiscal_years": [
+      2021,
+      2022,
+      2023,
+      2024,
+      2025
+    ],
+    "metadata": {
+      "default": {
+        "range": [
+          0,
+          1
+        ],
+        "signs": [
+          "positive",
+          "zero"
+        ]
+      },
+      "gross_profit": {
+        "range": [
+          0,
+          1
+        ],
+        "signs": [
+          "positive",
+          "negative",
+          "zero"
+        ]
+      },
+      "income_tax": {
+        "range": [
+          0,
+          0.5
+        ],
+        "signs": [
+          "positive",
+          "negative",
+          "zero"
+        ]
+      },
+      "net_income": {
+        "range": [
+          0,
+          1
+        ],
+        "signs": [
+          "positive",
+          "negative",
+          "zero"
+        ]
+      },
+      "operating_income": {
+        "range": [
+          0,
+          1
+        ],
+        "signs": [
+          "positive",
+          "negative",
+          "zero"
+        ]
+      },
+      "other_nonoperating": {
+        "range": [
+          0,
+          0.5
+        ],
+        "signs": [
+          "positive",
+          "negative",
+          "zero"
+        ]
+      },
+      "other_operating": {
+        "range": [
+          0,
+          0.5
+        ],
+        "signs": [
+          "positive",
+          "negative",
+          "zero"
+        ]
+      },
+      "revenue": {
+        "range": [
+          0.8,
+          1.2
+        ],
+        "signs": [
+          "positive"
+        ]
+      },
+      "total_equity": {
+        "range": [
+          0,
+          1
+        ],
+        "signs": [
+          "positive",
+          "negative",
+          "zero"
+        ]
+      },
+      "total_nonoperating": {
+        "range": [
+          0,
+          0.5
+        ],
+        "signs": [
+          "positive",
+          "negative",
+          "zero"
+        ]
+      }
+    },
+    "processed_dir": "data/processed/sec_lines",
+    "quarter_end": "2026q1",
+    "quarter_start": "2021q1",
+    "raw_dir": "data/raw/sec_lines",
+    "sic_file": "cases/sec_lines/sic_codes.json"
+  },
   "configuration": {
     "attempts": 3,
     "bootstrap_samples": 2000,
@@ -9519,9 +10313,64 @@
     }
   },
   "prediction_rows": 18760,
+  "pricing": {
+    "prices": [
+      {
+        "currency": "USD",
+        "effective_date": "2026-10-02",
+        "input_per_million": 0.25,
+        "model": "openai/gpt-5-mini",
+        "output_per_million": 2.0,
+        "provider": "vercel",
+        "source_url": "https://ai-gateway.vercel.sh/v1/models"
+      },
+      {
+        "currency": "USD",
+        "effective_date": "2026-10-02",
+        "input_per_million": 3.0,
+        "model": "anthropic/claude-sonnet-4.6",
+        "output_per_million": 15.0,
+        "provider": "vercel",
+        "source_url": "https://ai-gateway.vercel.sh/v1/models"
+      },
+      {
+        "currency": "USD",
+        "effective_date": "2026-10-02",
+        "input_per_million": 0.042,
+        "model": "typesafe-ai/jev",
+        "output_per_million": 0.0,
+        "provider": "vercel",
+        "source_url": "https://ai-gateway.vercel.sh/v1/models"
+      }
+    ]
+  },
+  "prompts": {
+    "decomposed_llm": {
+      "system": "Score every candidate template line independently on wording fit and position fit. Use integer scores from 0 to 4 using the supplied rubric. If the information needed for a dimension is missing, use 2 for that dimension. Do not choose the final line and do not provide rationale.\n"
+    },
+    "direct_llm": {
+      "system": "Match one line from a company's financial statement to one line of a standard template. Use only the supplied record and candidate information. Return the single best template line and a confidence from 0 to 1. Confidence is your estimate of the probability that the selected line is correct. Do not provide rationale.\n"
+    },
+    "jev_composite": {
+      "position": "For candidate {candidate_id}, how well does the statement line's place among its neighbouring lines fit the candidate? If neighbouring lines are not supplied, choose the middle level.\n",
+      "wording": "For candidate {candidate_id}, how well does the statement line's wording mean the same thing as the candidate?\n"
+    },
+    "jev_direct": {
+      "instructions": "Which template line does the statement line described in the state belong to?\n"
+    },
+    "score_levels": [
+      "Contradictory or no fit",
+      "Weak fit",
+      "Plausible fit or information missing",
+      "Strong fit",
+      "Direct fit"
+    ]
+  },
   "report_generator_hashes": {
-    "benchmark/reporting.py": "5b72dd31d647b5d50281a5a26176514c6bea0880c60bca477dff1a20b95a2991",
-    "benchmark/summary.py": "93d9da4f9506ff4243f2020feb0e340fdd05d08bbf129ec072e5d4bc235394e2"
+    "benchmark/analysis.py": "2887f3b6ca473fae0fab87fbc8df411d8d1eb03b3fd5bac9145d726a877ff823",
+    "benchmark/narrative.py": "db87972a150137ebf63470dc1c5427ab6e3b8a1e5896f1da34d1634713f3cea6",
+    "benchmark/reporting.py": "56d6c0bda61c23bab05c63862b592c0bf27ef801bd140dfe7e0482c4344733a9",
+    "benchmark/summary.py": "27e97ec918c6305f005b86cbe223b690e64a978b0b7a4f55ca1b6a7059b17f43"
   },
   "run_id": "20261002T232137Z-571ebdd4",
   "sample_manifest": {
@@ -12576,11 +13425,17 @@
     ]
   },
   "source_artifact_hashes": {
+    "analysis.json": "750473ff26a9eadf0ffae72a41779a8a958e99e6618d0708b6c559bc416d0afb",
+    "case_config.yaml": "19e2708ac458a3d36d9b848b83f68f012434381431b623d42d7f8587d60b6274",
+    "criterion-audit.md": "3946cf4a78bac024d9ad42951c8181b0d8fcb1c937aba7c48aa717aabce65ac9",
     "dataset_manifest.json": "d0bfba212a49668f57c9bdf22d30078c44c6d9af623aa4b0fd580c731e49bac9",
+    "details.md": "3be798b23ae5d8fa92e221466f77e1240e4d45e9775d76480b8023fe4a4e02a8",
     "freeze.json": "ad23c32c29597fe008303b72fa744647ab1e9c4df87c3e81a46b192d2b89dc7e",
     "metrics.json": "ccff23b701811443419d120d0abba2f5d9154e0cc3414a9f9bfad44618d65c6c",
     "predictions.parquet": "f28270deeb4460a1d56f9f6162c496c2959bdaca5bca11727f939d9dedba5537",
-    "report.md": "95f2d185d9e3694ad194f64ce2d8d2523a46fd46d058e9cecfca83164f9acbdc",
+    "pricing.yaml": "35bf4d711b84a195a1b2a6e019c4e9d6b0eea6496fcf0a0b69e9088ab8e70bd7",
+    "prompts.yaml": "6f69df29910ca53d00f27480b0926c931492b0e168dcc2c6385402aa2058b0c7",
+    "report.md": "8d7cc5dcf5c01cc0f7d113b91c862aa2b169820ba1083724b4cbc03c1f65df84",
     "resolved_config.yaml": "4a7429c708e946a456272e52e4b7bedb29ecac65b1e73adf1daf9db7413be4b7",
     "sample_manifest.json": "ba7e6cdcb96e0f8c42f23d76874ff6f1f018601d8c999c2d072692aea11d0c4f"
   },
@@ -12746,7 +13601,7 @@
     "headline": "Jev cuts direct costs 77%",
     "next_step": "Review direct-method errors on the intended workload; assess composite scoring separately.",
     "predictions_sha256": "f28270deeb4460a1d56f9f6162c496c2959bdaca5bca11727f939d9dedba5537",
-    "result": "Direct with context (2,900 records): Jev 95.76% vs openai/gpt-5-mini 95.24%; cost 76.9% lower (4.3\u00d7 cheaper) at list prices. The observed direct comparison favors Jev on accuracy and cost.",
+    "result": "Direct with context (2,900 records): Jev 95.76% vs GPT-5 mini 95.24%; cost 76.9% lower (4.3\u00d7 cheaper) at list prices. The observed direct comparison favors Jev on accuracy and cost.",
     "run_id": "20261002T232137Z-571ebdd4"
   }
 }

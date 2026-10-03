@@ -19,20 +19,12 @@
 <path d="M 70 520.0 H 670" stroke="#e5e7eb"/>
 <text x="35" y="524.0">0%</text>
 <text x="658.0" y="540">100%</text>
-<polyline points="370.0,462.4 490.0,437.7 550.0,406.0 610.0,376.0 670.0,347.2" fill="none" stroke="#2563eb" stroke-width="2"/>
-<text x="695" y="55" fill="#2563eb">decomposed_llm_matrix_small</text>
-<polyline points="370.0,116.8 490.0,94.9 550.0,88.0 610.0,82.7 670.0,83.2" fill="none" stroke="#b91c1c" stroke-width="2"/>
-<text x="695" y="77" fill="#b91c1c">decomposed_llm_parallel_small</text>
-<polyline points="370.0,515.4 490.0,512.9 550.0,509.9 610.0,507.3 670.0,497.2" fill="none" stroke="#047857" stroke-width="2"/>
-<text x="695" y="99" fill="#047857">direct_llm_small</text>
-<polyline points="370.0,520.0 490.0,520.0 550.0,520.0 610.0,514.7 670.0,496.0" fill="none" stroke="#7c3aed" stroke-width="2"/>
-<text x="695" y="121" fill="#7c3aed">jev_composite_concurrent</text>
-<polyline points="370.0,520.0 490.0,520.0 550.0,520.0 610.0,509.3 670.0,491.2" fill="none" stroke="#b45309" stroke-width="2"/>
-<text x="695" y="143" fill="#b45309">jev_composite_fanout</text>
-<polyline points="370.0,518.7 490.0,517.4 550.0,516.9 610.0,514.1 670.0,499.6" fill="none" stroke="#0e7490" stroke-width="2"/>
-<text x="695" y="165" fill="#0e7490">jev_direct</text>
-<polyline points="370.0,518.0 490.0,517.4 550.0,458.8 610.0,412.2 670.0,375.0" fill="none" stroke="#be185d" stroke-width="2"/>
-<text x="695" y="187" fill="#be185d">rules_baseline</text>
+<polyline points="370.0,515.4 490.0,512.9 550.0,509.9 610.0,507.3 670.0,497.2" fill="none" stroke="#2563eb" stroke-width="2"/>
+<text x="695" y="55" style="fill:#2563eb">GPT-5 mini direct</text>
+<polyline points="370.0,518.7 490.0,517.4 550.0,516.9 610.0,514.1 670.0,499.6" fill="none" stroke="#b91c1c" stroke-width="2"/>
+<text x="695" y="77" style="fill:#b91c1c">Jev direct</text>
+<polyline points="370.0,518.0 490.0,517.4 550.0,458.8 610.0,412.2 670.0,375.0" fill="none" stroke="#047857" stroke-width="2"/>
+<text x="695" y="99" style="fill:#047857">Programmed rules</text>
 <text x="250" y="575">Share of records retained</text>
 <text x="16" y="300" transform="rotate(-90 16 300)">Error rate on retained records</text>
 </svg>

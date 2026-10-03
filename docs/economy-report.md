@@ -1,6 +1,6 @@
 # The sample contains 2,900 records
 
-This test maps company financial-statement labels to 29 standard categories using filed accounting tags as the answer key. It compares Jev and GPT-5 mini on United States Securities and Exchange Commission (SEC) filings, with fixed matching rules as a baseline.
+This study maps company financial-statement labels to standard categories using public United States Securities and Exchange Commission (SEC) filings. Company-filed tags supply the answer key. Jev selects from predefined answers and returns probabilities. We compare it with a conventional language model and programmed rules.
 
 | Property | Tested sample |
 | --- | --- |
@@ -10,88 +10,63 @@ This test maps company financial-statement labels to 29 standard categories usin
 | Fiscal years | 2021, 2022, 2023, 2024, 2025 |
 | Statements | Balance sheet: 1,500; Income statement: 1,400 |
 | Label properties | 1,093 have wording mapped differently across filers; 2,558 differ from the standard label |
-| Subsets | Composite: 100; repeat: 20; option shuffle: 20 |
+| Subsets | Multi-question comparison: 100; repeat checks: 20; answer-order checks: 20 |
 | Filing archives | 2021q1–2026q1 |
 
 Sampling balances answer categories; aggregate accuracy does not estimate the natural filing mix.
-Source: [validation snapshot](economy-validation.json), including dataset provenance, selected record IDs and raw-evidence hashes.
+Source: [dataset manifest](economy-validation.json), [selected record IDs](economy-validation.json).
 
-- Filed tags are a proxy answer key, not independently audited truth.
-- The 2026 Q1 cutoff excludes later filings for fiscal year 2025.
-- Eligibility requires standard mapped tags and consolidated values denominated in United States dollars.
-- Available SEC presentation rows may omit headings.
+
+## Tests compare decision workflows
+
+Tested models: GPT-5 mini, Jev. Direct workflows choose the final category in one call. Combined workflows score wording, position and numerical fit separately, then combine the scores in code. We test bundled and separate calls.
+
+- **Direct versus rules:** does a model improve coverage and accuracy at a useful cost and speed?
+- **Labels versus context:** do neighbouring lines and numerical context help resolve the mapping?
+- **Confidence:** can uncertain answers be deferred to concentrate review on errors?
+- **Combined judgments and consistency:** do extra judgments improve the answer, and does it survive repeats and reordered options?
 
 ## Jev cuts direct costs 77%
 
-Direct with context (2,900 records): Jev 95.76% vs openai/gpt-5-mini 95.24%; cost 76.9% lower (4.3× cheaper) at list prices. The observed direct comparison favors Jev on accuracy and cost.
+Direct with context (2,900 records): Jev 95.76% vs GPT-5 mini 95.24%; cost 76.9% lower (4.3× cheaper) at list prices. The observed direct comparison favors Jev on accuracy and cost.
 
-Accuracy difference: +0.52 percentage points; 95% interval -0.14 to +1.20, resampling companies. An accuracy advantage is not established. Review direct-method errors on the intended workload; assess composite scoring separately.
+Accuracy difference: +0.52 percentage points; 95% interval -0.14 to +1.20, resampling companies. An accuracy advantage is not established.
 
-Source: [computed metrics](economy-validation.json).
+| Workflow | Labels alone | With context | Cost / 1,000 | Median response |
+| --- | --- | --- | --- | --- |
+| GPT-5 mini direct | 94.24% (2,733/2,900) | 95.24% (2,762/2,900) | $0.2510 | 1.296s |
+| Jev direct | 94.21% (2,732/2,900) | 95.76% (2,777/2,900) | $0.0580 | 0.627s |
+| Programmed rules | 69.79% (2,024/2,900) | 69.79% (2,024/2,900) | $0.0000 | 0.083ms |
 
-Run: 20261002T232137Z-571ebdd4. Mode: benchmark. Complete: True.
-Known list-price cost: $4.1840; provider requests: 28,568.
-Direct methods choose a category. Composite methods combine wording, position and numeric-metadata scores; matrix and bundled variants request all scores together, while separate-question variants use individual calls. Failed calls and abstentions count as wrong; composite and direct sample sizes differ.
+Accuracy counts abstentions and failed calls as wrong. Cost and time use the primary input condition shown above; prices are uncached estimates in United States dollars. Timing reflects this run’s concurrent load.
 
-| Method | Context | Records | Accuracy | Failures | Cost per 1,000 |
-| --- | --- | ---: | ---: | ---: | ---: |
-| GPT-5 mini matrix | label_only | 100 | 34.00% | 0.00% | $ 0.7779 |
-| GPT-5 mini matrix | with_context | 100 | 64.00% | 0.00% | $ 0.8190 |
-| GPT-5 mini separate questions | label_only | 100 | 11.00% | 0.00% | $ 6.2257 |
-| GPT-5 mini separate questions | with_context | 100 | 9.00% | 0.00% | $ 6.7496 |
-| GPT-5 mini direct | label_only | 2900 | 94.24% | 0.00% | $ 0.2333 |
-| GPT-5 mini direct | with_context | 2900 | 95.24% | 0.00% | $ 0.2510 |
-| Jev separate questions | label_only | 100 | 93.00% | 0.00% | $ 1.1949 |
-| Jev separate questions | with_context | 100 | 95.00% | 0.00% | $ 1.3156 |
-| Jev bundled questions | label_only | 100 | 93.00% | 0.00% | $ 0.1427 |
-| Jev bundled questions | with_context | 100 | 94.00% | 0.00% | $ 0.1469 |
-| Jev direct | label_only | 2900 | 94.21% | 0.00% | $ 0.0539 |
-| Jev direct | with_context | 2900 | 95.76% | 0.00% | $ 0.0580 |
-| Rules | label_only | 2900 | 69.79% | 0.00% | $ 0.0000 |
-| Rules | with_context | 2900 | 69.79% | 0.00% | $ 0.0000 |
+Rules answered 2,035/2,900 records at 99.46% accuracy among answers, leaving 865 unresolved.
 
-## GPT-5 mini dominates spending
+Keeping each method’s most confident 80% retains 2,320 records and defers 580: GPT-5 mini direct leaves 49 errors (97.89% accuracy); Jev direct leaves 15 errors (99.35% accuracy). Each method selects different records; human-review outcomes were not measured.
 
-| Model | Requests | Input tokens | Output tokens | List-price cost |
-| --- | ---: | ---: | ---: | ---: |
-| openai/gpt-5-mini | 14,284 | 9,791,643 | 507,534 | $3.4630 |
-| typesafe-ai/jev | 14,284 | 17,166,474 | 1,254,165 | $0.7210 |
+The combined-workflow comparison uses the same 100 records for every method:
 
-This run cost $4.1840. All five recorded runs total $5.6677 in known list-price usage. The interrupted prerequisite contains 40 requests with unknown usage; its additional $0.3788 reservation is not a measured charge. See the [cost ledger](economy-validation.json).
+| Workflow | Correct / records | Cost / 1,000 |
+| --- | --- | --- |
+| GPT-5 mini combined, bundled | 64 / 100 | $0.8190 |
+| GPT-5 mini combined, separate | 9 / 100 | $6.7496 |
+| GPT-5 mini direct | 98 / 100 | $0.2514 |
+| Jev combined, separate | 95 / 100 | $1.3156 |
+| Jev combined, bundled | 94 / 100 | $0.1469 |
+| Jev direct | 98 / 100 | $0.0581 |
 
-## The brief sets acceptance targets
+The tested Jev combinations add cost without improving accuracy over Jev direct on the same records. Prefer the direct workflow for this task on this evidence.
 
-The original criterion requires an accuracy loss no greater than 2 percentage points at the lower end of a 95% interval, plus either cost at most one-fifth of the comparator or higher accuracy among the most confident 80% of answers.
+Direct decisions did not change in the repeat/order checks: GPT-5 mini direct checked 20 repeated and 20 reordered records; Jev direct checked 20 repeated and 20 reordered records. These small checks do not establish universal stability.
 
-Source: [brief as imported before implementation](https://github.com/armin-haghi/jev-compare/blob/e05b745/docs/build-brief.md#L39). The snapshot does not identify who originally selected the cutoffs.
+## The evidence favors Jev direct
 
-The implementation applies the criterion to records shared by Jev direct and all conventional-model methods, and resamples companies to account for correlated records.
+Prefer Jev direct for this tested task: it costs less than the direct language-model comparator without an observed aggregate accuracy loss. This is a recommendation about the measured tradeoff; the acceptable error rate depends on the business.
 
-These are project acceptance targets. Practical value is assessed separately from measured accuracy, cost and uncertainty.
+The aggregate hides weaknesses: for “other nonoperating”, Jev scored 74/100 versus GPT-5 mini direct's 88/100. This is a descriptive category check, not proof of a general advantage.
 
-| Context | Shared records | Accuracy-difference interval | Cost relative to comparator | Higher accuracy at 80% coverage | Original criterion |
-| --- | ---: | --- | --- | --- | --- |
-| label only | 100 | -6.06 to +2.00 points | 23.1% (target ≤20%) | Yes | Unmet |
-| with context | 100 | -3.00 to +3.00 points | 23.1% (target ≤20%) | Yes | Unmet |
+This supports a choice for this task and these configurations. Public filed tags are a proxy answer key; the category-balanced sample does not represent every production workload. Other finance tasks, untested models, integration costs and review costs remain unmeasured.
 
-The shared-sample interval extends below the allowed 2-point loss. That explains the unmet original criterion; the full direct comparison above uses its own larger sample and interval.
+Run 20261002T232137Z-571ebdd4: 18,760 outputs across all variants and checks, 28,568 requests, 0 failed outputs; $4.1840 known list-price cost. Unknown-usage outputs: 0.
 
-Where retained-answer accuracy is higher, that satisfies the alternative benefit test; the 5× cost target is not required. Each method retains its own most confident 80%, so accepted records can differ.
-
-## Confidence ranks retained answers
-
-![Coverage and error rate for label_only](economy-coverage-label_only.svg)
-
-![Coverage and error rate for with_context](economy-coverage-with_context.svg)
-
-## Limits bound these measurements
-
-- Filed tags are a proxy answer key, not independently audited truth.
-- The 2026 Q1 cutoff excludes later filings for fiscal year 2025.
-- Eligibility requires standard mapped tags and consolidated values denominated in United States dollars.
-- Available SEC presentation rows may omit headings.
-- Costs use uncached list prices; billed invoice costs may differ.
-- Composite scores are not correctness probabilities.
-- Record concurrency: 4; question concurrency: 2. Latency is measured under this load.
-
-The [validation snapshot](economy-validation.json) includes configuration, dataset provenance, source hashes, matched comparisons, calibration, repeatability and option-order results. Raw artifacts are retained locally under results/20261002T232137Z-571ebdd4/.
+Sources: [detailed analysis](economy-details.md), [results and uncertainty](economy-validation.json), [recommendation evidence](economy-validation.json), [configuration](economy-validation.json). The [historical criterion](economy-criterion-audit.md) is retained for audit; it does not decide the recommendation.
