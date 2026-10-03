@@ -28,29 +28,6 @@ def dataset_summary(rows, manifest, sample):
     }
 
 
-def dataset_lines(dataset, description, manifest):
-    low, high = dataset['records_per_category']
-    balance = str(low) if low == high else f'{low}–{high}'
-    lines = [f"# The sample contains {dataset['selected_records']:,} records", '', description, '',
-             '| Property | Tested sample |', '| --- | --- |',
-             f"| Records | {dataset['observed_records']:,} observed of {dataset['selected_records']:,} selected; {dataset['eligible_records']:,} eligible in the source corpus |" if dataset['eligible_records'] is not None else f"| Records | {dataset['observed_records']:,} observed of {dataset['selected_records']:,} selected |",
-             f"| Categories | {dataset['categories']}; {balance} records per category |"]
-    if dataset['filers'] is not None:
-        lines.append(f"| Companies | {dataset['filers']:,} distinct filers |")
-    if dataset['fiscal_years']:
-        lines.append(f"| Fiscal years | {', '.join(dataset['fiscal_years'])} |")
-    if dataset['statements']:
-        names = {'BS': 'Balance sheet', 'IS': 'Income statement'}
-        lines.append('| Statements | ' + '; '.join(f'{names.get(key, key)}: {count:,}' for key, count in sorted(dataset['statements'].items())) + ' |')
-        lines.append(f"| Label properties | {dataset['filer_split_records']:,} have wording mapped differently across filers; {dataset['label_differs_records']:,} differ from the standard label |")
-    lines.append(f"| Subsets | Multi-question comparison: {dataset['composite_records']:,}; repeat checks: {dataset['repeat_records']:,}; answer-order checks: {dataset['shuffle_records']:,} |")
-    if dataset['quarter_start']:
-        lines.append(f"| Filing archives | {dataset['quarter_start']}–{dataset['quarter_end']} |")
-    lines += ['', 'Sampling balances answer categories; aggregate accuracy does not estimate the natural filing mix.',
-              'Source: [dataset manifest](dataset_manifest.json), [selected record IDs](sample_manifest.json).', '']
-    return lines + ['']
-
-
 def make_verdict(rows, metrics, status):
     if not status['complete']:
         return {'headline': 'The run remains incomplete', 'result': 'Saved results cover a partial run.',
@@ -138,46 +115,16 @@ def make_verdict(rows, metrics, status):
                                   'accuracy_difference': difference, 'filer_cluster_bootstrap_95': interval}}
 
 
-def verdict_lines(verdict):
-    return [f"## {verdict['headline']}", '', verdict['result'], '', verdict['caveat'] + ' ' + verdict['next_step'], '',
-            'Source: [computed metrics](metrics.json).', '']
-
-
-def criterion_lines(verdict):
-    audit = verdict.get('criterion_audit')
-    if audit is None:
-        return []
-    lines = ['## The brief sets acceptance targets', '',
-             'The original criterion requires an accuracy loss no greater than 2 percentage points at the lower end of a 95% interval, plus either cost at most one-fifth of the comparator or higher accuracy among the most confident 80% of answers.', '',
-             f"Source: [brief as imported before implementation]({audit['source']}). The snapshot does not identify who originally selected the cutoffs.", '',
-             audit['implementation'], '', audit['interpretation'], '',
-             '| Context | Shared records | Accuracy-difference interval | Cost relative to comparator | Higher accuracy at 80% coverage | Original criterion |',
-             '| --- | ---: | --- | --- | --- | --- |']
-    for regime, rule in audit['outcomes'].items():
-        bounds = rule.get('comparison', {}).get('filer_cluster_bootstrap_95')
-        interval = f'{bounds[0]*100:+.2f} to {bounds[1]*100:+.2f} points' if bounds else 'Unavailable'
-        ratio = rule.get('cost_ratio')
-        price = f'{ratio:.1%} (target ≤20%)' if ratio is not None else 'Unavailable'
-        retained = {True: 'Yes', False: 'No', None: 'Unavailable'}[rule.get('higher_accuracy_at_80_coverage')]
-        outcome = {'pass': 'Met', 'fail': 'Unmet', 'not_evaluated': 'Not evaluated'}.get(rule['outcome'], rule['outcome'])
-        lines.append(f"| {regime.replace('_', ' ')} | {rule.get('records', 0):,} | {interval} | {price} | {retained} | {outcome} |")
-    if any(rule.get('outcome') == 'fail' and rule.get('noninferior') is False for rule in audit['outcomes'].values()):
-        lines += ['', 'The shared-sample interval extends below the allowed 2-point loss. That explains the unmet original criterion; the full direct comparison above uses its own larger sample and interval.']
-    if any(rule.get('higher_accuracy_at_80_coverage') is True for rule in audit['outcomes'].values()):
-        lines += ['', 'Where retained-answer accuracy is higher, that satisfies the alternative benefit test; the 5× cost target is not required. Each method retains its own most confident 80%, so accepted records can differ.']
-    return lines + ['']
-
-
 def print_summary(folder):
     summary = json.loads((folder / 'management_summary.json').read_text())
     dataset, verdict = summary['tested_dataset'], summary['verdict']
-    print(f"Dataset: {dataset['observed_records']:,}/{dataset['selected_records']:,} records, {dataset['categories']} categories, {dataset['composite_records']} composite records.")
+    print(verdict['headline'] + '.')
+    print(f"Total run cost (known list-price estimate): ${summary['run'].get('known_list_price_cost_usd', 0):.4f}")
+    print(f"Dataset: {dataset['observed_records']:,}/{dataset['selected_records']:,} records, {dataset['categories']} categories, {dataset['composite_records']} extra-scoring records.")
     analysis = summary.get('analysis', {})
     if analysis:
         print('Task: ' + summary['case'])
-    print(verdict['headline'] + '.')
     print(verdict['result'])
     print(verdict['caveat'])
     print('Recommendation: ' + analysis.get('recommendation', verdict['next_step']))
-    print(f"Known list-price cost: ${summary['run'].get('known_list_price_cost_usd', 0):.4f}")
-    print(f"Report: {folder / 'report.md'}")
+    print(f"Factsheet: {folder / 'factsheet.md'}")

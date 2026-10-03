@@ -41,4 +41,4 @@ Each run recommends a workflow for its tested task, using observed tradeoffs and
 
 Category-balanced samples do not estimate a natural production mix. Filed tags are a proxy for independently reviewed accounting truth. Public filings do not establish performance on private management accounts, other finance tasks or untested models. Synthetic, smoke and incomplete runs do not support deployment recommendations.
 
-Prompts, sampling and model settings are recorded before inference; predictions, usage and configuration are retained. Reports regenerate from that evidence without model calls. A methodology snapshot accompanies each generated report so its definitions remain inspectable.
+Prompts, sampling and model settings are recorded before inference; predictions, usage and configuration are retained. Reports regenerate from that evidence without model calls. The consolidated evidence file embeds a methodology snapshot and hash so the run’s definitions remain inspectable.

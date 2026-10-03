@@ -1,6 +1,5 @@
-"""Reader-facing report, rendered from the same evidence for local and shared use."""
+"""Concise factsheets rendered from saved evidence, without provider calls."""
 from benchmark.analysis import is_direct, model_name
-from benchmark.summary import dataset_lines
 
 
 def percent(value):
@@ -12,7 +11,7 @@ def money(value):
 
 
 def duration(value):
-    return f'{value*1000:.3f}ms' if value < .001 else f'{value:.3f}s'
+    return f'{value:.3f}s'
 
 
 def calls(row):
@@ -25,151 +24,99 @@ def table(headers, rows):
         '| ' + ' | '.join(str(value).replace('|', '\\|').replace('\n', ' ') for value in row) + ' |' for row in rows] + ['']
 
 
-def source():
-    return ['Source: [saved analysis](analysis.json), [computed metrics](metrics.json).', '']
-
-
-def run_intro(summary, analysis):
-    task = ("This run maps company financial-statement labels using public United States Securities and Exchange Commission (SEC) filings and company-filed tags as the answer key."
-            if analysis['case_id'] == 'sec_lines' else summary['case'])
-    tested = ', '.join(sorted({model_name(m['model']) for m in summary['methods'] if m['method'] != 'rules_baseline'}))
-    task += f" Tested models: {tested}. See the [methodology](methodology.md) for workflow definitions and scoring."
-    if summary['run']['mode'] != 'benchmark' or not summary['run']['complete']:
-        verdict = summary['verdict']
-        task += f"\n\n**{verdict['headline']}.** {verdict['result']} {verdict['caveat']}"
-    return task
-
-
-def render_details(summary, analysis, config):
-    dataset, verdict, status = summary['tested_dataset'], summary['verdict'], summary['run']
-    context = analysis['preferred_context']
-    sec = analysis['case_id'] == 'sec_lines'
-    lines = dataset_lines(dataset, run_intro(summary, analysis), summary['dataset'])
-    lines += [f"## {verdict['headline']}", '', verdict['result'], '', verdict['caveat'], '']
-    primary = [row for row in analysis['direct_results'] if row['context_regime'] == context]
-    lines += [f"The table uses {'surrounding context' if context == 'with_context' else 'labels without surrounding context'}.", '']
-    lines += table(['Workflow', 'Correct / records', 'Accuracy', 'Abstentions', 'Cost / 1,000', 'Median / 95th-percentile time'], [
-        [r['name'], f"{r['correct']:,} / {r['records']:,}", percent(r['accuracy']), r['abstained'], money(r['cost_per_1000_usd']),
-         f"{duration(r['median_seconds'])} / {duration(r['p95_seconds'])}"] for r in primary])
-    for r in primary:
-        if r['method'] == 'rules_baseline':
-            lines += [f"Rules answered {r['answered']:,}/{r['records']:,} records ({r['answered']/r['records']:.2%}); {percent(r['answered_accuracy'])} of those answers matched the key. Their {r['abstained']:,} abstentions are unresolved work, not incorrect emitted labels. Model-service cost is zero; implementation and maintenance costs are not measured.", '']
-    comparison = verdict.get('direct_comparison', {})
-    j = next((r for r in primary if r['method'] == 'jev_direct'), None)
-    rival = next((r for r in primary if is_direct(r['method']) and r['method'] != 'jev_direct' and r['model'] == comparison.get('llm_model')), None)
-    if j and rival and j['cost_per_1000_usd'] is not None and rival['cost_per_1000_usd'] is not None:
-        saving = rival['cost_per_1000_usd'] - j['cost_per_1000_usd']
-        lines += [f"The direct-call cost difference is {money(abs(saving))} per 1,000 records {'in Jev’s favor' if saving >= 0 else 'against Jev'}. These are uncached list-price estimates from measured tokens. Human review, integration and the cost of errors are not included.", '']
-    if analysis['context_comparisons']:
-        lines += table(['Workflow', 'Matched records', 'Labels without context', 'With context'], [
-            [r['name'], f"{r['records']:,}", percent(r['label_accuracy']), percent(r['context_accuracy'])] for r in analysis['context_comparisons']])
-    if analysis['difficulty_slices']:
-        labels = {'baseline_miss': 'Rules were wrong or abstained', 'filer_split': 'Same wording maps differently across companies'}
-        lines += table(['Difficult subset', 'Workflow', 'Correct / records', 'Accuracy'], [
-            [labels[r['dimension']], r['name'], f"{r['correct']:,} / {r['records']:,}", percent(r['accuracy'])] for r in analysis['difficulty_slices']])
-    if analysis['lowest_jev_categories']:
-        lines += ['Aggregate accuracy hides category differences. These are the three lowest-accuracy categories for Jev direct, selected after scoring as a descriptive error review.', '']
-        lines += table(['Category', 'Workflow', 'Correct / records', 'Accuracy'], [
-            [r['value'].replace('_', ' '), r['name'], f"{r['correct']} / {r['records']}", percent(r['accuracy'])] for r in sorted(analysis['lowest_jev_categories'], key=lambda r: (r['value'], r['name']))])
-    lines += source()
-
-    retained = analysis['confidence_deferral']
-    jev_retained = next((r for r in retained if r['method'] == 'jev_direct'), None)
-    rivals_retained = [r for r in retained if r['method'] != 'jev_direct']
-    fewer_errors = jev_retained and rivals_retained and all(r['retained'] == jev_retained['retained'] and r['errors'] > jev_retained['errors'] for r in rivals_retained)
-    confidence_headline = 'Jev confidence leaves fewer errors' if fewer_errors else 'Confidence changes the review tradeoff'
-    lines += [f'## {confidence_headline}', '',
-              'The table retains each method’s most confident 80% in this run.', '']
-    lines += table(['Workflow', 'Retained', 'Deferred', 'Errors retained', 'Retained accuracy'], [
-        [r['name'], f"{r['retained']:,}", f"{r['deferred']:,}", r['errors'], percent(r['accuracy'])] for r in analysis['confidence_deferral']])
-    if fewer_errors:
-        lines += ['At the same retained volume, Jev’s confidence ranking leaves fewer incorrect mappings in the accepted work. This supports using confidence to identify records needing review.', '']
-    lines += source()
-
-    lines += [f"## {analysis['composition_headline']}", '',
-              'Every row below uses the same shared records in this run.', '']
-    shared = sorted([r for r in analysis['shared_results'] if r['context_regime'] == context], key=lambda r: (model_name(r['model']), r['task']))
-    lines += table(['Model', 'What we asked it to do', 'Calls / record', 'Correct / shared records', 'Cost / 1,000', 'Tied top scores'], [
-        [model_name(r['model']), r['task'], calls(r), f"{r['correct']} / {r['records']}", money(r['cost_per_1000_usd']), f"{r['ties']} / {r['records']}"] for r in shared])
-    lines += [analysis['composition_conclusion'], '']
-    lines += table(['Workflow', 'Changed on repeat / checked', 'Changed after reordering / checked'], [
-        [r['name'], f"{round(r['repeatability']['at_least_one_change']*r['repeatability']['records'])} / {r['repeatability']['records']}" if r['repeatability']['at_least_one_change'] is not None else 'Not measured',
-         f"{round(r['option_order']['prediction_change_rate']*r['option_order']['records'])} / {r['option_order']['records']}" if r['option_order']['prediction_change_rate'] is not None else 'Not measured'] for r in analysis['stability']])
-    lines += source()
-
-    lines += [f"## {analysis['recommendation_headline']}", '', analysis['recommendation'], '']
-    if status['mode'] == 'benchmark' and status['complete']:
-        if j:
-            lines += [f"Jev direct disagreed with the key on {j['records']-j['correct']:,}/{j['records']:,} records in the primary condition. The error categories and retained-error counts above should determine where review remains necessary; this study assigns no monetary value to a wrong mapping.", '']
-        lines += ['Programmed rules remain useful where their answered subset fits the required coverage. Routing rules’ unresolved records to a model is a plausible implementation option, but that combined workflow was not tested.', '',
-                  'The conventional direct model remains an alternative, with its observed strengths and weaknesses shown by category. The tested combined-score workflows should be judged against direct calls, including their extra cost and instability, rather than treated as an inherent benefit of Jev’s approach.', '']
-    lines += ['The conclusion applies to this sampled task and these configurations. It does not establish performance on other finance data-management tasks or untested models. The balanced category mix differs from a natural production workload, and the answer key is not an independent review of accounting correctness.' if sec else 'The conclusion applies to this sampled task and these configurations; other tasks and untested models remain unmeasured.', '']
-    lines += source()
-
-    lines += ['## Saved evidence supports these findings', '',
-              f"Run {status['run_id']}: {analysis['output_rows']:,} saved outputs, {analysis['provider_requests']:,} provider requests, {analysis['failed_outputs']:,} failed outputs and {analysis['unknown_usage_outputs']:,} outputs with unknown usage. Total known list-price cost: {money(status.get('known_list_price_cost_usd', 0))}. All costs are in United States dollars. This total includes every input condition, workflow and repeat/order check; it is not the cost of one direct pass.", '']
-    lines += table(['Model', 'Requests', 'Input tokens', 'Output tokens', 'Known list-price cost'], [
-        [r['name'], f"{r['requests']:,}", f"{r['input_tokens']:,}" if r['input_tokens'] is not None else 'Unknown',
-         f"{r['output_tokens']:,}" if r['output_tokens'] is not None else 'Unknown', money(r['known_cost_usd'])] for r in analysis['model_costs']])
-    lines += [f"Execution used {config.get('record_concurrency', 1)} concurrent records and up to {config.get('question_concurrency', 8)} concurrent score questions per record. The saved model identifiers and prices describe the run; provider aliases need not identify immutable model weights.", '',
-              'Evidence: [analysis](analysis.json), [metrics](metrics.json), [dataset manifest](dataset_manifest.json), [selected record IDs](sample_manifest.json), [configuration](resolved_config.yaml), [prompts](prompts.yaml). Raw predictions are retained beside the local report; the shareable evidence snapshot includes their hash.', '',
-              'The [historical criterion audit](criterion-audit.md) preserves the original brief’s numerical targets and outcomes. It does not determine this report’s recommendation. The recommendation follows the measured task-level tradeoffs above.', '']
-    for regime in sorted({m['context_regime'] for m in summary['methods']}):
-        lines += [f"![Share of answers retained versus their error rate, {regime.replace('_', ' ')}](coverage-{regime}.svg)", '']
-    lines += [f"- {limit}" for limit in summary['limitations']]
-    return '\n'.join(lines) + '\n'
+def category(value):
+    return {'sga': 'Selling, general and administrative expenses',
+            'other_operating': 'Other operating income/expense',
+            'other_nonoperating': 'Other non-operating income/expense',
+            'total_nonoperating': 'Total non-operating income/expense'}.get(value, value.replace('_', ' ').capitalize())
 
 
 def render_report(summary, analysis, config):
     dataset, verdict, status = summary['tested_dataset'], summary['verdict'], summary['run']
+    context = analysis['preferred_context']
     sec = analysis['case_id'] == 'sec_lines'
-    lines = dataset_lines(dataset, run_intro(summary, analysis), summary['dataset'])
-    lines += [f"## {verdict['headline']}", '', verdict['result'], '', verdict['caveat'], '']
-    primary = [r for r in analysis['direct_results'] if r['context_regime'] == analysis['preferred_context']]
-    model_labels = {r['method']: model_name(r['model']) for r in primary}
-    conditions = {(r['method'], r['context_regime']): r for r in analysis['direct_results']}
-    def accuracy_cell(method, regime):
-        row = conditions.get((method, regime))
-        return f"{percent(row['accuracy'])} ({row['correct']:,}/{row['records']:,})" if row else 'Not measured'
-    lines += table(['Workflow', 'Labels alone', 'With context', 'Cost / 1,000', 'Median response'], [
-        [r['name'], accuracy_cell(r['method'], 'label_only'), accuracy_cell(r['method'], 'with_context'),
-         money(r['cost_per_1000_usd']), duration(r['median_seconds'])] for r in primary])
-    lines += [f"Cost and timing use {analysis['preferred_context'].replace('_', ' ')}; costs are estimated United States dollars.", '']
+    primary = [r for r in analysis['direct_results'] if r['context_regime'] == context]
+    models = sorted((r for r in primary if is_direct(r['method'])), key=lambda r: (r['method'] != 'jev_direct', r['model']))
+    names = {r['method']: model_name(r['model']) for r in models}
+    lines = [f"# {verdict['headline']}", '']
+    if analysis['recommendation'].startswith('Prefer'):
+        task = 'financial-statement mapping' if sec else 'this task'
+        lines += [f'**Recommendation:** Start with Jev, TypeSafe’s fixed-choice decision model, for {task}. Ask for the final category in one call. It cost less without reducing observed overall accuracy.', '']
+    else:
+        lines += [analysis['recommendation'], '']
+    total = money(status.get('known_list_price_cost_usd'))
+    split = '; '.join(f"{r['name']} {money(r['known_cost_usd'])}" for r in analysis['model_costs'])
+    cost_label = 'Known run cost' if analysis['unknown_usage_outputs'] else 'Total run cost'
+    unknown = f" Usage is unknown for {analysis['unknown_usage_outputs']:,} outputs; total cost is incomplete." if analysis['unknown_usage_outputs'] else ''
+    lines += [f"**{cost_label}: {total}** ({split}). Uncached list-price estimate in US dollars, covering all variants and checks; not an invoice.{unknown}", '',
+              f"## The test covers {dataset['selected_records']:,} mappings" if sec else f"## The test covers {dataset['selected_records']:,} records", '']
+    if sec:
+        rivals = ', '.join(model_name(r['model']) for r in models if r['method'] != 'jev_direct') or 'the configured alternatives'
+        lines += [f'The test compares Jev with {rivals} and programmed rules on accuracy, cost, speed and confidence for routing uncertain mappings to review.', '']
+    else:
+        lines += [summary['case'], '']
+    low, high = dataset['records_per_category']
+    balance = str(low) if low == high else f'{low}–{high}'
+    properties = [['Sample', f"{dataset['observed_records']:,} observed records; {dataset['categories']} categories, {balance} each"]]
+    if dataset['filers'] is not None:
+        properties.append(['Companies and period', f"{dataset['filers']:,} filers; fiscal years {', '.join(dataset['fiscal_years'])}"])
+    if dataset['statements']:
+        labels = {'BS': 'balance-sheet', 'IS': 'income-statement'}
+        properties.append(['Statement mix', '; '.join(f'{n:,} {labels.get(k, k)} lines' for k, n in sorted(dataset['statements'].items()))])
+        properties.append(['Ambiguous wording', f"{dataset['filer_split_records']:,} records have wording mapped differently across companies"])
+    properties.append(['Additional checks', f"{dataset['composite_records']:,} records for extra scoring; {dataset['repeat_records']:,} repeated; {dataset['shuffle_records']:,} with reordered options"])
+    lines += table(['Dataset property', 'Tested value'], properties)
+    if sec:
+        lines += ['Source: public United States Securities and Exchange Commission filings. Filed tags supply the answer key and are hidden from model input. Category balancing differs from a production workload.', '']
+    bounds = verdict.get('direct_comparison', {}).get('filer_cluster_bootstrap_95')
+    headline = 'Accuracy differences remain uncertain' if bounds is not None and bounds[0] <= 0 <= bounds[1] else 'Direct results quantify the tradeoff'
+    lines += [f'## {headline}', '',
+              f"Each model chose one category from the same options, {'with nearby lines and financial context' if context == 'with_context' else 'using labels without nearby context'}.", '']
+    lines += table(['Model', 'Correct / tested', 'Accuracy', 'Cost / 1,000', 'Median response'], [
+        [model_name(r['model']), f"{r['correct']:,}/{r['records']:,}", percent(r['accuracy']), money(r['cost_per_1000_usd']), duration(r['median_seconds'])] for r in models])
+    lines += [verdict['caveat'], '']
     rules = next((r for r in primary if r['method'] == 'rules_baseline'), None)
     if rules:
-        lines += [f"Rules answered {rules['answered']:,}/{rules['records']:,} records at {percent(rules['answered_accuracy'])} accuracy among answers, leaving {rules['abstained']:,} unresolved.", '']
+        lines += [f"**Rules:** {rules['answered']:,}/{rules['records']:,} answered at {percent(rules['answered_accuracy'])} accuracy; {rules['abstained']:,} unresolved. Model-service cost: $0.", '']
     retained = analysis['confidence_deferral']
-    if retained:
-        counts = {(r['retained'], r['deferred']) for r in retained}
-        if len(counts) == 1:
-            kept, deferred = next(iter(counts))
-            lines += [f"Keeping each method’s most confident 80% retains {kept:,} records and defers {deferred:,}: " + '; '.join(
-                f"{model_labels[r['method']]} leaves {r['errors']} errors ({percent(r['accuracy'])} accuracy)" for r in retained) + '. Each method selects different records; human-review outcomes were not measured.', '']
-        else:
-            lines += table(['Workflow', 'Retained / deferred', 'Errors retained', 'Accuracy'], [
-                [r['name'], f"{r['retained']} / {r['deferred']}", r['errors'], percent(r['accuracy'])] for r in retained])
-    shared = sorted([r for r in analysis['shared_results'] if r['context_regime'] == analysis['preferred_context'] and r['method'] != 'rules_baseline'], key=lambda r: (model_name(r['model']), r['task']))
+    if retained and len({(r['retained'], r['deferred']) for r in retained}) == 1:
+        kept, deferred = retained[0]['retained'], retained[0]['deferred']
+        lines += [f"**Review tradeoff:** retaining each model’s most confident 80% ({kept:,} answers) leaves " + '; '.join(
+            f"{names[r['method']]}: {r['errors']} errors" for r in retained) + f". Each defers {deferred:,} records; selected records differ. Human-review results remain unmeasured.", '']
+    examples = analysis.get('illustrative_examples', [])
+    if examples:
+        headline = ('Identical labels produce different outcomes' if len(examples) > 1 and len({e['input']['label'] for e in examples}) == 1
+                    else 'Examples expose successes and failures')
+        lines += [f'## {headline}', '',
+                  'Illustrations: one Jev success, one comparator success and one shared failure where available, selected for ambiguous, short labels. Excerpts show the nearest lines around the **target**; examples do not represent outcome frequencies.', '']
+        def excerpt(example):
+            payload, source = example['input'], example['source']
+            above, below = payload.get('lines_above', []), payload.get('lines_below', [])
+            parts = ([above[-1]] if above else []) + [f"**{payload['label']}**"] + ([below[0]] if below else [])
+            owner = f"{source.get('name', example['record_id'][:10])}, {source.get('fy', '')}"
+            return owner + ': ' + ' → '.join(parts)
+        lines += table(['Statement excerpt', 'Filed-tag answer', 'Jev answer', f"{model_name(examples[0]['comparator_model'])} answer"], [
+            [excerpt(e), category(e['reference']), category(e['jev_prediction']), category(e['comparator_prediction'])] for e in examples])
+    shared = [r for r in analysis['shared_results'] if r['context_regime'] == context and r['method'] != 'rules_baseline']
     if shared:
-        lines += [f"On the same {shared[0]['records']:,} records, we tested whether smaller questions helped either model. Each candidate category received two scores: wording fit and fit with surrounding lines. We asked for these scores together or in separate calls:", '']
-        lines += table(['Model', 'What we asked it to do', 'Calls / record', 'Correct / records', 'Cost / 1,000'], [
-            [model_name(r['model']), r['task'], calls(r), f"{r['correct']} / {r['records']}", money(r['cost_per_1000_usd'])] for r in shared])
+        dominates = analysis['composition_conclusion'].startswith('The extra scoring brought no accuracy gain')
+        heading = 'Extra scoring added cost' if dominates else 'Extra scoring changes the tradeoff'
+        lines += [f'## {heading}', '',
+                  f"On the same {shared[0]['records']:,} records, we tested whether scoring each candidate’s wording and context separately helped. Code combined the scores to choose a category.", '']
+        lines += table(['Model', 'Task', 'Calls / record', 'Correct / tested', 'Cost / 1,000'], [
+            [model_name(r['model']), r['task'], calls(r), f"{r['correct']}/{r['records']}", money(r['cost_per_1000_usd'])]
+            for r in sorted(shared, key=lambda r: (r['method'] != 'jev_direct' and not r['method'].startswith('jev_'), r['task']))])
         lines += [analysis['composition_conclusion'], '']
-    direct_stability = [r for r in analysis['stability'] if is_direct(r['method'])]
-    if direct_stability and all(r['repeatability']['at_least_one_change'] == 0 and r['option_order']['prediction_change_rate'] == 0 for r in direct_stability):
-        lines += ['Category choices did not change in these checks: ' + '; '.join(
-            f"{model_labels[r['method']]}: {r['repeatability']['records']} repeated and {r['option_order']['records']} reordered records" for r in direct_stability) + '. These small checks do not establish universal stability.', '']
-    lines += [f"## {analysis['recommendation_headline']}", '', analysis['recommendation'], '']
+        for r in shared:
+            if r['method'].startswith('decomposed_llm_parallel') and r['ties'] > r['records'] / 2:
+                lines += [f"{model_name(r['model'])} gave tied top scores on {r['ties']}/{r['records']} records in separate calls; fixed category order broke those ties. This configuration performed poorly.", '']
     categories = analysis['lowest_jev_categories']
-    counterexamples = []
-    for j in (r for r in categories if r['method'] == 'jev_direct'):
-        for rival in categories:
-            if rival['value'] == j['value'] and rival['method'] != 'jev_direct' and rival['accuracy'] > j['accuracy']:
-                counterexamples.append((rival['accuracy']-j['accuracy'], j, rival))
+    counterexamples = [(r['accuracy']-j['accuracy'], j, r) for j in categories if j['method'] == 'jev_direct'
+                       for r in categories if r['value'] == j['value'] and r['method'] != 'jev_direct' and r['accuracy'] > j['accuracy']]
     if counterexamples:
         _, j, rival = max(counterexamples, key=lambda item: item[0])
-        rival_model = next(row['model'] for row in primary if row['method'] == rival['method'])
-        lines += [f"The aggregate hides weaknesses: for “{j['value'].replace('_', ' ')}”, Jev scored {j['correct']}/{j['records']} versus {model_name(rival_model)}'s {rival['correct']}/{rival['records']}. This is a descriptive category check, not proof of a general advantage.", '']
-    lines += ['This supports a choice for this task and these configurations. Public filed tags are a proxy answer key; the category-balanced sample does not represent every production workload. Other finance tasks, untested models, integration costs and review costs remain unmeasured.' if sec else 'The findings apply to this task and these configurations. Other tasks, untested models, integration costs and review costs remain unmeasured.', '',
-              f"Run {status['run_id']}: {analysis['output_rows']:,} outputs across all variants and checks, {analysis['provider_requests']:,} requests, {analysis['failed_outputs']:,} failed outputs; {money(status.get('known_list_price_cost_usd', 0))} known list-price cost. Unknown-usage outputs: {analysis['unknown_usage_outputs']:,}.", '',
-              'Sources: [methodology](methodology.md), [detailed analysis](details.md), [results and uncertainty](metrics.json), [recommendation evidence](analysis.json), [configuration](resolved_config.yaml). The [historical criterion](criterion-audit.md) is retained for audit; it does not decide the recommendation.']
+        lines += [f"**Counterevidence:** for {category(j['value']).lower()}, Jev matched {j['correct']}/{j['records']} tags versus {names[rival['method']]}'s {rival['correct']}/{rival['records']}.", '']
+    lines += ['Filed tags are a proxy for accounting correctness. Other finance tasks, models, integration costs and review costs remain unmeasured.' if sec else 'Other tasks, models, integration costs and review costs remain unmeasured.', '',
+              f"Run `{status['run_id']}`: {analysis['output_rows']:,} outputs, {analysis['provider_requests']:,} requests, {analysis['failed_outputs']:,} failed outputs, {analysis['unknown_usage_outputs']:,} outputs with unknown usage.", '',
+              'Sources: [run evidence](evidence.json) includes metrics, example inputs and filed tags, configuration, historical criteria and source hashes. [Shared methodology](methodology.md) defines the comparisons; its preserved run version is embedded in the evidence.']
     return '\n'.join(lines) + '\n'

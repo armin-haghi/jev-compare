@@ -1,38 +1,13 @@
-import html
 import json
-import re
+import os
 import shutil
 from pathlib import Path
 import pandas as pd
 from benchmark.config import file_hash, json_write, read_yaml
 from benchmark.metrics import compute
-from benchmark.summary import dataset_summary, make_verdict, criterion_lines
-from benchmark.analysis import build_analysis, method_name, is_direct
-from benchmark.narrative import render_report, render_details
-
-
-def coverage_svg(metrics):
-    """Standalone vector chart; no plotting or browser dependency."""
-    width, height, left, top = 960, 600, 70, 40
-    plot_w, plot_h = 600, 480
-    colors = ["#2563eb", "#b91c1c", "#047857", "#7c3aed", "#b45309", "#0e7490", "#be185d", "#4d7c0f", "#4338ca", "#374151"]
-    parts = [f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" viewBox="0 0 {width} {height}" role="img" aria-label="Retained coverage versus error rate">',
-             '<rect width="100%" height="100%" fill="white"/>',
-             '<style>text { font: 12px sans-serif; fill: #172033; }</style>']
-    for i in range(6):
-        x, y = left + plot_w * i/5, top + plot_h * i/5
-        parts += [f'<path d="M {left} {y} H {left+plot_w}" stroke="#e5e7eb"/>',
-                  f'<text x="{left-35}" y="{y+4}">{100-i*20}%</text>',
-                  f'<text x="{x-12}" y="{top+plot_h+20}">{i*20}%</text>']
-    for i, method in enumerate(metrics):
-        points = sorted(method["confidence_coverage"], key=lambda r: r["coverage"])
-        coords = " ".join(f'{left+r["coverage"]*plot_w:.1f},{top+(r["accuracy"] or 0)*plot_h:.1f}' for r in points)
-        color = colors[i % len(colors)]
-        parts.append(f'<polyline points="{coords}" fill="none" stroke="{color}" stroke-width="2"/>')
-        parts.append(f'<text x="695" y="{55+i*22}" style="fill:{color}">{html.escape(method_name(method["method"], method["model"]))}</text>')
-    parts += [f'<text x="250" y="{height-25}">Share of records retained</text>',
-              '<text x="16" y="300" transform="rotate(-90 16 300)">Error rate on retained records</text>', '</svg>']
-    return "\n".join(parts)
+from benchmark.summary import dataset_summary, make_verdict
+from benchmark.analysis import build_analysis
+from benchmark.narrative import render_report
 
 
 def report(folder):
@@ -86,31 +61,19 @@ def report(folder):
     json_write(folder / "analysis.json", analysis)
     json_write(folder / "verdict.json", verdict)
     json_write(folder / "management_summary.json", summary)
-    audit = ['# The original criterion remains archived', ''] + criterion_lines(verdict)
-    if not verdict.get('criterion_audit'):
-        audit += ['This run does not evaluate the original criterion. See the run status and metrics.']
-    (folder / 'criterion-audit.md').write_text('\n'.join(audit) + '\n')
-    for regime in sorted(rows.context_regime.unique()):
-        filename = f"coverage-{regime}.svg"
-        (folder / filename).write_text(coverage_svg([m for m in metrics["methods"] if m["context_regime"] == regime
-                                                   and (is_direct(m['method']) or m['method'] == 'rules_baseline')]))
-    (folder / "report.md").write_text(render_report(summary, analysis, config))
-    (folder / "details.md").write_text(render_details(summary, analysis, config))
+    (folder / "factsheet.md").write_text(render_report(summary, analysis, config))
+    write_evidence(folder, folder / 'evidence.json')
     return metrics
 
 
-def publish_report(folder, destination, prefix):
-    """Package an offline report for sharing; no hand-written summary diverges."""
-    if not re.fullmatch(r'[A-Za-z0-9_-]+', prefix):
-        raise ValueError('Report prefix must contain letters, digits, underscores or hyphens')
-    folder, destination = Path(folder), Path(destination)
-    destination.mkdir(parents=True, exist_ok=True)
+def write_evidence(folder, evidence):
+    """Consolidate shareable evidence and preserve the same run's cost ledger."""
+    folder, evidence = Path(folder), Path(evidence)
     summary = json.loads((folder / 'management_summary.json').read_text())
     metrics = json.loads((folder / 'metrics.json').read_text())
-    evidence = destination / f'{prefix}-validation.json'
     previous = json.loads(evidence.read_text()) if evidence.exists() else {}
     snapshot = previous if previous.get('run_id') == folder.name else {}
-    artifacts = ['predictions.parquet', 'metrics.json', 'analysis.json', 'report.md', 'details.md', 'methodology.md', 'criterion-audit.md',
+    artifacts = ['predictions.parquet', 'metrics.json', 'analysis.json', 'factsheet.md', 'methodology.md',
                  'freeze.json', 'resolved_config.yaml', 'case_config.yaml', 'prompts.yaml', 'pricing.yaml',
                  'dataset_manifest.json', 'sample_manifest.json']
     snapshot.update(run_id=folder.name, status=summary['run'], configuration=read_yaml(folder / 'resolved_config.yaml'),
@@ -120,21 +83,23 @@ def publish_report(folder, destination, prefix):
                     methods=metrics['methods'], pairwise=metrics['pairwise'], pass_rule=metrics['pass_rule'],
                     jev_execution_comparison=metrics.get('jev_execution_comparison', []),
                     verdict=summary['verdict'], analysis=summary['analysis'], limitations=summary['limitations'],
-                    methodology=summary['methodology'],
+                    methodology=summary['methodology'] | {'text': (folder / 'methodology.md').read_text()},
                     source_artifact_hashes={name: file_hash(folder / name) for name in artifacts if (folder / name).exists()},
                     report_generator_hashes={f'benchmark/{name}': file_hash(Path(__file__).parent / name)
                                             for name in ['reporting.py', 'summary.py', 'analysis.py', 'narrative.py']})
     json_write(evidence, snapshot)
-    for path in sorted(folder.glob('coverage-*.svg')):
-        shutil.copyfile(path, destination / f'{prefix}-{path.name}')
-    for document in ['report.md', 'details.md']:
-        text = (folder / document).read_text()
-        for filename in ['analysis.json', 'metrics.json', 'dataset_manifest.json', 'sample_manifest.json',
-                         'resolved_config.yaml', 'prompts.yaml']:
-            text = text.replace(f']({filename})', f']({evidence.name})')
-        for filename in ['details.md', 'methodology.md', 'criterion-audit.md'] + [path.name for path in folder.glob('coverage-*.svg')]:
-            text = text.replace(f']({filename})', f']({prefix}-{filename})')
-        (destination / f'{prefix}-{document}').write_text(text)
-    shutil.copyfile(folder / 'criterion-audit.md', destination / f'{prefix}-criterion-audit.md')
-    shutil.copyfile(folder / 'methodology.md', destination / f'{prefix}-methodology.md')
-    return destination / f'{prefix}-report.md'
+
+
+def publish_report(folder, destination):
+    """Publish a factsheet and evidence file; raw predictions stay local."""
+    folder, destination = Path(folder), Path(destination)
+    destination.mkdir(parents=True, exist_ok=True)
+    repository = Path(__file__).resolve().parents[1]
+    methodology = (os.path.relpath(repository / 'docs' / 'methodology.md', destination.resolve())
+                   if destination.resolve().is_relative_to(repository) else
+                   'https://github.com/armin-haghi/jev-compare/blob/main/docs/methodology.md')
+    text = (folder / 'factsheet.md').read_text().replace('](methodology.md)', f']({methodology})')
+    factsheet = destination / 'factsheet.md'
+    factsheet.write_text(text)
+    write_evidence(folder, destination / 'evidence.json')
+    return factsheet

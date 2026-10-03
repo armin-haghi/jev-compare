@@ -48,6 +48,40 @@ def describe_rows(group):
             'ties': sum(bool(json.loads(value).get('ties')) for value in group.diagnostics_json)}
 
 
+def select_examples(base, context, comparison):
+    """Illustrate both directions of disagreement and a shared failure.
+
+    Selection is deterministic and descriptive, never used for scoring. Prefer
+    ambiguous wording, available neighbouring lines and short labels.
+    """
+    if comparison is None or 'input_json' not in base:
+        return []
+    group = base[base.context_regime == context]
+    jev = group[group.method == 'jev_direct'].set_index('record_id')
+    rival = group[group.method.map(is_direct) & (group.model == comparison['llm_model'])
+                  & (group.method != 'jev_direct')].set_index('record_id')
+    selected = {}
+    for record_id in sorted(set(jev.index) & set(rival.index)):
+        left, right = jev.loc[record_id], rival.loc[record_id]
+        if left.failed or right.failed or (left.correct and right.correct):
+            continue
+        outcome = 'jev_matches' if left.correct else 'comparator_matches' if right.correct else 'neither_matches'
+        payload, groups = json.loads(left.input_json), json.loads(left.groups_json)
+        if 'label' not in payload:
+            continue
+        rank = (groups.get('filer_split') != 'true',
+                not (payload.get('lines_above') and payload.get('lines_below')),
+                len(payload['label']), record_id)
+        example = {'outcome': outcome, 'record_id': record_id, 'input': payload,
+                   'source': json.loads(left.source_json), 'reference': left.reference,
+                   'jev_prediction': left.prediction, 'comparator_prediction': right.prediction,
+                   'comparator_model': right.model, 'jev_confidence': float(left.confidence),
+                   'comparator_confidence': float(right.confidence)}
+        if outcome not in selected or rank < selected[outcome][0]:
+            selected[outcome] = (rank, example)
+    return [selected[key][1] for key in ['jev_matches', 'comparator_matches', 'neither_matches'] if key in selected]
+
+
 def build_analysis(rows, metrics, config, verdict):
     base = rows[(rows.repeat_index == 0) & ~rows.shuffled]
     preferred_context = 'with_context' if 'with_context' in set(base.context_regime) else next(iter(sorted(base.context_regime.unique())), None)
@@ -123,12 +157,14 @@ def build_analysis(rows, metrics, config, verdict):
     else:
         composition = 'No matched direct-versus-combined comparison is available in this run.'
         composition_headline = 'Combination evidence remains unavailable'
-    return {'format_version': 1, 'purpose': 'Compare Jev with the tested alternatives for a repeated data-management decision, using accuracy, cost, speed, confidence and consistency.',
+    return {'format_version': 2, 'purpose': 'Compare Jev with the tested alternatives for a repeated data-management decision, using accuracy, cost, speed, confidence and consistency.',
             'case_id': config['case'], 'preferred_context': preferred_context, 'evidence_status': metrics['run']['mode'],
             'complete': metrics['run']['complete'], 'direct_results': direct, 'context_comparisons': contexts,
             'shared_results': shared, 'confidence_deferral': confidence, 'difficulty_slices': slices,
             'lowest_jev_categories': categories, 'stability': stability, 'model_costs': costs,
             'failed_outputs': int(rows.failed.sum()), 'unknown_usage_outputs': int((~rows.usage_complete).sum()),
             'output_rows': len(rows), 'provider_requests': int(rows.request_count.sum()),
+            'illustrative_examples': select_examples(base, preferred_context, comparison),
+            'example_selection': 'One Jev success/comparator failure, one reverse result and one shared failure where available. Prefer ambiguous wording, context on both sides, then shorter labels; record ID breaks ties. These examples are illustrative, not a frequency estimate.',
             'recommendation': recommendation, 'composition_conclusion': composition, 'composition_headline': composition_headline,
             'recommendation_headline': 'The evidence favors Jev direct' if live_complete and recommendation.startswith('Prefer') else 'The evidence bounds the choice'}

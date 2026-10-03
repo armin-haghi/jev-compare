@@ -41,7 +41,9 @@ def test_generic_runner_persists_and_regenerates(experiment, tmp_path, monkeypat
     assert before["pass_rule"]["label_only"]["outcome"] == "not_evaluated"
     for method, group in frame.groupby("method"):
         assert len(group[group.shuffled]) == 4
-    assert (path / "coverage-with_context.svg").exists()
+    assert (path / "factsheet.md").exists()
+    assert (path / "evidence.json").exists()
+    assert not (path / "details.md").exists()
 
 
 def test_failure_is_kept(experiment, tmp_path):
@@ -56,14 +58,16 @@ def test_failure_is_kept(experiment, tmp_path):
     assert len(llm) > 0
 
 
-def test_verdict_is_automatic_and_dataset_leads_report(experiment, tmp_path, capsys):
+def test_verdict_and_total_cost_lead_the_automatic_factsheet(experiment, tmp_path, capsys):
     from benchmark.summary import print_summary
     path = run(experiment, budget_usd=1, results_root=tmp_path / "results", runtime_factory=FakeRuntime)
     evidence_hash = file_hash(path / "predictions.parquet")
     verdict = json.loads((path / "verdict.json").read_text())
     assert verdict["headline"] == "The fixture verifies execution"
     assert verdict["predictions_sha256"] == evidence_hash
-    assert (path / "report.md").read_text().startswith("# The sample contains 4 records")
+    factsheet = (path / "factsheet.md").read_text()
+    assert factsheet.startswith("# The fixture verifies execution")
+    assert factsheet.index("Total run cost") < factsheet.index("The test covers 4 records")
     assert json.loads((path / "management_summary.json").read_text())["tested_dataset"]["category_counts"] == {"no": 2, "yes": 2}
     (path / "verdict.json").write_text('{"headline": "stale interpretation"}')
     report(path)
@@ -74,45 +78,46 @@ def test_verdict_is_automatic_and_dataset_leads_report(experiment, tmp_path, cap
     assert "Dataset: 4/4 records, 2 categories" in output
     assert "These results do not measure model quality." in output
     assert 'Task:' in output and 'Recommendation:' in output
+    assert output.index('Total run cost') < output.index('Dataset:')
     assert 'Original brief criterion' not in output
     assert 'does not support a deployment recommendation' in output
 
 
 def test_shared_report_preserves_local_evidence_and_scope(experiment, tmp_path):
+    import hashlib
     path = run(experiment, budget_usd=1, results_root=tmp_path / 'results', runtime_factory=FakeRuntime)
     destination = tmp_path / 'shared'
     destination.mkdir()
-    (destination / 'study-validation.json').write_text('{"run_id":"old", "cost_ledger":"stale"}')
-    output = publish_report(path, destination, 'study')
+    (destination / 'evidence.json').write_text('{"run_id":"old", "cost_ledger":"stale"}')
+    frozen_files = ['predictions.parquet', 'metrics.json', 'freeze.json', 'resolved_config.yaml']
+    hashes = {name: file_hash(path / name) for name in frozen_files}
+    output = publish_report(path, destination)
     text = output.read_text()
-    snapshot = json.loads((destination / 'study-validation.json').read_text())
+    snapshot = json.loads((destination / 'evidence.json').read_text())
+    assert {p.name for p in destination.iterdir()} == {'factsheet.md', 'evidence.json'}
     assert snapshot['analysis'] == json.loads((path / 'analysis.json').read_text())
-    assert snapshot['source_artifact_hashes']['predictions.parquet'] == file_hash(path / 'predictions.parquet')
+    assert snapshot['source_artifact_hashes']['predictions.parquet'] == hashes['predictions.parquet']
     assert 'cost_ledger' not in snapshot
-    assert text.startswith('# The sample contains 4 records')
-    sections = ['The fixture verifies execution', 'The evidence bounds the choice']
-    # The fixture status also appears before its tables; locate section headings.
-    positions = [text.index('## ' + title) for title in sections]
-    assert positions == sorted(positions)
-    assert 'The original criterion requires' not in text
-    assert '](study-criterion-audit.md)' in text
-    assert '](analysis.json)' not in text
-    assert '](study-validation.json)' in text
-    assert '](study-details.md)' in text
-    assert '](study-methodology.md)' in text
-    methodology = (destination / 'study-methodology.md').read_text()
+    assert text.startswith('# The fixture verifies execution')
+    assert 'does not support a deployment recommendation' in text
+    assert text.index('Total run cost') < text.index('The test covers 4 records')
+    assert '](evidence.json)' in text
+    assert 'main/docs/methodology.md)' in text
+    methodology = snapshot['methodology']['text']
     assert 'Direct models versus programmed rules' in methodology
-    assert snapshot['methodology']['sha256'] == file_hash(destination / 'study-methodology.md')
-    for document in [text, (destination / 'study-details.md').read_text()]:
-        assert 'Tests compare decision workflows' not in document
-        assert 'Scores use a five-level scale' not in document
-        assert 'does a model improve coverage' not in document
+    assert snapshot['methodology']['sha256'] == hashlib.sha256(methodology.encode()).hexdigest()
+    assert 'Scores use a five-level scale' not in text
+    assert 'does a model improve coverage' not in text
+    snapshot['cost_ledger'] = [{'run_id': path.name, 'note': 'Retain audit entries on regeneration'}]
+    (destination / 'evidence.json').write_text(json.dumps(snapshot))
     (path / 'methodology.md').write_text(methodology + '\nArchived documentation version.\n')
     report(path)
-    assert (path / 'methodology.md').read_text().endswith('Archived documentation version.\n')
-    assert json.loads((path / 'management_summary.json').read_text())['methodology']['sha256'] == file_hash(path / 'methodology.md')
-    assert 'Jev direct leads its combinations' in (destination / 'study-details.md').read_text()
-    assert (destination / 'study-coverage-with_context.svg').exists()
+    publish_report(path, destination)
+    updated = json.loads((destination / 'evidence.json').read_text())
+    assert updated['cost_ledger'] == snapshot['cost_ledger']
+    assert updated['methodology']['text'].endswith('Archived documentation version.\n')
+    assert updated['methodology']['sha256'] == file_hash(path / 'methodology.md')
+    assert {name: file_hash(path / name) for name in frozen_files} == hashes
 
 
 def test_smoke_is_disjoint_from_small_and_full(experiment):

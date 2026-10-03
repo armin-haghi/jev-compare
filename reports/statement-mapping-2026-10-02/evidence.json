@@ -227,8 +227,125 @@
       }
     ],
     "evidence_status": "benchmark",
+    "example_selection": "One Jev success/comparator failure, one reverse result and one shared failure where available. Prefer ambiguous wording, context on both sides, then shorter labels; record ID breaks ties. These examples are illustrative, not a frequency estimate.",
     "failed_outputs": 0,
-    "format_version": 1,
+    "format_version": 2,
+    "illustrative_examples": [
+      {
+        "comparator_confidence": 0.64,
+        "comparator_model": "openai/gpt-5-mini",
+        "comparator_prediction": "other_nonoperating",
+        "input": {
+          "label": "Other",
+          "lines_above": [
+            "Interest income",
+            "Total revenues"
+          ],
+          "lines_below": [
+            "Total operating expenses",
+            "Operating income"
+          ],
+          "scale_ratio": 0.036095870632399656,
+          "sic_description": "REAL ESTATE INVESTMENT TRUSTS",
+          "sign": "positive",
+          "statement": "IS"
+        },
+        "jev_confidence": 0.36,
+        "jev_prediction": "other_operating",
+        "outcome": "jev_matches",
+        "record_id": "24d116cd239842e0c71baf6477ac4714d23e8c1a9577efe4676f91c36a9ec704",
+        "reference": "other_operating",
+        "source": {
+          "adsh": "0001999371-26-007206",
+          "cik": "2066337",
+          "fy": "2025",
+          "line": "5",
+          "name": "CNL STRATEGIC RESIDENTIAL CREDIT, INC.",
+          "period": "20251231",
+          "report": "4",
+          "sic": "6798",
+          "standard_label": "Other Cost and Expense, Operating",
+          "tag": "OtherCostAndExpenseOperating",
+          "version": "us-gaap/2025"
+        }
+      },
+      {
+        "comparator_confidence": 0.58,
+        "comparator_model": "openai/gpt-5-mini",
+        "comparator_prediction": "other_operating",
+        "input": {
+          "label": "Other",
+          "lines_above": [
+            "Administrative fees (Note 3a)",
+            "Professional fees"
+          ],
+          "lines_below": [
+            "Total expenses",
+            "Net investment income (loss)"
+          ],
+          "scale_ratio": null,
+          "sic_description": "COMMODITY CONTRACTS BROKERS & DEALERS",
+          "sign": "positive",
+          "statement": "IS"
+        },
+        "jev_confidence": 0.42,
+        "jev_prediction": "sga",
+        "outcome": "comparator_matches",
+        "record_id": "8a12915fb04d0b4c710ebe18b3a30fc87787bb1b14f621a22c29dddf8dd3c59c",
+        "reference": "other_operating",
+        "source": {
+          "adsh": "0001564590-23-003392",
+          "cik": "1353282",
+          "fy": "2022",
+          "line": "16",
+          "name": "MANAGED FUTURES PREMIER WARRINGTON L.P.",
+          "period": "20221231",
+          "report": "6",
+          "sic": "6221",
+          "standard_label": "Other Operating Income (Expense), Net",
+          "tag": "OtherOperatingIncomeExpenseNet",
+          "version": "us-gaap/2022"
+        }
+      },
+      {
+        "comparator_confidence": 0.84,
+        "comparator_model": "openai/gpt-5-mini",
+        "comparator_prediction": "total_nonoperating",
+        "input": {
+          "label": "Other",
+          "lines_above": [
+            "Interest expense and other financing costs",
+            "Interest and investment income"
+          ],
+          "lines_below": [
+            "Other income (expense), net",
+            "Income before income taxes"
+          ],
+          "scale_ratio": 0.0006516945747270818,
+          "sic_description": "PHARMACEUTICAL PREPARATIONS",
+          "sign": "positive",
+          "statement": "IS"
+        },
+        "jev_confidence": 0.66,
+        "jev_prediction": "total_nonoperating",
+        "outcome": "neither_matches",
+        "record_id": "d0ceba93bb08ceb49b375831eb1a2ddccd9cff78c6c65e7a950edec0b25a10ab",
+        "reference": "other_nonoperating",
+        "source": {
+          "adsh": "0001104659-26-020489",
+          "cik": "1446847",
+          "fy": "2025",
+          "line": "14",
+          "name": "IRONWOOD PHARMACEUTICALS INC",
+          "period": "20251231",
+          "report": "4",
+          "sic": "2834",
+          "standard_label": "Other Nonoperating Income (Expense)",
+          "tag": "OtherNonoperatingIncomeExpense",
+          "version": "us-gaap/2025"
+        }
+      }
+    ],
     "lowest_jev_categories": [
       {
         "accuracy": 0.88,
@@ -1337,8 +1454,6 @@
   ],
   "methodology": {
     "file": "methodology.md",
-    "previous_sha256": "14a78c876285b443b052bf77ea7ba3d9eb15dd41110a6ddc9ac320d2f169eb45",
-    "revision": "Clarified the purpose and call pattern; experimental protocol unchanged.",
     "sha256": "c17b434d1ae8495027fc9ef014806f8f842e410eb07767a96b2c1941c58929d1",
     "text": "# The study compares decision workflows\n\nThe study asks how Jev compares with alternatives for repeated finance data-management decisions. Jev selects from predefined answers and returns probabilities. The comparison measures accuracy, cost, speed, consistency and the usefulness of confidence for directing human review. Each run supplies its own dataset, model configurations, results and recommendation.\n\n## Workflows expose different tradeoffs\n\n| Comparison | What it tests | Why it matters |\n| --- | --- | --- |\n| Direct models versus programmed rules | One model call selects the final answer; rules match known patterns and can abstain. | Models must add value beyond deterministic matching. |\n| Labels versus surrounding context | The same records are tested with less or more information. | Finance labels can mean different things in different statements. |\n| Confidence-based deferral | Low-confidence answers are set aside and errors in retained answers are counted. | Uncertain mappings can be directed to review. |\n| Direct versus combined judgments | Smaller judgments are combined in code, using bundled or separate calls. | Extra calls and scoring logic must justify their cost. |\n| Repeats and reordered options | The same task is repeated or its answer options are reordered. | Inconsistent decisions create reconciliation work. |\n\nThe conventional direct model returns a category and self-reported confidence. Jev direct also returns probabilities for every offered answer. Results compare the complete tested workflows; they do not isolate model architecture from prompting or pricing.\n\n## Statement mapping fixes the task\n\nThe financial-statement case uses public United States Securities and Exchange Commission (SEC) filings. A company's filed accounting tag maps to the answer key and is withheld from model input. For example, \u201cOther income, net\u201d can refer to total non-operating income or a component; neighbouring lines help distinguish the categories.\n\nEvery record receives the candidate categories for its statement. The label condition supplies wording and statement type. Context adds up to two neighbouring lines on each side, amount sign and relative size, and industry description.\n\nWe test whether smaller questions help either model. Instead of \u201cWhich category is this?\u201d, ask two questions for every possible category: \u201cDoes the wording fit?\u201d and \u201cDo the surrounding lines fit?\u201d Code adds a numerical-fit score and chooses the highest-scoring category. The [original brief](https://github.com/armin-haghi/jev-compare/blob/e05b745/docs/build-brief.md#L424) specifies testing these questions together in one call and separately, one call per question. Separate calls resend the record and candidate information, increasing token use and cost.\n\nEach component uses a 0\u20134 scale; the final score weights the three components equally. Jev uses its most probable score level. Fixed template order breaks ties. These are specific implementations, not every possible way to combine judgments. [Implementation](https://github.com/armin-haghi/jev-compare/tree/581a59b/benchmark/methods).\n\n## Metrics preserve the comparison\n\n- **Accuracy:** agreement with the answer key, counting failed calls and abstentions as wrong. Rules also report their answered share and accuracy among answers, distinguishing unresolved work from wrong emitted labels.\n- **Matched samples:** direct methods use the main sample. Combined workflows can use a smaller nested subset; comparisons between workflows use their shared record IDs.\n- **Uncertainty:** paired accuracy differences include a 95% interval obtained by resampling companies, accounting for multiple records from one company. An interval spanning zero does not establish accuracy superiority.\n- **Review tradeoffs:** each method retains its own most confident answers. Retaining 80% is an illustration from the measured curve, not a deployment target. Accepted subsets can differ; human-review outcomes and costs are not measured. Combined-score margins rank answers but are not correctness probabilities.\n- **Cost and speed:** costs use measured tokens at uncached list prices in United States dollars. Latency includes execution overhead under the reported concurrent load. These are not invoices or throughput guarantees; integration and maintenance costs are excluded.\n- **Consistency:** changed answers are counted over the reported repeat and option-order subsets. Small checks do not establish universal stability.\n\n[Metric implementation](https://github.com/armin-haghi/jev-compare/blob/581a59b/benchmark/metrics.py).\n\n## Recommendations follow the evidence\n\nEach run recommends a workflow for its tested task, using observed tradeoffs and counterevidence. No universal cost multiple or accuracy cutoff decides practical value. Original acceptance targets remain in the run's historical audit.\n\nCategory-balanced samples do not estimate a natural production mix. Filed tags are a proxy for independently reviewed accounting truth. Public filings do not establish performance on private management accounts, other finance tasks or untested models. Synthetic, smoke and incomplete runs do not support deployment recommendations.\n\nPrompts, sampling and model settings are recorded before inference; predictions, usage and configuration are retained. Reports regenerate from that evidence without model calls. A methodology snapshot accompanies each generated report so its definitions remain inspectable.\n"
   },
@@ -10494,10 +10609,10 @@
     ]
   },
   "report_generator_hashes": {
-    "benchmark/analysis.py": "c2a873f103e5522a4acf2440e1731090e893e1ded93b7752680defe89df7ac12",
-    "benchmark/narrative.py": "4d779889a65a4ff2b79e6951e9e5e21e192caaba965b8002368f1af7ec400868",
-    "benchmark/reporting.py": "3aaebf4507acbbc5fb64978b472b42ba26d500e83e4ffc3823177a7abe5ae660",
-    "benchmark/summary.py": "48f9fa8176070f7995065b4852cd424914278b66c9d38fd23fe51c4831eebb76"
+    "benchmark/analysis.py": "57b4c39856b0a6d9810457605827cada4ad5b171a501041c4211de90c10e7ff2",
+    "benchmark/narrative.py": "27db81f6e885d1bb9799e051bb934d034f06fafb0ff5e3c0a5c40bb3b548fe92",
+    "benchmark/reporting.py": "9681c0a03efb85e4850e86b649235be06dc4ff8e8634fcc4cbfe058a01554d72",
+    "benchmark/summary.py": "9b9930994eb5db981bca95f619d913104afc27dfb73872761be5ba8464844b13"
   },
   "run_id": "20261002T232137Z-571ebdd4",
   "sample_manifest": {
@@ -13552,18 +13667,16 @@
     ]
   },
   "source_artifact_hashes": {
-    "analysis.json": "edfc7389c4cc6c616a06e47143d4e70b54ca1a5593bf25e0467bc55dc70341db",
+    "analysis.json": "ee53fe994969fd99339c200652a6989cf88b584abfae90ebc1f6abf1c1740aec",
     "case_config.yaml": "19e2708ac458a3d36d9b848b83f68f012434381431b623d42d7f8587d60b6274",
-    "criterion-audit.md": "3946cf4a78bac024d9ad42951c8181b0d8fcb1c937aba7c48aa717aabce65ac9",
     "dataset_manifest.json": "d0bfba212a49668f57c9bdf22d30078c44c6d9af623aa4b0fd580c731e49bac9",
-    "details.md": "3107addad82ed9ba48f638738cd7d1875c53da4dd9a6ce1307ad6cd8b753c43f",
+    "factsheet.md": "156b97bd9db87b88cc7939da97110d5820fc71b4607fa7a388f27276caaff522",
     "freeze.json": "ad23c32c29597fe008303b72fa744647ab1e9c4df87c3e81a46b192d2b89dc7e",
     "methodology.md": "c17b434d1ae8495027fc9ef014806f8f842e410eb07767a96b2c1941c58929d1",
     "metrics.json": "ccff23b701811443419d120d0abba2f5d9154e0cc3414a9f9bfad44618d65c6c",
     "predictions.parquet": "f28270deeb4460a1d56f9f6162c496c2959bdaca5bca11727f939d9dedba5537",
     "pricing.yaml": "35bf4d711b84a195a1b2a6e019c4e9d6b0eea6496fcf0a0b69e9088ab8e70bd7",
     "prompts.yaml": "6f69df29910ca53d00f27480b0926c931492b0e168dcc2c6385402aa2058b0c7",
-    "report.md": "ea0dd53d575cbf04ffeca8649ae6120efc44ff932c6e813cc12ef56a0b1ed553",
     "resolved_config.yaml": "4a7429c708e946a456272e52e4b7bedb29ecac65b1e73adf1daf9db7413be4b7",
     "sample_manifest.json": "ba7e6cdcb96e0f8c42f23d76874ff6f1f018601d8c999c2d072692aea11d0c4f"
   },

@@ -23,11 +23,11 @@ The completed smoke cost $0.23698925 for GPT-5 mini and $0.049168098 for Jev at 
 
 Jev required 28 retries because its rounded probability vectors sometimes summed to 0.99 or 1.01. The corrected validator accepts rounding residuals bounded by the number and precision of entries. All 2,252 stored probability vectors pass offline replay; no further inference was needed for this correction. The original smoke artifacts retain the retry costs.
 
-The structured validation summary is [smoke-validation.json](smoke-validation.json). Detailed local artifacts are under results/20261002T220450Z-7bcbffd4/.
+The structured validation summary is [smoke-validation.json](smoke.json). Detailed local artifacts are under results/20261002T220450Z-7bcbffd4/.
 
 ## Jev warrants a larger test
 
-The automatically generated verdict is preserved in [smoke-verdict.json](smoke-verdict.json) and included after the tested dataset properties in the local report and in management_summary.json. On the 29 context-rich direct decisions, Jev scored 27/29 versus 26/29 for GPT-5 mini, at 23.1% of its estimated per-record cost. The one-record lead and five-record composite subset do not establish a winner or the study pass rule. The separate-question GPT scoring protocol needs review before its poor result is used for model comparison. The concise verdict appears in the standard command output and regenerates from the saved predictions, with their hash attached.
+The automatically generated verdict is preserved in [smoke-verdict.json](https://github.com/armin-haghi/jev-compare/blob/f8b0561/docs/smoke-verdict.json) and included after the tested dataset properties in the local report and in management_summary.json. On the 29 context-rich direct decisions, Jev scored 27/29 versus 26/29 for GPT-5 mini, at 23.1% of its estimated per-record cost. The one-record lead and five-record composite subset do not establish a winner or the study pass rule. The separate-question GPT scoring protocol needs review before its poor result is used for model comparison. The concise verdict appears in the standard command output and regenerates from the saved predictions, with their hash attached.
 
 The 444-entry SEC industry list is committed. Dataset preparation emits a mapping-review queue; no additional tags were silently added to the frozen answer key.
 

@@ -64,3 +64,24 @@ def test_unknown_cost_cannot_produce_lower_cost_recommendation():
     direct = next(r for r in analysis['direct_results'] if r['method'] == 'jev_direct')
     assert direct['cost_per_1000_usd'] is None
     assert not analysis['recommendation'].startswith('Prefer')
+
+
+def test_examples_show_both_directions_and_shared_failure():
+    from benchmark.analysis import select_examples
+    rows = comparison_rows()
+    rows['input_json'] = json.dumps({'label': 'Other', 'lines_above': ['Expenses'], 'lines_below': ['Total']})
+    rows['groups_json'] = json.dumps({'filer_split': 'true'})
+    # Record 0: comparator succeeds; 1: both fail; 2: Jev succeeds.
+    rows.loc[(rows.method == 'direct_llm_small') & rows.record_id.isin(['1', '2']), ['correct', 'prediction']] = [False, 'b']
+    comparison = {'llm_model': 'direct_llm_small'}
+    chosen = select_examples(rows, 'with_context', comparison)
+    assert [(e['outcome'], e['record_id']) for e in chosen] == [
+        ('jev_matches', '2'), ('comparator_matches', '0'), ('neither_matches', '1')]
+    assert chosen == select_examples(rows.sample(frac=1, random_state=4), 'with_context', comparison)
+    for example in chosen:
+        saved = rows[(rows.method == 'jev_direct') & (rows.record_id == example['record_id'])].iloc[0]
+        assert example['input'] == json.loads(saved.input_json)
+        assert example['reference'] == saved.reference
+        assert example['jev_prediction'] == saved.prediction
+    rows.loc[rows.record_id == '1', 'failed'] = True
+    assert len(select_examples(rows, 'with_context', comparison)) == 2

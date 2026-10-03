@@ -1,6 +1,6 @@
 from copy import deepcopy
 import pandas as pd
-from benchmark.summary import make_verdict, verdict_lines, criterion_lines
+from benchmark.summary import make_verdict
 
 
 def test_verdict_uses_matched_records_and_known_costs():
@@ -51,11 +51,11 @@ def test_study_verdict_explains_the_smaller_shared_sample():
     assert '95% interval -1.00 to +1.00' in verdict['caveat']
     assert 'An accuracy advantage is not established' in verdict['caveat']
     assert verdict['headline'] == 'Jev cuts direct costs 75%'
-    assert 'cutoff' not in '\n'.join(verdict_lines(verdict))
-    audit = '\n'.join(criterion_lines(verdict))
-    assert '| with context | 2 | -50.00 to +50.00 points |' in audit
-    assert 'The snapshot does not identify who originally selected the cutoffs' in audit
-    assert '5× cost target is not required' in audit
+    audit = verdict['criterion_audit']
+    assert audit['outcomes'] == metrics['pass_rule']
+    assert audit['outcomes']['with_context']['comparison']['filer_cluster_bootstrap_95'] == [-.5, .5]
+    assert 'individual author is not recorded' in audit['origin']
+    assert 'cost ratio <= 20% OR higher accuracy' in audit['rule']
     assert metrics == original  # Interpretations cannot change the original criterion.
 
 
