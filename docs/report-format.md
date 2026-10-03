@@ -12,6 +12,8 @@ The [methodology](methodology.md) explains the study question, workflows, task s
 
 Headings state the run's findings. Keep the main report short and dataset-first. A linked detail report contains the run's full breakdowns and figures, without repeating general method explanations.
 
+Label methods by what the model was asked to do, such as “Choose a category” or “Score each category in separate calls”. Show observed calls per record beside cost; give a one-sentence reason for a comparison where the table would otherwise be opaque.
+
 ## Evidence keeps reports reproducible
 
 The same renderer produces local and shareable reports from saved predictions. Each package includes a methodology snapshot and hash, configurations, metrics and raw-evidence hashes. Historical criteria remain in a linked audit, separate from the recommendation. Command output gives the dataset, task, result and recommendation.

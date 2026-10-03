@@ -30,12 +30,19 @@ def analyze(rows):
 
 
 def test_shared_comparison_can_reverse_the_aggregate_result():
-    analysis = analyze(comparison_rows())
+    rows = comparison_rows()
+    rows.loc[rows.method == 'jev_direct', 'request_count'] = 99
+    rows.loc[(rows.method == 'jev_direct') & (rows.record_id == '0'), 'request_count'] = 4
+    rows.loc[(rows.method == 'jev_direct') & (rows.record_id == '1'), 'request_count'] = 6
+    analysis = analyze(rows)
     direct = next(r for r in analysis['direct_results'] if r['method'] == 'jev_direct')
     shared = next(r for r in analysis['shared_results'] if r['method'] == 'jev_direct')
     assert (direct['correct'], direct['records']) == (8, 10)
     assert (shared['correct'], shared['records']) == (0, 2)
-    assert 'add cost without improving' not in analysis['composition_conclusion']
+    assert direct['calls_per_record'] == [4, 99]
+    assert shared['calls_per_record'] == [4, 6]
+    assert shared['requests'] == 10
+    assert 'extra scoring brought no accuracy gain' not in analysis['composition_conclusion']
     assert 'tradeoffs rather than a clear recommendation' in analysis['recommendation']
 
 

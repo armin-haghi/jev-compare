@@ -15,6 +15,11 @@ def duration(value):
     return f'{value*1000:.3f}ms' if value < .001 else f'{value:.3f}s'
 
 
+def calls(row):
+    low, high = row['calls_per_record']
+    return str(low) if low == high else f'{low}–{high}'
+
+
 def table(headers, rows):
     return ['| ' + ' | '.join(headers) + ' |', '| ' + ' | '.join('---' for _ in headers) + ' |'] + [
         '| ' + ' | '.join(str(value).replace('|', '\\|').replace('\n', ' ') for value in row) + ' |' for row in rows] + ['']
@@ -83,9 +88,9 @@ def render_details(summary, analysis, config):
 
     lines += [f"## {analysis['composition_headline']}", '',
               'Every row below uses the same shared records in this run.', '']
-    shared = [r for r in analysis['shared_results'] if r['context_regime'] == context]
-    lines += table(['Workflow', 'Correct / shared records', 'Accuracy', 'Cost / 1,000', 'Tied top scores'], [
-        [r['name'], f"{r['correct']} / {r['records']}", percent(r['accuracy']), money(r['cost_per_1000_usd']), f"{r['ties']} / {r['records']}"] for r in shared])
+    shared = sorted([r for r in analysis['shared_results'] if r['context_regime'] == context], key=lambda r: (model_name(r['model']), r['task']))
+    lines += table(['Model', 'What we asked it to do', 'Calls / record', 'Correct / shared records', 'Cost / 1,000', 'Tied top scores'], [
+        [model_name(r['model']), r['task'], calls(r), f"{r['correct']} / {r['records']}", money(r['cost_per_1000_usd']), f"{r['ties']} / {r['records']}"] for r in shared])
     lines += [analysis['composition_conclusion'], '']
     lines += table(['Workflow', 'Changed on repeat / checked', 'Changed after reordering / checked'], [
         [r['name'], f"{round(r['repeatability']['at_least_one_change']*r['repeatability']['records'])} / {r['repeatability']['records']}" if r['repeatability']['at_least_one_change'] is not None else 'Not measured',
@@ -121,6 +126,7 @@ def render_report(summary, analysis, config):
     lines = dataset_lines(dataset, run_intro(summary, analysis), summary['dataset'])
     lines += [f"## {verdict['headline']}", '', verdict['result'], '', verdict['caveat'], '']
     primary = [r for r in analysis['direct_results'] if r['context_regime'] == analysis['preferred_context']]
+    model_labels = {r['method']: model_name(r['model']) for r in primary}
     conditions = {(r['method'], r['context_regime']): r for r in analysis['direct_results']}
     def accuracy_cell(method, regime):
         row = conditions.get((method, regime))
@@ -138,21 +144,20 @@ def render_report(summary, analysis, config):
         if len(counts) == 1:
             kept, deferred = next(iter(counts))
             lines += [f"Keeping each method’s most confident 80% retains {kept:,} records and defers {deferred:,}: " + '; '.join(
-                f"{r['name']} leaves {r['errors']} errors ({percent(r['accuracy'])} accuracy)" for r in retained) + '. Each method selects different records; human-review outcomes were not measured.', '']
+                f"{model_labels[r['method']]} leaves {r['errors']} errors ({percent(r['accuracy'])} accuracy)" for r in retained) + '. Each method selects different records; human-review outcomes were not measured.', '']
         else:
             lines += table(['Workflow', 'Retained / deferred', 'Errors retained', 'Accuracy'], [
                 [r['name'], f"{r['retained']} / {r['deferred']}", r['errors'], percent(r['accuracy'])] for r in retained])
-    shared = [r for r in analysis['shared_results'] if r['context_regime'] == analysis['preferred_context'] and r['method'] != 'rules_baseline']
+    shared = sorted([r for r in analysis['shared_results'] if r['context_regime'] == analysis['preferred_context'] and r['method'] != 'rules_baseline'], key=lambda r: (model_name(r['model']), r['task']))
     if shared:
-        lines += [f"The combined-workflow comparison uses the same {shared[0]['records']:,} records for every method:", '']
-        lines += table(['Workflow', 'Correct / records', 'Cost / 1,000'], [
-            [r['name'].replace('combined scores, one bundled call', 'combined, bundled').replace('combined scores, separate calls', 'combined, separate'),
-             f"{r['correct']} / {r['records']}", money(r['cost_per_1000_usd'])] for r in shared])
+        lines += [f"On the same {shared[0]['records']:,} records, we tested whether smaller questions helped either model. Each candidate category received two scores: wording fit and fit with surrounding lines. We asked for these scores together or in separate calls:", '']
+        lines += table(['Model', 'What we asked it to do', 'Calls / record', 'Correct / records', 'Cost / 1,000'], [
+            [model_name(r['model']), r['task'], calls(r), f"{r['correct']} / {r['records']}", money(r['cost_per_1000_usd'])] for r in shared])
         lines += [analysis['composition_conclusion'], '']
     direct_stability = [r for r in analysis['stability'] if is_direct(r['method'])]
     if direct_stability and all(r['repeatability']['at_least_one_change'] == 0 and r['option_order']['prediction_change_rate'] == 0 for r in direct_stability):
-        lines += ['Direct decisions did not change in the repeat/order checks: ' + '; '.join(
-            f"{r['name']} checked {r['repeatability']['records']} repeated and {r['option_order']['records']} reordered records" for r in direct_stability) + '. These small checks do not establish universal stability.', '']
+        lines += ['Category choices did not change in these checks: ' + '; '.join(
+            f"{model_labels[r['method']]}: {r['repeatability']['records']} repeated and {r['option_order']['records']} reordered records" for r in direct_stability) + '. These small checks do not establish universal stability.', '']
     lines += [f"## {analysis['recommendation_headline']}", '', analysis['recommendation'], '']
     categories = analysis['lowest_jev_categories']
     counterexamples = []
@@ -162,7 +167,8 @@ def render_report(summary, analysis, config):
                 counterexamples.append((rival['accuracy']-j['accuracy'], j, rival))
     if counterexamples:
         _, j, rival = max(counterexamples, key=lambda item: item[0])
-        lines += [f"The aggregate hides weaknesses: for “{j['value'].replace('_', ' ')}”, Jev scored {j['correct']}/{j['records']} versus {rival['name']}'s {rival['correct']}/{rival['records']}. This is a descriptive category check, not proof of a general advantage.", '']
+        rival_model = next(row['model'] for row in primary if row['method'] == rival['method'])
+        lines += [f"The aggregate hides weaknesses: for “{j['value'].replace('_', ' ')}”, Jev scored {j['correct']}/{j['records']} versus {model_name(rival_model)}'s {rival['correct']}/{rival['records']}. This is a descriptive category check, not proof of a general advantage.", '']
     lines += ['This supports a choice for this task and these configurations. Public filed tags are a proxy answer key; the category-balanced sample does not represent every production workload. Other finance tasks, untested models, integration costs and review costs remain unmeasured.' if sec else 'The findings apply to this task and these configurations. Other tasks, untested models, integration costs and review costs remain unmeasured.', '',
               f"Run {status['run_id']}: {analysis['output_rows']:,} outputs across all variants and checks, {analysis['provider_requests']:,} requests, {analysis['failed_outputs']:,} failed outputs; {money(status.get('known_list_price_cost_usd', 0))} known list-price cost. Unknown-usage outputs: {analysis['unknown_usage_outputs']:,}.", '',
               'Sources: [methodology](methodology.md), [detailed analysis](details.md), [results and uncertainty](metrics.json), [recommendation evidence](analysis.json), [configuration](resolved_config.yaml). The [historical criterion](criterion-audit.md) is retained for audit; it does not decide the recommendation.']

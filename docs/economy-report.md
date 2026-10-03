@@ -25,36 +25,36 @@ Accuracy difference: +0.52 percentage points; 95% interval -0.14 to +1.20, resam
 
 | Workflow | Labels alone | With context | Cost / 1,000 | Median response |
 | --- | --- | --- | --- | --- |
-| GPT-5 mini direct | 94.24% (2,733/2,900) | 95.24% (2,762/2,900) | $0.2510 | 1.296s |
-| Jev direct | 94.21% (2,732/2,900) | 95.76% (2,777/2,900) | $0.0580 | 0.627s |
+| GPT-5 mini: choose a category | 94.24% (2,733/2,900) | 95.24% (2,762/2,900) | $0.2510 | 1.296s |
+| Jev: choose a category | 94.21% (2,732/2,900) | 95.76% (2,777/2,900) | $0.0580 | 0.627s |
 | Programmed rules | 69.79% (2,024/2,900) | 69.79% (2,024/2,900) | $0.0000 | 0.083ms |
 
 Cost and timing use with context; costs are estimated United States dollars.
 
 Rules answered 2,035/2,900 records at 99.46% accuracy among answers, leaving 865 unresolved.
 
-Keeping each method’s most confident 80% retains 2,320 records and defers 580: GPT-5 mini direct leaves 49 errors (97.89% accuracy); Jev direct leaves 15 errors (99.35% accuracy). Each method selects different records; human-review outcomes were not measured.
+Keeping each method’s most confident 80% retains 2,320 records and defers 580: GPT-5 mini leaves 49 errors (97.89% accuracy); Jev leaves 15 errors (99.35% accuracy). Each method selects different records; human-review outcomes were not measured.
 
-The combined-workflow comparison uses the same 100 records for every method:
+On the same 100 records, we tested whether smaller questions helped either model. Each candidate category received two scores: wording fit and fit with surrounding lines. We asked for these scores together or in separate calls:
 
-| Workflow | Correct / records | Cost / 1,000 |
-| --- | --- | --- |
-| GPT-5 mini combined, bundled | 64 / 100 | $0.8190 |
-| GPT-5 mini combined, separate | 9 / 100 | $6.7496 |
-| GPT-5 mini direct | 98 / 100 | $0.2514 |
-| Jev combined, separate | 95 / 100 | $1.3156 |
-| Jev combined, bundled | 94 / 100 | $0.1469 |
-| Jev direct | 98 / 100 | $0.0581 |
+| Model | What we asked it to do | Calls / record | Correct / records | Cost / 1,000 |
+| --- | --- | --- | --- | --- |
+| GPT-5 mini | Choose a category | 1 | 98 / 100 | $0.2514 |
+| GPT-5 mini | Score all categories in one call | 1 | 64 / 100 | $0.8190 |
+| GPT-5 mini | Score each category in separate calls | 28–30 | 9 / 100 | $6.7496 |
+| Jev | Choose a category | 1 | 98 / 100 | $0.0581 |
+| Jev | Score all categories in one call | 1 | 94 / 100 | $0.1469 |
+| Jev | Score each category in separate calls | 28–30 | 95 / 100 | $1.3156 |
 
-The tested Jev combinations add cost without improving accuracy over Jev direct on the same records. Prefer the direct workflow for this task on this evidence.
+The extra scoring brought no accuracy gain for Jev and added cost. Ask for the final category in one call.
 
-Direct decisions did not change in the repeat/order checks: GPT-5 mini direct checked 20 repeated and 20 reordered records; Jev direct checked 20 repeated and 20 reordered records. These small checks do not establish universal stability.
+Category choices did not change in these checks: GPT-5 mini: 20 repeated and 20 reordered records; Jev: 20 repeated and 20 reordered records. These small checks do not establish universal stability.
 
 ## The evidence favors Jev direct
 
-Prefer Jev direct for this tested task: it costs less than the direct language-model comparator without an observed aggregate accuracy loss. This is a recommendation about the measured tradeoff; the acceptable error rate depends on the business.
+Prefer asking Jev for the final category in one call. It cost less than GPT-5 mini without reducing observed overall accuracy on this task. The acceptable error rate depends on the business.
 
-The aggregate hides weaknesses: for “other nonoperating”, Jev scored 74/100 versus GPT-5 mini direct's 88/100. This is a descriptive category check, not proof of a general advantage.
+The aggregate hides weaknesses: for “other nonoperating”, Jev scored 74/100 versus GPT-5 mini's 88/100. This is a descriptive category check, not proof of a general advantage.
 
 This supports a choice for this task and these configurations. Public filed tags are a proxy answer key; the category-balanced sample does not represent every production workload. Other finance tasks, untested models, integration costs and review costs remain unmeasured.
 

@@ -27,8 +27,8 @@ The table uses surrounding context.
 
 | Workflow | Correct / records | Accuracy | Abstentions | Cost / 1,000 | Median / 95th-percentile time |
 | --- | --- | --- | --- | --- | --- |
-| GPT-5 mini direct | 2,762 / 2,900 | 95.24% | 0 | $0.2510 | 1.296s / 1.773s |
-| Jev direct | 2,777 / 2,900 | 95.76% | 0 | $0.0580 | 0.627s / 0.911s |
+| GPT-5 mini: choose a category | 2,762 / 2,900 | 95.24% | 0 | $0.2510 | 1.296s / 1.773s |
+| Jev: choose a category | 2,777 / 2,900 | 95.76% | 0 | $0.0580 | 0.627s / 0.911s |
 | Programmed rules | 2,024 / 2,900 | 69.79% | 865 | $0.0000 | 0.083ms / 0.201ms |
 
 Rules answered 2,035/2,900 records (70.17%); 99.46% of those answers matched the key. Their 865 abstentions are unresolved work, not incorrect emitted labels. Model-service cost is zero; implementation and maintenance costs are not measured.
@@ -37,27 +37,27 @@ The direct-call cost difference is $0.1930 per 1,000 records in Jev’s favor. T
 
 | Workflow | Matched records | Labels without context | With context |
 | --- | --- | --- | --- |
-| GPT-5 mini direct | 2,900 | 94.24% | 95.24% |
-| Jev direct | 2,900 | 94.21% | 95.76% |
+| GPT-5 mini: choose a category | 2,900 | 94.24% | 95.24% |
+| Jev: choose a category | 2,900 | 94.21% | 95.76% |
 | Programmed rules | 2,900 | 69.79% | 69.79% |
 
 | Difficult subset | Workflow | Correct / records | Accuracy |
 | --- | --- | --- | --- |
-| Rules were wrong or abstained | GPT-5 mini direct | 748 / 876 | 85.39% |
-| Same wording maps differently across companies | GPT-5 mini direct | 993 / 1,093 | 90.85% |
-| Rules were wrong or abstained | Jev direct | 755 / 876 | 86.19% |
-| Same wording maps differently across companies | Jev direct | 1,009 / 1,093 | 92.31% |
+| Rules were wrong or abstained | GPT-5 mini: choose a category | 748 / 876 | 85.39% |
+| Same wording maps differently across companies | GPT-5 mini: choose a category | 993 / 1,093 | 90.85% |
+| Rules were wrong or abstained | Jev: choose a category | 755 / 876 | 86.19% |
+| Same wording maps differently across companies | Jev: choose a category | 1,009 / 1,093 | 92.31% |
 
 Aggregate accuracy hides category differences. These are the three lowest-accuracy categories for Jev direct, selected after scoring as a descriptive error review.
 
 | Category | Workflow | Correct / records | Accuracy |
 | --- | --- | --- | --- |
-| other current liabilities | GPT-5 mini direct | 88 / 100 | 88.00% |
-| other current liabilities | Jev direct | 92 / 100 | 92.00% |
-| other nonoperating | GPT-5 mini direct | 88 / 100 | 88.00% |
-| other nonoperating | Jev direct | 74 / 100 | 74.00% |
-| other operating | GPT-5 mini direct | 58 / 100 | 58.00% |
-| other operating | Jev direct | 52 / 100 | 52.00% |
+| other current liabilities | GPT-5 mini: choose a category | 88 / 100 | 88.00% |
+| other current liabilities | Jev: choose a category | 92 / 100 | 92.00% |
+| other nonoperating | GPT-5 mini: choose a category | 88 / 100 | 88.00% |
+| other nonoperating | Jev: choose a category | 74 / 100 | 74.00% |
+| other operating | GPT-5 mini: choose a category | 58 / 100 | 58.00% |
+| other operating | Jev: choose a category | 52 / 100 | 52.00% |
 
 Source: [saved analysis](economy-validation.json), [computed metrics](economy-validation.json).
 
@@ -67,8 +67,8 @@ The table retains each method’s most confident 80% in this run.
 
 | Workflow | Retained | Deferred | Errors retained | Retained accuracy |
 | --- | --- | --- | --- | --- |
-| GPT-5 mini direct | 2,320 | 580 | 49 | 97.89% |
-| Jev direct | 2,320 | 580 | 15 | 99.35% |
+| GPT-5 mini: choose a category | 2,320 | 580 | 49 | 97.89% |
+| Jev: choose a category | 2,320 | 580 | 15 | 99.35% |
 
 At the same retained volume, Jev’s confidence ranking leaves fewer incorrect mappings in the accepted work. This supports using confidence to identify records needing review.
 
@@ -78,33 +78,33 @@ Source: [saved analysis](economy-validation.json), [computed metrics](economy-va
 
 Every row below uses the same shared records in this run.
 
-| Workflow | Correct / shared records | Accuracy | Cost / 1,000 | Tied top scores |
-| --- | --- | --- | --- | --- |
-| GPT-5 mini combined scores, one bundled call | 64 / 100 | 64.00% | $0.8190 | 30 / 100 |
-| GPT-5 mini combined scores, separate calls | 9 / 100 | 9.00% | $6.7496 | 84 / 100 |
-| GPT-5 mini direct | 98 / 100 | 98.00% | $0.2514 | 0 / 100 |
-| Jev combined scores, separate calls | 95 / 100 | 95.00% | $1.3156 | 5 / 100 |
-| Jev combined scores, one bundled call | 94 / 100 | 94.00% | $0.1469 | 5 / 100 |
-| Jev direct | 98 / 100 | 98.00% | $0.0581 | 0 / 100 |
-| Programmed rules | 78 / 100 | 78.00% | $0.0000 | 0 / 100 |
+| Model | What we asked it to do | Calls / record | Correct / shared records | Cost / 1,000 | Tied top scores |
+| --- | --- | --- | --- | --- | --- |
+| GPT-5 mini | Choose a category | 1 | 98 / 100 | $0.2514 | 0 / 100 |
+| GPT-5 mini | Score all categories in one call | 1 | 64 / 100 | $0.8190 | 30 / 100 |
+| GPT-5 mini | Score each category in separate calls | 28–30 | 9 / 100 | $6.7496 | 84 / 100 |
+| Jev | Choose a category | 1 | 98 / 100 | $0.0581 | 0 / 100 |
+| Jev | Score all categories in one call | 1 | 94 / 100 | $0.1469 | 5 / 100 |
+| Jev | Score each category in separate calls | 28–30 | 95 / 100 | $1.3156 | 5 / 100 |
+| rules-v1 | Match programmed rules | 0 | 78 / 100 | $0.0000 | 0 / 100 |
 
-The tested Jev combinations add cost without improving accuracy over Jev direct on the same records. Prefer the direct workflow for this task on this evidence.
+The extra scoring brought no accuracy gain for Jev and added cost. Ask for the final category in one call.
 
 | Workflow | Changed on repeat / checked | Changed after reordering / checked |
 | --- | --- | --- |
-| GPT-5 mini combined scores, one bundled call | 4 / 20 | 6 / 20 |
-| GPT-5 mini combined scores, separate calls | 6 / 20 | 16 / 20 |
-| GPT-5 mini direct | 0 / 20 | 0 / 20 |
-| Jev combined scores, separate calls | 0 / 20 | 1 / 20 |
-| Jev combined scores, one bundled call | 3 / 20 | 0 / 20 |
-| Jev direct | 0 / 20 | 0 / 20 |
+| GPT-5 mini: score all categories in one call | 4 / 20 | 6 / 20 |
+| GPT-5 mini: score each category in separate calls | 6 / 20 | 16 / 20 |
+| GPT-5 mini: choose a category | 0 / 20 | 0 / 20 |
+| Jev: score each category in separate calls | 0 / 20 | 1 / 20 |
+| Jev: score all categories in one call | 3 / 20 | 0 / 20 |
+| Jev: choose a category | 0 / 20 | 0 / 20 |
 | Programmed rules | 0 / 20 | 0 / 20 |
 
 Source: [saved analysis](economy-validation.json), [computed metrics](economy-validation.json).
 
 ## The evidence favors Jev direct
 
-Prefer Jev direct for this tested task: it costs less than the direct language-model comparator without an observed aggregate accuracy loss. This is a recommendation about the measured tradeoff; the acceptable error rate depends on the business.
+Prefer asking Jev for the final category in one call. It cost less than GPT-5 mini without reducing observed overall accuracy on this task. The acceptable error rate depends on the business.
 
 Jev direct disagreed with the key on 123/2,900 records in the primary condition. The error categories and retained-error counts above should determine where review remains necessary; this study assigns no monetary value to a wrong mapping.
 

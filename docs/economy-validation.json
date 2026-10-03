@@ -3,7 +3,7 @@
   "analysis": {
     "case_id": "sec_lines",
     "complete": true,
-    "composition_conclusion": "The tested Jev combinations add cost without improving accuracy over Jev direct on the same records. Prefer the direct workflow for this task on this evidence.",
+    "composition_conclusion": "The extra scoring brought no accuracy gain for Jev and added cost. Ask for the final category in one call.",
     "composition_headline": "Jev direct leads its combinations",
     "confidence_deferral": [
       {
@@ -11,7 +11,7 @@
         "deferred": 580,
         "errors": 49,
         "method": "direct_llm_small",
-        "name": "GPT-5 mini direct",
+        "name": "GPT-5 mini: choose a category",
         "records": 2900,
         "retained": 2320
       },
@@ -20,7 +20,7 @@
         "deferred": 580,
         "errors": 15,
         "method": "jev_direct",
-        "name": "Jev direct",
+        "name": "Jev: choose a category",
         "records": 2900,
         "retained": 2320
       }
@@ -30,14 +30,14 @@
         "context_accuracy": 0.9524137931034483,
         "label_accuracy": 0.9424137931034483,
         "method": "direct_llm_small",
-        "name": "GPT-5 mini direct",
+        "name": "GPT-5 mini: choose a category",
         "records": 2900
       },
       {
         "context_accuracy": 0.9575862068965517,
         "label_accuracy": 0.9420689655172414,
         "method": "jev_direct",
-        "name": "Jev direct",
+        "name": "Jev: choose a category",
         "records": 2900
       },
       {
@@ -54,7 +54,7 @@
         "correct": 748,
         "dimension": "baseline_miss",
         "method": "direct_llm_small",
-        "name": "GPT-5 mini direct",
+        "name": "GPT-5 mini: choose a category",
         "records": 876,
         "value": "true"
       },
@@ -63,7 +63,7 @@
         "correct": 993,
         "dimension": "filer_split",
         "method": "direct_llm_small",
-        "name": "GPT-5 mini direct",
+        "name": "GPT-5 mini: choose a category",
         "records": 1093,
         "value": "true"
       },
@@ -72,7 +72,7 @@
         "correct": 755,
         "dimension": "baseline_miss",
         "method": "jev_direct",
-        "name": "Jev direct",
+        "name": "Jev: choose a category",
         "records": 876,
         "value": "true"
       },
@@ -81,7 +81,7 @@
         "correct": 1009,
         "dimension": "filer_split",
         "method": "jev_direct",
-        "name": "Jev direct",
+        "name": "Jev: choose a category",
         "records": 1093,
         "value": "true"
       }
@@ -92,6 +92,10 @@
         "accuracy": 0.9424137931034483,
         "answered": 2900,
         "answered_accuracy": 0.9424137931034483,
+        "calls_per_record": [
+          1,
+          1
+        ],
         "context_regime": "label_only",
         "correct": 2733,
         "cost_per_1000_usd": 0.2332525,
@@ -99,9 +103,11 @@
         "median_seconds": 1.2950457705010194,
         "method": "direct_llm_small",
         "model": "openai/gpt-5-mini",
-        "name": "GPT-5 mini direct",
+        "name": "GPT-5 mini: choose a category",
         "p95_seconds": 1.8242883631479343,
         "records": 2900,
+        "requests": 2900,
+        "task": "Choose a category",
         "ties": 0
       },
       {
@@ -109,6 +115,10 @@
         "accuracy": 0.9420689655172414,
         "answered": 2900,
         "answered_accuracy": 0.9420689655172414,
+        "calls_per_record": [
+          1,
+          1
+        ],
         "context_regime": "label_only",
         "correct": 2732,
         "cost_per_1000_usd": 0.05393970206896553,
@@ -116,9 +126,11 @@
         "median_seconds": 0.6260841665061889,
         "method": "jev_direct",
         "model": "typesafe-ai/jev",
-        "name": "Jev direct",
+        "name": "Jev: choose a category",
         "p95_seconds": 0.9128582395962433,
         "records": 2900,
+        "requests": 2900,
+        "task": "Choose a category",
         "ties": 0
       },
       {
@@ -126,6 +138,10 @@
         "accuracy": 0.6979310344827586,
         "answered": 2031,
         "answered_accuracy": 0.9965534219596258,
+        "calls_per_record": [
+          0,
+          0
+        ],
         "context_regime": "label_only",
         "correct": 2024,
         "cost_per_1000_usd": 0.0,
@@ -136,6 +152,8 @@
         "name": "Programmed rules",
         "p95_seconds": 0.0002056625220575368,
         "records": 2900,
+        "requests": 0,
+        "task": "Match programmed rules",
         "ties": 0
       },
       {
@@ -143,6 +161,10 @@
         "accuracy": 0.9524137931034483,
         "answered": 2900,
         "answered_accuracy": 0.9524137931034483,
+        "calls_per_record": [
+          1,
+          1
+        ],
         "context_regime": "with_context",
         "correct": 2762,
         "cost_per_1000_usd": 0.25100862068965524,
@@ -150,9 +172,11 @@
         "median_seconds": 1.2959451880160486,
         "method": "direct_llm_small",
         "model": "openai/gpt-5-mini",
-        "name": "GPT-5 mini direct",
+        "name": "GPT-5 mini: choose a category",
         "p95_seconds": 1.7732901913521342,
         "records": 2900,
+        "requests": 2900,
+        "task": "Choose a category",
         "ties": 0
       },
       {
@@ -160,6 +184,10 @@
         "accuracy": 0.9575862068965517,
         "answered": 2900,
         "answered_accuracy": 0.9575862068965517,
+        "calls_per_record": [
+          1,
+          1
+        ],
         "context_regime": "with_context",
         "correct": 2777,
         "cost_per_1000_usd": 0.05802834413793103,
@@ -167,9 +195,11 @@
         "median_seconds": 0.6274298755015479,
         "method": "jev_direct",
         "model": "typesafe-ai/jev",
-        "name": "Jev direct",
+        "name": "Jev: choose a category",
         "p95_seconds": 0.9105824044891049,
         "records": 2900,
+        "requests": 2900,
+        "task": "Choose a category",
         "ties": 0
       },
       {
@@ -177,6 +207,10 @@
         "accuracy": 0.6979310344827586,
         "answered": 2035,
         "answered_accuracy": 0.9945945945945946,
+        "calls_per_record": [
+          0,
+          0
+        ],
         "context_regime": "with_context",
         "correct": 2024,
         "cost_per_1000_usd": 0.0,
@@ -187,6 +221,8 @@
         "name": "Programmed rules",
         "p95_seconds": 0.00020093781204195683,
         "records": 2900,
+        "requests": 0,
+        "task": "Match programmed rules",
         "ties": 0
       }
     ],
@@ -199,7 +235,7 @@
         "correct": 88,
         "dimension": "template_line",
         "method": "direct_llm_small",
-        "name": "GPT-5 mini direct",
+        "name": "GPT-5 mini: choose a category",
         "records": 100,
         "value": "other_current_liabilities"
       },
@@ -208,7 +244,7 @@
         "correct": 88,
         "dimension": "template_line",
         "method": "direct_llm_small",
-        "name": "GPT-5 mini direct",
+        "name": "GPT-5 mini: choose a category",
         "records": 100,
         "value": "other_nonoperating"
       },
@@ -217,7 +253,7 @@
         "correct": 58,
         "dimension": "template_line",
         "method": "direct_llm_small",
-        "name": "GPT-5 mini direct",
+        "name": "GPT-5 mini: choose a category",
         "records": 100,
         "value": "other_operating"
       },
@@ -226,7 +262,7 @@
         "correct": 92,
         "dimension": "template_line",
         "method": "jev_direct",
-        "name": "Jev direct",
+        "name": "Jev: choose a category",
         "records": 100,
         "value": "other_current_liabilities"
       },
@@ -235,7 +271,7 @@
         "correct": 74,
         "dimension": "template_line",
         "method": "jev_direct",
-        "name": "Jev direct",
+        "name": "Jev: choose a category",
         "records": 100,
         "value": "other_nonoperating"
       },
@@ -244,7 +280,7 @@
         "correct": 52,
         "dimension": "template_line",
         "method": "jev_direct",
-        "name": "Jev direct",
+        "name": "Jev: choose a category",
         "records": 100,
         "value": "other_operating"
       }
@@ -273,7 +309,7 @@
     "preferred_context": "with_context",
     "provider_requests": 28568,
     "purpose": "Compare Jev with the tested alternatives for a repeated data-management decision, using accuracy, cost, speed, confidence and consistency.",
-    "recommendation": "Prefer Jev direct for this tested task: it costs less than the direct language-model comparator without an observed aggregate accuracy loss. This is a recommendation about the measured tradeoff; the acceptable error rate depends on the business.",
+    "recommendation": "Prefer asking Jev for the final category in one call. It cost less than GPT-5 mini without reducing observed overall accuracy on this task. The acceptable error rate depends on the business.",
     "recommendation_headline": "The evidence favors Jev direct",
     "shared_results": [
       {
@@ -281,6 +317,10 @@
         "accuracy": 0.34,
         "answered": 100,
         "answered_accuracy": 0.34,
+        "calls_per_record": [
+          1,
+          1
+        ],
         "context_regime": "label_only",
         "correct": 34,
         "cost_per_1000_usd": 0.7779250000000001,
@@ -288,9 +328,11 @@
         "median_seconds": 3.0607910834951326,
         "method": "decomposed_llm_matrix_small",
         "model": "openai/gpt-5-mini",
-        "name": "GPT-5 mini combined scores, one bundled call",
+        "name": "GPT-5 mini: score all categories in one call",
         "p95_seconds": 4.6850332330257505,
         "records": 100,
+        "requests": 100,
+        "task": "Score all categories in one call",
         "ties": 71
       },
       {
@@ -298,6 +340,10 @@
         "accuracy": 0.11,
         "answered": 100,
         "answered_accuracy": 0.11,
+        "calls_per_record": [
+          28,
+          30
+        ],
         "context_regime": "label_only",
         "correct": 11,
         "cost_per_1000_usd": 6.225695,
@@ -305,9 +351,11 @@
         "median_seconds": 17.970471312495647,
         "method": "decomposed_llm_parallel_small",
         "model": "openai/gpt-5-mini",
-        "name": "GPT-5 mini combined scores, separate calls",
+        "name": "GPT-5 mini: score each category in separate calls",
         "p95_seconds": 20.520478243098477,
         "records": 100,
+        "requests": 2902,
+        "task": "Score each category in separate calls",
         "ties": 76
       },
       {
@@ -315,6 +363,10 @@
         "accuracy": 0.95,
         "answered": 100,
         "answered_accuracy": 0.95,
+        "calls_per_record": [
+          1,
+          1
+        ],
         "context_regime": "label_only",
         "correct": 95,
         "cost_per_1000_usd": 0.23331,
@@ -322,9 +374,11 @@
         "median_seconds": 1.3427287499944214,
         "method": "direct_llm_small",
         "model": "openai/gpt-5-mini",
-        "name": "GPT-5 mini direct",
+        "name": "GPT-5 mini: choose a category",
         "p95_seconds": 1.809289789882314,
         "records": 100,
+        "requests": 100,
+        "task": "Choose a category",
         "ties": 0
       },
       {
@@ -332,6 +386,10 @@
         "accuracy": 0.93,
         "answered": 100,
         "answered_accuracy": 0.93,
+        "calls_per_record": [
+          28,
+          30
+        ],
         "context_regime": "label_only",
         "correct": 93,
         "cost_per_1000_usd": 1.1949235200000001,
@@ -339,9 +397,11 @@
         "median_seconds": 7.925064042006852,
         "method": "jev_composite_concurrent",
         "model": "typesafe-ai/jev",
-        "name": "Jev combined scores, separate calls",
+        "name": "Jev: score each category in separate calls",
         "p95_seconds": 8.860788925318047,
         "records": 100,
+        "requests": 2902,
+        "task": "Score each category in separate calls",
         "ties": 3
       },
       {
@@ -349,6 +409,10 @@
         "accuracy": 0.93,
         "answered": 100,
         "answered_accuracy": 0.93,
+        "calls_per_record": [
+          1,
+          1
+        ],
         "context_regime": "label_only",
         "correct": 93,
         "cost_per_1000_usd": 0.14272146,
@@ -356,9 +420,11 @@
         "median_seconds": 0.6588764164771419,
         "method": "jev_composite_fanout",
         "model": "typesafe-ai/jev",
-        "name": "Jev combined scores, one bundled call",
+        "name": "Jev: score all categories in one call",
         "p95_seconds": 0.9426319145641173,
         "records": 100,
+        "requests": 100,
+        "task": "Score all categories in one call",
         "ties": 2
       },
       {
@@ -366,6 +432,10 @@
         "accuracy": 0.93,
         "answered": 100,
         "answered_accuracy": 0.93,
+        "calls_per_record": [
+          1,
+          1
+        ],
         "context_regime": "label_only",
         "correct": 93,
         "cost_per_1000_usd": 0.05395362000000002,
@@ -373,9 +443,11 @@
         "median_seconds": 0.6236604165023891,
         "method": "jev_direct",
         "model": "typesafe-ai/jev",
-        "name": "Jev direct",
+        "name": "Jev: choose a category",
         "p95_seconds": 0.8659772035491186,
         "records": 100,
+        "requests": 100,
+        "task": "Choose a category",
         "ties": 0
       },
       {
@@ -383,6 +455,10 @@
         "accuracy": 0.78,
         "answered": 78,
         "answered_accuracy": 1.0,
+        "calls_per_record": [
+          0,
+          0
+        ],
         "context_regime": "label_only",
         "correct": 78,
         "cost_per_1000_usd": 0.0,
@@ -393,6 +469,8 @@
         "name": "Programmed rules",
         "p95_seconds": 0.0001856351125752553,
         "records": 100,
+        "requests": 0,
+        "task": "Match programmed rules",
         "ties": 0
       },
       {
@@ -400,6 +478,10 @@
         "accuracy": 0.64,
         "answered": 100,
         "answered_accuracy": 0.64,
+        "calls_per_record": [
+          1,
+          1
+        ],
         "context_regime": "with_context",
         "correct": 64,
         "cost_per_1000_usd": 0.818975,
@@ -407,9 +489,11 @@
         "median_seconds": 3.2002218960114988,
         "method": "decomposed_llm_matrix_small",
         "model": "openai/gpt-5-mini",
-        "name": "GPT-5 mini combined scores, one bundled call",
+        "name": "GPT-5 mini: score all categories in one call",
         "p95_seconds": 4.804321301447635,
         "records": 100,
+        "requests": 100,
+        "task": "Score all categories in one call",
         "ties": 30
       },
       {
@@ -417,6 +501,10 @@
         "accuracy": 0.09,
         "answered": 100,
         "answered_accuracy": 0.09,
+        "calls_per_record": [
+          28,
+          30
+        ],
         "context_regime": "with_context",
         "correct": 9,
         "cost_per_1000_usd": 6.749600000000002,
@@ -424,9 +512,11 @@
         "median_seconds": 18.038567124996916,
         "method": "decomposed_llm_parallel_small",
         "model": "openai/gpt-5-mini",
-        "name": "GPT-5 mini combined scores, separate calls",
+        "name": "GPT-5 mini: score each category in separate calls",
         "p95_seconds": 20.30041384935612,
         "records": 100,
+        "requests": 2902,
+        "task": "Score each category in separate calls",
         "ties": 84
       },
       {
@@ -434,6 +524,10 @@
         "accuracy": 0.98,
         "answered": 100,
         "answered_accuracy": 0.98,
+        "calls_per_record": [
+          1,
+          1
+        ],
         "context_regime": "with_context",
         "correct": 98,
         "cost_per_1000_usd": 0.25136000000000003,
@@ -441,9 +535,11 @@
         "median_seconds": 1.2724657914950512,
         "method": "direct_llm_small",
         "model": "openai/gpt-5-mini",
-        "name": "GPT-5 mini direct",
+        "name": "GPT-5 mini: choose a category",
         "p95_seconds": 1.8495915354098542,
         "records": 100,
+        "requests": 100,
+        "task": "Choose a category",
         "ties": 0
       },
       {
@@ -451,6 +547,10 @@
         "accuracy": 0.95,
         "answered": 100,
         "answered_accuracy": 0.95,
+        "calls_per_record": [
+          28,
+          30
+        ],
         "context_regime": "with_context",
         "correct": 95,
         "cost_per_1000_usd": 1.3156147200000001,
@@ -458,9 +558,11 @@
         "median_seconds": 8.086747687499155,
         "method": "jev_composite_concurrent",
         "model": "typesafe-ai/jev",
-        "name": "Jev combined scores, separate calls",
+        "name": "Jev: score each category in separate calls",
         "p95_seconds": 9.10465932086081,
         "records": 100,
+        "requests": 2902,
+        "task": "Score each category in separate calls",
         "ties": 5
       },
       {
@@ -468,6 +570,10 @@
         "accuracy": 0.94,
         "answered": 100,
         "answered_accuracy": 0.94,
+        "calls_per_record": [
+          1,
+          1
+        ],
         "context_regime": "with_context",
         "correct": 94,
         "cost_per_1000_usd": 0.14687988,
@@ -475,9 +581,11 @@
         "median_seconds": 0.6584904584888136,
         "method": "jev_composite_fanout",
         "model": "typesafe-ai/jev",
-        "name": "Jev combined scores, one bundled call",
+        "name": "Jev: score all categories in one call",
         "p95_seconds": 0.9302017708629136,
         "records": 100,
+        "requests": 100,
+        "task": "Score all categories in one call",
         "ties": 5
       },
       {
@@ -485,6 +593,10 @@
         "accuracy": 0.98,
         "answered": 100,
         "answered_accuracy": 0.98,
+        "calls_per_record": [
+          1,
+          1
+        ],
         "context_regime": "with_context",
         "correct": 98,
         "cost_per_1000_usd": 0.058112040000000004,
@@ -492,9 +604,11 @@
         "median_seconds": 0.6214313545060577,
         "method": "jev_direct",
         "model": "typesafe-ai/jev",
-        "name": "Jev direct",
+        "name": "Jev: choose a category",
         "p95_seconds": 0.7676064339539153,
         "records": 100,
+        "requests": 100,
+        "task": "Choose a category",
         "ties": 0
       },
       {
@@ -502,6 +616,10 @@
         "accuracy": 0.78,
         "answered": 78,
         "answered_accuracy": 1.0,
+        "calls_per_record": [
+          0,
+          0
+        ],
         "context_regime": "with_context",
         "correct": 78,
         "cost_per_1000_usd": 0.0,
@@ -512,13 +630,15 @@
         "name": "Programmed rules",
         "p95_seconds": 0.00029413123993435845,
         "records": 100,
+        "requests": 0,
+        "task": "Match programmed rules",
         "ties": 0
       }
     ],
     "stability": [
       {
         "method": "decomposed_llm_matrix_small",
-        "name": "GPT-5 mini combined scores, one bundled call",
+        "name": "GPT-5 mini: score all categories in one call",
         "option_order": {
           "attempted_records": 20,
           "failed_pairs": 0,
@@ -535,7 +655,7 @@
       },
       {
         "method": "decomposed_llm_parallel_small",
-        "name": "GPT-5 mini combined scores, separate calls",
+        "name": "GPT-5 mini: score each category in separate calls",
         "option_order": {
           "attempted_records": 20,
           "failed_pairs": 0,
@@ -552,7 +672,7 @@
       },
       {
         "method": "direct_llm_small",
-        "name": "GPT-5 mini direct",
+        "name": "GPT-5 mini: choose a category",
         "option_order": {
           "attempted_records": 20,
           "failed_pairs": 0,
@@ -569,7 +689,7 @@
       },
       {
         "method": "jev_composite_concurrent",
-        "name": "Jev combined scores, separate calls",
+        "name": "Jev: score each category in separate calls",
         "option_order": {
           "attempted_records": 20,
           "failed_pairs": 0,
@@ -586,7 +706,7 @@
       },
       {
         "method": "jev_composite_fanout",
-        "name": "Jev combined scores, one bundled call",
+        "name": "Jev: score all categories in one call",
         "option_order": {
           "attempted_records": 20,
           "failed_pairs": 0,
@@ -603,7 +723,7 @@
       },
       {
         "method": "jev_direct",
-        "name": "Jev direct",
+        "name": "Jev: choose a category",
         "option_order": {
           "attempted_records": 20,
           "failed_pairs": 0,
@@ -1217,7 +1337,9 @@
   ],
   "methodology": {
     "file": "methodology.md",
-    "sha256": "14a78c876285b443b052bf77ea7ba3d9eb15dd41110a6ddc9ac320d2f169eb45"
+    "previous_sha256": "14a78c876285b443b052bf77ea7ba3d9eb15dd41110a6ddc9ac320d2f169eb45",
+    "revision": "Clarified the purpose and call pattern; experimental protocol unchanged.",
+    "sha256": "c17b434d1ae8495027fc9ef014806f8f842e410eb07767a96b2c1941c58929d1"
   },
   "methods": [
     {
@@ -10371,8 +10493,8 @@
     ]
   },
   "report_generator_hashes": {
-    "benchmark/analysis.py": "2887f3b6ca473fae0fab87fbc8df411d8d1eb03b3fd5bac9145d726a877ff823",
-    "benchmark/narrative.py": "66ded9b221ff5a097b18c3addf329814781eb96bd383cd015a4fc125919aa980",
+    "benchmark/analysis.py": "c2a873f103e5522a4acf2440e1731090e893e1ded93b7752680defe89df7ac12",
+    "benchmark/narrative.py": "4d779889a65a4ff2b79e6951e9e5e21e192caaba965b8002368f1af7ec400868",
     "benchmark/reporting.py": "3aaebf4507acbbc5fb64978b472b42ba26d500e83e4ffc3823177a7abe5ae660",
     "benchmark/summary.py": "48f9fa8176070f7995065b4852cd424914278b66c9d38fd23fe51c4831eebb76"
   },
@@ -13429,18 +13551,18 @@
     ]
   },
   "source_artifact_hashes": {
-    "analysis.json": "750473ff26a9eadf0ffae72a41779a8a958e99e6618d0708b6c559bc416d0afb",
+    "analysis.json": "edfc7389c4cc6c616a06e47143d4e70b54ca1a5593bf25e0467bc55dc70341db",
     "case_config.yaml": "19e2708ac458a3d36d9b848b83f68f012434381431b623d42d7f8587d60b6274",
     "criterion-audit.md": "3946cf4a78bac024d9ad42951c8181b0d8fcb1c937aba7c48aa717aabce65ac9",
     "dataset_manifest.json": "d0bfba212a49668f57c9bdf22d30078c44c6d9af623aa4b0fd580c731e49bac9",
-    "details.md": "a99db8facf3a40cbd8389374a2f9949ba6089a53d6d2aeed9c371d6cfcbd76be",
+    "details.md": "3107addad82ed9ba48f638738cd7d1875c53da4dd9a6ce1307ad6cd8b753c43f",
     "freeze.json": "ad23c32c29597fe008303b72fa744647ab1e9c4df87c3e81a46b192d2b89dc7e",
-    "methodology.md": "14a78c876285b443b052bf77ea7ba3d9eb15dd41110a6ddc9ac320d2f169eb45",
+    "methodology.md": "c17b434d1ae8495027fc9ef014806f8f842e410eb07767a96b2c1941c58929d1",
     "metrics.json": "ccff23b701811443419d120d0abba2f5d9154e0cc3414a9f9bfad44618d65c6c",
     "predictions.parquet": "f28270deeb4460a1d56f9f6162c496c2959bdaca5bca11727f939d9dedba5537",
     "pricing.yaml": "35bf4d711b84a195a1b2a6e019c4e9d6b0eea6496fcf0a0b69e9088ab8e70bd7",
     "prompts.yaml": "6f69df29910ca53d00f27480b0926c931492b0e168dcc2c6385402aa2058b0c7",
-    "report.md": "f13c613abf162cde0b6438968adfe7d62ad4cd2711605d3ab04fee01f8b6c0a1",
+    "report.md": "ea0dd53d575cbf04ffeca8649ae6120efc44ff932c6e813cc12ef56a0b1ed553",
     "resolved_config.yaml": "4a7429c708e946a456272e52e4b7bedb29ecac65b1e73adf1daf9db7413be4b7",
     "sample_manifest.json": "ba7e6cdcb96e0f8c42f23d76874ff6f1f018601d8c999c2d072692aea11d0c4f"
   },

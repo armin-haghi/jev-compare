@@ -7,14 +7,21 @@ def model_name(model):
     return names.get(model, model)
 
 
+def method_task(method):
+    if method == 'rules_baseline':
+        return 'Match programmed rules'
+    if is_direct(method):
+        return 'Choose a category'
+    if method.startswith(('jev_composite_concurrent', 'decomposed_llm_parallel')):
+        return 'Score each category in separate calls'
+    return 'Score all categories in one call'
+
+
 def method_name(method, model):
     if method == 'rules_baseline':
         return 'Programmed rules'
     prefix = 'Jev' if method.startswith('jev_') else model_name(model)
-    suffix = ('direct' if method.startswith(('jev_direct', 'direct_llm')) else
-              'combined scores, separate calls' if method.startswith(('jev_composite_concurrent', 'decomposed_llm_parallel')) else
-              'combined scores, one bundled call')
-    return f'{prefix} {suffix}'
+    return f'{prefix}: {method_task(method).lower()}'
 
 
 def is_direct(method):
@@ -27,6 +34,9 @@ def describe_rows(group):
     known = group.usage_complete.all() and group.cost_usd.notna().all()
     return {'method': group.iloc[0].method, 'model': group.iloc[0].model,
             'name': method_name(group.iloc[0].method, group.iloc[0].model),
+            'task': method_task(group.iloc[0].method),
+            'calls_per_record': [int(group.request_count.min()), int(group.request_count.max())],
+            'requests': int(group.request_count.sum()),
             'context_regime': group.iloc[0].context_regime,
             'records': n, 'correct': int(group.correct.sum()), 'accuracy': float(group.correct.mean()),
             'answered': int(answered.sum()), 'abstained': int((~answered).sum()),
@@ -94,8 +104,8 @@ def build_analysis(rows, metrics, config, verdict):
     if not live_complete or comparison is None:
         recommendation = 'This run does not support a deployment recommendation. ' + verdict['caveat']
     elif comparison['cost_ratio'] is not None and comparison['cost_ratio'] < 1 and comparison['accuracy_difference'] >= 0:
-        recommendation = ('Prefer Jev direct for this tested task: it costs less than the direct language-model comparator without an observed aggregate accuracy loss. '
-                          'This is a recommendation about the measured tradeoff; the acceptable error rate depends on the business.')
+        recommendation = (f"Prefer asking Jev for the final category in one call. It cost less than {model_name(comparison['llm_model'])} without reducing observed overall accuracy on this task. "
+                          'The acceptable error rate depends on the business.')
     else:
         recommendation = ('The direct comparison presents tradeoffs rather than a clear recommendation for Jev. '
                           'Choose using the measured accuracy, cost and unresolved errors for the intended workload; the study supplies no business-specific price for an error.')
@@ -105,7 +115,7 @@ def build_analysis(rows, metrics, config, verdict):
         if all(r['accuracy'] <= direct_shared['accuracy'] and r['cost_per_1000_usd'] is not None and direct_shared['cost_per_1000_usd'] is not None
                and r['cost_per_1000_usd'] >= direct_shared['cost_per_1000_usd'] for r in composite) and any(
                    r['accuracy'] < direct_shared['accuracy'] or r['cost_per_1000_usd'] > direct_shared['cost_per_1000_usd'] for r in composite):
-            composition = 'The tested Jev combinations add cost without improving accuracy over Jev direct on the same records. Prefer the direct workflow for this task on this evidence.'
+            composition = 'The extra scoring brought no accuracy gain for Jev and added cost. Ask for the final category in one call.'
             composition_headline = 'Jev direct leads its combinations'
         else:
             composition = 'The shared-record results show the accuracy and cost tradeoffs of combining judgments. They apply to these scoring protocols and model configurations.'

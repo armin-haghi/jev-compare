@@ -20,9 +20,9 @@
 <text x="35" y="524.0">0%</text>
 <text x="658.0" y="540">100%</text>
 <polyline points="370.0,515.4 490.0,512.9 550.0,509.9 610.0,507.3 670.0,497.2" fill="none" stroke="#2563eb" stroke-width="2"/>
-<text x="695" y="55" style="fill:#2563eb">GPT-5 mini direct</text>
+<text x="695" y="55" style="fill:#2563eb">GPT-5 mini: choose a category</text>
 <polyline points="370.0,518.7 490.0,517.4 550.0,516.9 610.0,514.1 670.0,499.6" fill="none" stroke="#b91c1c" stroke-width="2"/>
-<text x="695" y="77" style="fill:#b91c1c">Jev direct</text>
+<text x="695" y="77" style="fill:#b91c1c">Jev: choose a category</text>
 <polyline points="370.0,518.0 490.0,517.4 550.0,458.8 610.0,412.2 670.0,375.0" fill="none" stroke="#047857" stroke-width="2"/>
 <text x="695" y="99" style="fill:#047857">Programmed rules</text>
 <text x="250" y="575">Share of records retained</text>

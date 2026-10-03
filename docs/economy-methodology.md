@@ -20,7 +20,9 @@ The financial-statement case uses public United States Securities and Exchange C
 
 Every record receives the candidate categories for its statement. The label condition supplies wording and statement type. Context adds up to two neighbouring lines on each side, amount sign and relative size, and industry description.
 
-Combined workflows score wording and position with the model and numerical compatibility in code. Each component uses a 0–4 scale; the final score weights the three components equally. Jev uses its most probable score level. Fixed template order breaks ties. Bundled calls request the judgments together; separate calls request each judgment individually. These are specific implementations, not every possible way to combine judgments. [Implementation](https://github.com/armin-haghi/jev-compare/tree/581a59b/benchmark/methods).
+We test whether smaller questions help either model. Instead of “Which category is this?”, ask two questions for every possible category: “Does the wording fit?” and “Do the surrounding lines fit?” Code adds a numerical-fit score and chooses the highest-scoring category. The [original brief](https://github.com/armin-haghi/jev-compare/blob/e05b745/docs/build-brief.md#L424) specifies testing these questions together in one call and separately, one call per question. Separate calls resend the record and candidate information, increasing token use and cost.
+
+Each component uses a 0–4 scale; the final score weights the three components equally. Jev uses its most probable score level. Fixed template order breaks ties. These are specific implementations, not every possible way to combine judgments. [Implementation](https://github.com/armin-haghi/jev-compare/tree/581a59b/benchmark/methods).
 
 ## Metrics preserve the comparison
 
