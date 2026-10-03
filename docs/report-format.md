@@ -1,21 +1,34 @@
-# Methodology and findings stay separate
+# Factsheets lead with the finding
 
-The [methodology](methodology.md) explains the study question, workflows, task setup, scoring, uncertainty and limits once. It contains no run-specific winners, costs or sample sizes.
+Each run answers a practical question: how does Jev compare with the tested alternatives for this finance task? Lead with the measured finding, a task-specific recommendation and the total run cost. Keep the factsheet around 600 words; tables carry the comparisons.
 
-## Run reports explain the findings
+## Evidence supports the recommendation
 
-| Part | Content |
+| Order | Required content |
 | --- | --- |
-| Dataset | Task, tested models, source, dates, counts, category balance, difficult records and subset sizes. Link the methodology instead of repeating it. |
-| Findings | Measured accuracy, cost, speed and review tradeoffs; notable failures, category differences and whether combined judgments helped. Keep denominators and uncertainty beside the results. |
-| Recommendation | Preferred tested workflow, supporting evidence, counterevidence and limits that affect this run's interpretation. |
+| Finding and spending | An assertion supported by results; recommended workflow; total run cost and model split, distinguished from cost per 1,000 decisions. |
+| Tested data | Task, source, dates, counts, category balance, difficult records and subset sizes. Define Jev for a new reader. |
+| Main comparison | Matched accuracy counts, unit cost, response time, uncertainty, rules coverage and confidence-based review tradeoff. |
+| Examples | A few saved successes and failures, with input context, expected category and both answers. Disclose selection; examples illustrate outcomes rather than estimate frequency. |
+| Extra work | Why additional scoring was tested, actual calls per record, matched-subset results and cost. Say whether it helped. |
+| Boundaries and sources | Counterevidence, unknowns that affect the recommendation, shared methodology and consolidated evidence links. |
 
-Headings state the run's findings. Keep the main report short and dataset-first. A linked detail report contains the run's full breakdowns and figures, without repeating general method explanations.
+Use plain task names such as “Choose a category” and “Score each category separately”. Headings state findings; they must change when the evidence changes. Incomplete runs, smoke checks and synthetic fixtures retain explicit limits and receive no deployment recommendation. Original acceptance targets remain in structured evidence, separate from the recommendation.
 
-Label methods by what the model was asked to do, such as “Choose a category” or “Score each category in separate calls”. Show observed calls per record beside cost; give a one-sentence reason for a comparison where the table would otherwise be opaque.
+## Methodology stays separate from findings
 
-## Evidence keeps reports reproducible
+The [methodology](methodology.md) defines workflows, scoring, uncertainty and scope once. The factsheet explains what this run found. Publication creates two files: factsheet.md and evidence.json. The evidence includes the run's preserved methodology text and hash, metrics, examples, configuration, provenance and raw-prediction hash.
 
-The same renderer produces local and shareable reports from saved predictions. Each package includes a methodology snapshot and hash, configurations, metrics and raw-evidence hashes. Historical criteria remain in a linked audit, separate from the recommendation. Command output gives the dataset, task, result and recommendation.
+The design follows [ONS guidance on chart text](https://service-manual.ons.gov.uk/data-visualisation/guidance/chart-text): concise, active titles describe the finding, with population and measurement details nearby. [Storytelling with Data](https://www.storytellingwithdata.com/blog/2017/3/22/so-what) recommends stating the takeaway explicitly. Here, small comparison tables connect the recommendation to its evidence without adding duplicate graphics or a narrative essay.
 
-See the [current report](economy-report.md), [run details](economy-details.md) and [evidence snapshot](economy-validation.json).
+## Cleanup preserves the costly evidence
+
+| Files reviewed | Decision |
+| --- | --- |
+| Seven economy-prefixed report files | Replace with one task-named factsheet and one evidence file. Metrics retain the curves and historical criterion; evidence embeds the methodology snapshot. |
+| Original brief, design review and progress log | Move to docs/archive; preserve the parent proposal in a collapsed README section. |
+| Smoke and prerequisite validation | Keep in the archive; remove the redundant generated smoke verdict from the active tree. Prior versions remain in Git. |
+| Runner, case modules, tests and configurations | Keep: they implement or verify the study. Preserve frozen configuration names for reproducibility. |
+| Local predictions, raw responses, downloaded sources and .venv | Keep outside Git: they preserve paid evidence, source provenance and the working runtime. |
+
+Current output: [statement-mapping factsheet](../reports/statement-mapping-2026-10-02/factsheet.md) and [evidence](../reports/statement-mapping-2026-10-02/evidence.json).

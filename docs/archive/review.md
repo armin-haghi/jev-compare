@@ -1,3 +1,5 @@
+Archived implementation history. Current findings: [statement-mapping factsheet](../../reports/statement-mapping-2026-10-02/factsheet.md).
+
 # The brief supports a bounded comparison
 
 This benchmark measures agreement with company-filed tags on eligible financial statement rows. Jev is TypeSafe's fixed-choice decision model; conventional large language models provide the comparison. Results describe this filtered public corpus, rather than all finance decisions or independently verified accounting truth.
@@ -27,7 +29,7 @@ Smoke records are reserved outside the full-profile sample, so smoke answers can
 
 The [brief imported before implementation](https://github.com/armin-haghi/jev-compare/blob/e05b745/docs/build-brief.md#L39) specifies the 2-percentage-point accuracy margin, 95% interval, one-fifth cost target and 80% retained-answer comparison. The snapshot does not identify the individual who selected those values. Applying the criterion to the common method intersection and resampling companies were implementation choices documented in this review before paid testing.
 
-The original criterion requires the accuracy bound plus either cost at most one-fifth of the comparator or higher accuracy among each method's most confident 80%. Higher retained-answer accuracy therefore satisfies the benefit test even when cost savings fall short of 5×. These historical project targets remain in a linked audit and machine-readable metrics. The [external report format](report-format.md) answers the task-level choice through measured accuracy, cost, speed, review tradeoffs and counterevidence; it adds no acceptance gates.
+The original criterion requires the accuracy bound plus either cost at most one-fifth of the comparator or higher accuracy among each method's most confident 80%. Higher retained-answer accuracy therefore satisfies the benefit test even when cost savings fall short of 5×. These historical project targets remain in a linked audit and machine-readable metrics. The [external report format](../report-format.md) answers the task-level choice through measured accuracy, cost, speed, review tradeoffs and counterevidence; it adds no acceptance gates.
 
 ## Calibration needs precise names
 

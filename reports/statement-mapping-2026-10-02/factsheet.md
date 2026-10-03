@@ -1,6 +1,6 @@
 # The sample contains 2,900 records
 
-This run maps company financial-statement labels using public United States Securities and Exchange Commission (SEC) filings and company-filed tags as the answer key. Tested models: GPT-5 mini, Jev. See the [methodology](economy-methodology.md) for workflow definitions and scoring.
+This run maps company financial-statement labels using public United States Securities and Exchange Commission (SEC) filings and company-filed tags as the answer key. Tested models: GPT-5 mini, Jev. See the [methodology](../../docs/methodology.md) for workflow definitions and scoring.
 
 | Property | Tested sample |
 | --- | --- |
@@ -14,7 +14,7 @@ This run maps company financial-statement labels using public United States Secu
 | Filing archives | 2021q1–2026q1 |
 
 Sampling balances answer categories; aggregate accuracy does not estimate the natural filing mix.
-Source: [dataset manifest](economy-validation.json), [selected record IDs](economy-validation.json).
+Source: [dataset manifest](evidence.json), [selected record IDs](evidence.json).
 
 
 ## Jev cuts direct costs 77%
@@ -60,4 +60,4 @@ This supports a choice for this task and these configurations. Public filed tags
 
 Run 20261002T232137Z-571ebdd4: 18,760 outputs across all variants and checks, 28,568 requests, 0 failed outputs; $4.1840 known list-price cost. Unknown-usage outputs: 0.
 
-Sources: [methodology](economy-methodology.md), [detailed analysis](economy-details.md), [results and uncertainty](economy-validation.json), [recommendation evidence](economy-validation.json), [configuration](economy-validation.json). The [historical criterion](economy-criterion-audit.md) is retained for audit; it does not decide the recommendation.
+Sources: [methodology](../../docs/methodology.md), [detailed analysis](evidence.json), [results and uncertainty](evidence.json), [recommendation evidence](evidence.json), [configuration](evidence.json). The [historical criterion](evidence.json) is retained for audit; it does not decide the recommendation.

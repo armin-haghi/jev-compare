@@ -1,10 +1,55 @@
-# Jev Evaluation: Financial Statement Line Mapping
+# Jev lowers statement-mapping costs
 
-Source: https://app.notion.com/p/3ec785996df481d3898adc68e3049fb2?pvs=204
+This benchmark compares Jev, TypeSafe's fixed-choice decision model, with conventional language models and programmed rules for finance data management. The completed study maps financial-statement labels into 29 standard categories.
 
-This README preserves the parent evaluation plan below. The implementation uses **29 categories**, separating total non-operating income from other non-operating income; see [study review](docs/review.md). Python 3.12 and Vercel AI Gateway are the build defaults. Setup and run commands follow the source plan.
+**[Read the factsheet](reports/statement-mapping-2026-10-02/factsheet.md).** On 2,900 records, Jev achieved 95.76% agreement with filed tags versus GPT-5 mini's 95.24%, at 77% lower direct-call cost. An accuracy advantage is not established. **The full run cost $4.1840 at list prices.**
 
-Live validation: the completed 2,900-record comparison measured 95.76% accuracy for Jev versus 95.24% for GPT-5 mini with context, at 77% lower direct-call cost. The observed accuracy lead is not statistically established. The full run cost $4.1840 at list prices, with zero final failures. All 42 local tests pass. See the [external-audience report](docs/economy-report.md) and [reusable report format](docs/report-format.md).
+| Read or inspect | Purpose |
+| --- | --- |
+| [Factsheet](reports/statement-mapping-2026-10-02/factsheet.md) | Findings, examples, recommendation and total run cost |
+| [Methodology](docs/methodology.md) | What the comparisons test and how results are scored |
+| [Evidence](reports/statement-mapping-2026-10-02/evidence.json) | Metrics, configurations, selected records, source hashes and cost ledger |
+| [Report format](docs/report-format.md) | Rules for future factsheets and the repository cleanup record |
+| [Archive](docs/archive/) | Original brief, design review, build history and preliminary validation |
+
+## Python runs the benchmark
+
+Use the installed Python 3.12 environment. Dependencies are pinned in uv.lock; credentials stay in the ignored .env file.
+
+```bash
+uv sync --locked
+cp .env.example .env
+uv run pytest
+uv run python -m benchmark.cli demo
+```
+
+The demo uses synthetic responses and incurs no model charges. For live runs, set AI_GATEWAY_API_KEY and SEC_USER_AGENT (requester name and contact email). Both tested models use Vercel AI Gateway; a separate TypeSafe key is optional.
+
+## Commands preserve the study evidence
+
+```bash
+uv run python -m benchmark.cli prepare --case sec_lines
+uv run python -m benchmark.cli plan --experiment config/experiments/sec_lines_economy.yaml --profile full
+# Regenerate the completed factsheet without model calls:
+uv run python -m benchmark.cli report --run-id 20261002T232137Z-571ebdd4 --publish-dir reports/statement-mapping-2026-10-02
+```
+
+The internal sec_lines_economy.yaml name identifies the frozen GPT-5 mini/Jev configuration. Published reports use the task and run date. The original sec_lines.yaml includes a frontier model; inference requires explicit authorization through --allow-frontier. No frontier run is authorized.
+
+Live smoke, prerequisite and full runs require an explicit --budget-usd. A full run requires a matching completed small run. Spending limits reserve for in-flight calls; recorded token costs are estimates, not invoices. See [archived execution decisions](docs/archive/review.md).
+
+Local results/RUN_ID/ directories retain predictions, raw responses, configuration, pricing, prompts and provenance. The report command creates one factsheet and a consolidated evidence file for sharing. Downloaded sources under data/, local results/ and .venv/ stay outside Git.
+
+## Cases supply their decision rules
+
+Each case implements prepare, load_records, build_payload, candidates and is_correct. Rules and combined-score workflows also use rules and metadata_scores. Shared runner and metric modules remain independent of the financial-statement case; the synthetic fixture exercises that contract.
+
+## The README preserves the proposal
+
+Source: [original parent evaluation plan](https://app.notion.com/p/3ec785996df481d3898adc68e3049fb2?pvs=204). The proposal below is historical: the implemented template has 29 categories, and recommendations follow measured tradeoffs rather than its original acceptance targets. The [build brief](docs/archive/build-brief.md) and [design review](docs/archive/review.md) preserve those decisions.
+
+<details>
+<summary>The original proposal records the intent</summary>
 
 **What:** Evaluation plan for Jev, TypeSafe's decision model, against conventional LLM workflows on repeated finance data decisions. The aim is to find the kind of decision where Jev is the better building block, not to replace LLMs in general.
 **Status:** Case 1 (mapping company financial-statement lines to a standard template, using public SEC data) agreed on 2 Oct 2026 and specified in the build brief below. Earlier ESEF framing retired.
@@ -63,88 +108,4 @@ The harness is built so a new case replaces case 1 without changing the runner, 
 The sub-page below specifies repository structure, data retrieval, the 28-line template, method implementations, metrics, result schemas, commands and acceptance checks, so a coding agent can build the benchmark without choosing experiment semantics.
 [Build Brief: Reusable Jev Benchmark](https://app.notion.com/p/3ec785996df481a7b824fde702c5614d)
 
-## Python runs the benchmark
-
-Use installed Python 3.12 with [uv](https://docs.astral.sh/uv/getting-started/installation/). Dependencies are pinned in uv.lock and installed in the project .venv.
-
-```bash
-uv sync --locked
-cp .env.example .env
-uv run pytest
-uv run python -m benchmark.cli demo
-```
-
-The demo uses synthetic data and local fake responses. Its 160 prediction rows validate execution and reporting; they measure no model quality.
-
-## Vercel serves all three models
-
-Set AI_GATEWAY_API_KEY and SEC_USER_AGENT in .env. The SEC header must contain your requester name and real contact email. Credentials are read at runtime and excluded from Git and run configuration.
-
-| Role | Configured model | Route |
-| --- | --- | --- |
-| Small language model | openai/gpt-5-mini | Vercel chat API |
-| Frontier language model | anthropic/claude-sonnet-4.6 | Vercel chat API |
-| Jev decision model | typesafe-ai/jev | Vercel TypeSafe-compatible API |
-
-Model names, temperature settings and execution limits live in config/experiments/sec_lines.yaml. Changing a model requires a matching dated entry in config/pricing.yaml. OpenAI and Anthropic can also be called directly by changing provider and supplying the corresponding provider key. The TypeSafe direct route uses TYPESAFE_API_KEY; it is optional.
-
-Sources: [Vercel TypeSafe API](https://vercel.com/docs/ai-gateway/sdks-and-apis/typesafe), [model catalog and prices](https://ai-gateway.vercel.sh/v1/models), [TypeSafe SDK](https://github.com/typesafe-ai/typesafe-sdk-python).
-
-## Preparation preserves source evidence
-
-```bash
-uv run python -m scripts.fetch_sic
-uv run python -m benchmark.cli prepare --case sec_lines
-uv run python -m benchmark.cli inspect --case sec_lines
-uv run python -m benchmark.cli plan --experiment config/experiments/sec_lines.yaml --profile small
-```
-
-The industry-list command pins the SEC Standard Industrial Classification descriptions in cases/sec_lines/sic_codes.json. Commit that file before inference. Preparation downloads 21 quarterly archives from 2021 Q1 through 2026 Q1, selects annual reports for fiscal years 2021–2025, and writes eligibility, exclusions, observed label distributions, mapping-review candidates and source hashes under data/processed/sec_lines/. Archives remain under data/raw/sec_lines/. The complete corpus requires several gigabytes of disk space.
-
-Preparation fetches the industry list automatically when it is absent, so the separate industry-list command is optional.
-
-Mappings and rules are established before benchmark answers are inspected. The inspect command reveals references for data auditing; it is not a prompt-tuning workflow. Mapping-review candidates require an explicit decision and a new preparation before freezing.
-
-## Smoke precedes paid study runs
-
-```bash
-# Replace each amount with an approved spending limit.
-uv run python -m benchmark.cli smoke --experiment config/experiments/sec_lines_smoke.yaml --records-per-line 1 --budget-usd 1
-uv run python -m benchmark.cli run --experiment config/experiments/sec_lines_economy.yaml --profile small --budget-usd 1
-uv run python -m benchmark.cli run --experiment config/experiments/sec_lines_economy.yaml --profile full --budget-usd 5
-uv run python -m benchmark.cli report --run-id RUN_ID
-```
-
-The example budgets are limits, not cost forecasts. The economy configuration uses GPT-5 mini and Jev across 58 prerequisite records, then 2,900 main records and 100 composite records, with four records in flight. Its estimated combined cost is $4.95 using the saved smoke rates; retries and response lengths can change this. Parallel decomposed methods ask two questions per candidate: the original small profile can require approximately 74,000–79,000 calls before retries. The plan command reports the exact workload for the prepared sample. Smoke uses held-out records and caps its composite/repeat/shuffle subset at five records. Full runs require a matching completed small run with successful option-order responses from every method and context regime.
-
-Calls use at most three attempts. Authentication errors stop retries. Record failures and abstentions count as incorrect; unknown billed usage remains unknown. A conservative reservation checks the spending limit before each request, including concurrent requests. List-price cost estimates exclude caching discounts and are not billing invoices.
-
-## Artifacts support independent review
-
-The initial smoke configuration runs GPT-5 mini, Jev and rules. Frontier-model inference is blocked unless the caller explicitly supplies --allow-frontier after authorization; the original sec_lines.yaml configuration will stop without that flag. The economy commands above exclude the frontier tier.
-
-Each results/RUN_ID/ directory contains resolved configuration, case configuration, prompt and pricing snapshots, freeze hashes, dataset provenance, sample IDs, payload examples, provider metadata, an append-only prediction journal, predictions.parquet, metrics.json, metrics.csv, analysis.json, management_summary.json, report.md, details.md, criterion-audit.md and two coverage/error SVG charts.
-
-The [methodology](docs/methodology.md) explains the shared workflows, scoring and uncertainty. Run reports follow the [report format](docs/report-format.md): dataset, findings and recommendation. They link the methodology and focus on measured tradeoffs, surprises and counterevidence; a detail report contains the run's full breakdowns and charts. The original criterion remains in a linked historical audit and machine-readable metrics. Command output gives dataset, task, result and recommendation, followed by cost and report path.
-
-The report command regenerates every table and conclusion from saved outputs without provider calls or current case data. analysis.json preserves recommendation evidence; verdict.json preserves the direct comparison and predictions hash. Direct methods use the main sample; composite methods use a nested subset. Pairwise comparisons use matched IDs, while the historical criterion uses the common subset across Jev direct and conventional-model methods. Both row and company-resampling intervals are retained. See [criterion provenance](docs/review.md#the-brief-supplied-the-cutoffs).
-
-Generate the local report and a shareable package with the same renderer:
-
-```bash
-uv run python -m benchmark.cli report --run-id RUN_ID --publish-dir docs --publish-prefix economy
-```
-
-This writes economy-report.md, economy-details.md, economy-methodology.md, economy-validation.json, economy-criterion-audit.md and two figures. The methodology copy is captured when a run is first reported and preserved on regeneration; its hash is included in the evidence snapshot. The snapshot also contains analysis, configurations, prompts, dataset properties, selected IDs, metrics and raw-evidence hashes. It excludes credentials. The original inference evidence remains unchanged.
-
-Calibration measures selected-answer correctness probabilities. Composite margins rank confidence but are not treated as probabilities. Observed label distribution agreement is reported separately. Failed or partial runs and synthetic fixtures do not receive a study pass/fail conclusion.
-
-## Cases own decision semantics
-
-Shared modules under benchmark/ import cases dynamically. A case implements prepare, load_records, build_payload, candidates and is_correct. Rules-enabled cases also expose rules; composite-enabled cases expose metadata_scores. Candidate dictionaries contain id, label, description and template_order. The independent yes/no fixture under tests/fixtures/toy_case exercises the same runner, methods and metrics.
-
-See [review decisions](docs/review.md), [the build brief](docs/build-brief.md), and [build status](docs/progress.md).
-
-## The economy run preserves evidence
-
-The [completed report](docs/economy-report.md) covers 2,900 records from 2,304 companies using Jev, GPT-5 mini and rules. The run cost $4.1840 at uncached list prices with zero failed outputs. The [validation snapshot](docs/economy-validation.json) records the tested dataset, metrics, source hashes and cost ledger.
+</details>

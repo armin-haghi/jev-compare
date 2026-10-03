@@ -1,3 +1,5 @@
+Archived implementation history. Current findings: [statement-mapping factsheet](../../reports/statement-mapping-2026-10-02/factsheet.md).
+
 # Tests verify the local build
 
 Repository: https://github.com/armin-haghi/jev-compare
@@ -45,7 +47,7 @@ The reduced-concurrency prerequisite (20261002T230901Z-02e0cb22) completed all s
 
 ## The larger test confirms competitiveness
 
-The [economy report](economy-report.md) leads with the tested dataset: 2,900 records, 29 equally sampled categories, 2,304 filers, fiscal years 2021–2025, and a 100-record composite subset. Run 20261002T232137Z-571ebdd4 completed 18,760 outputs and 28,568 requests with zero failures or unknown usage. GPT-5 mini cost $3.46297875; Jev cost $0.720991908. The 5,152.8-second run stayed within its $5 limit. The [validation snapshot](economy-validation.json) preserves the audit, configurations, metrics and cost ledger.
+The [economy report](../../reports/statement-mapping-2026-10-02/factsheet.md) leads with the tested dataset: 2,900 records, 29 equally sampled categories, 2,304 filers, fiscal years 2021–2025, and a 100-record composite subset. Run 20261002T232137Z-571ebdd4 completed 18,760 outputs and 28,568 requests with zero failures or unknown usage. GPT-5 mini cost $3.46297875; Jev cost $0.720991908. The 5,152.8-second run stayed within its $5 limit. The [validation snapshot](../../reports/statement-mapping-2026-10-02/evidence.json) preserves the audit, configurations, metrics and cost ledger.
 
 With context, Jev scored 2,777/2,900 (95.76%) versus GPT-5 mini's 2,762/2,900 (95.24%), at 77% lower direct-call cost (4.3× cheaper). This observed cost–accuracy result favors Jev for direct classification on the tested dataset. The paired filer-cluster 95% interval for the accuracy difference spans −0.14 to +1.20 percentage points, so the observed lead does not establish superiority. Composite scoring ties warrant protocol review before selecting a method.
 
@@ -55,7 +57,7 @@ All recorded runs total $5.667669716 in known list-price usage. The interrupted 
 
 ## Reports support an external reader
 
-The [methodology](methodology.md) explains the shared workflows, scoring and uncertainty. The [report format](report-format.md) keeps each run focused on its dataset, findings and recommendation. The generated [economy report](economy-report.md) stays short; [detailed analysis](economy-details.md) contains its breakdowns and charts. Both link the general methodology instead of repeating it. A preserved methodology snapshot and hash accompany each run. The historical criterion is archived separately and no longer appears as the command-line conclusion.
+The [methodology](../methodology.md) explains the shared workflows, scoring and uncertainty. The [report format](../report-format.md) keeps each run focused on its dataset, findings and recommendation. The generated [economy report](../../reports/statement-mapping-2026-10-02/factsheet.md) stays short; [detailed analysis](../../reports/statement-mapping-2026-10-02/evidence.json) contains its breakdowns and charts. Both link the general methodology instead of repeating it. A preserved methodology snapshot and hash accompany each run. The historical criterion is archived separately and no longer appears as the command-line conclusion.
 
 The recommendation favors Jev direct for the tested mapping task. It also records the limits: some categories favor GPT-5 mini; rules answer a subset accurately; Jev's tested combinations add cost without improving accuracy over direct choices on their shared sample. Reports are generated from stored evidence; no additional inference was run. The same renderer produces local and shareable output, with its structured evidence in analysis.json. All 42 tests pass, including matched-subset reversals, rules' abstention denominators, confidence deferral counts, unknown-cost handling and shared-report evidence consistency.
 
