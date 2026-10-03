@@ -86,7 +86,7 @@ def make_verdict(rows, metrics, status):
     if ratio is not None and ratio > 0:
         price = f'{1 / ratio:.1f}× cheaper' if ratio < 1 else f'{ratio:.1f}× the cost'
     context = regime.replace('_', ' ')
-    result = f"Direct calls {context}: Jev {jev_correct}/{count} correct versus {right.iloc[0].model} {llm_correct}/{count}; {price} at list prices."
+    result = f"Direct {context} ({count:,} records): Jev {jev_correct/count:.1%} vs {right.iloc[0].model} {llm_correct/count:.1%}; {price} at list prices."
     if status['mode'] == 'smoke':
         headline = 'Jev warrants a larger test' if jev_correct >= llm_correct and ratio is not None and ratio < 1 else 'The smoke warrants further evaluation'
         caveat = f'{count} records do not establish a winner.'
@@ -99,9 +99,11 @@ def make_verdict(rows, metrics, status):
                     'Jev misses the study thresholds' if outcomes == {'fail'} else
                     'Context changes the study outcome' if outcomes == {'pass', 'fail'} else
                     'The study remains inconclusive')
-        caveat = 'Exploratory study rule: ' + '; '.join(f"{key.replace('_', ' ')} {rule['outcome']} (n={rule.get('records', 0)})" for key, rule in rules.items()) + '.'
-    tied_parallel = any(m['method'].startswith('decomposed_llm_parallel') and (m.get('tie_rate') or 0) > 0 for m in metrics['methods'])
-    next_step = 'Review tied parallel scoring before choosing a model.' if tied_parallel else 'Review category errors before choosing a model.'
+        caveat = 'Study rule: ' + '; '.join(f"{key.replace('_', ' ')} {rule['outcome']} (n={rule.get('records', 0)})" for key, rule in rules.items()) + '.'
+        if any(rule.get('noninferior') is False for rule in rules.values()):
+            caveat += ' The shared sample cannot rule out an accuracy loss above 2 percentage points.'
+    tied_scoring = any(m['method'].startswith('decomposed_llm') and (m.get('tie_rate') or 0) > 0 for m in metrics['methods'])
+    next_step = 'Review tied composite scoring before choosing a method.' if tied_scoring else 'Review category errors before choosing a model.'
     return {'headline': headline, 'result': result, 'caveat': caveat, 'next_step': next_step,
             'direct_comparison': {'context_regime': regime, 'records': count, 'jev_correct': jev_correct,
                                   'llm_correct': llm_correct, 'llm_model': right.iloc[0].model, 'cost_ratio': ratio}}

@@ -134,3 +134,7 @@ Calibration measures selected-answer correctness probabilities. Composite margin
 Shared modules under benchmark/ import cases dynamically. A case implements prepare, load_records, build_payload, candidates and is_correct. Rules-enabled cases also expose rules; composite-enabled cases expose metadata_scores. Candidate dictionaries contain id, label, description and template_order. The independent yes/no fixture under tests/fixtures/toy_case exercises the same runner, methods and metrics.
 
 See [review decisions](docs/review.md), [the build brief](docs/build-brief.md), and [build status](docs/progress.md).
+
+## The economy run preserves evidence
+
+The [completed report](docs/economy-report.md) covers 2,900 records from 2,304 companies using Jev, GPT-5 mini and rules. The run cost $4.1840 at uncached list prices with zero failed outputs. The [validation snapshot](docs/economy-validation.json) records the tested dataset, metrics, source hashes and cost ledger.

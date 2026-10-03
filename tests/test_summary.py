@@ -28,3 +28,17 @@ def test_incomplete_and_fixture_cannot_claim_study_pass():
                                       ('benchmark', False, 'The run remains incomplete')]:
         assert make_verdict(pd.DataFrame(), {'pass_rule': {'with_context': {'outcome': 'pass'}}},
                             {'mode': mode, 'complete': complete})['headline'] == expected
+
+
+def test_study_verdict_explains_the_smaller_shared_sample():
+    rows = pd.DataFrame([
+        dict(method=method, record_id=str(i), context_regime='with_context', repeat_index=0,
+             shuffled=False, correct=True, usage_complete=True, cost_usd=.1 if method == 'jev_direct' else .4,
+             model='jev' if method == 'jev_direct' else 'mini')
+        for method in ['jev_direct', 'direct_llm_small'] for i in range(10)])
+    metrics = {'methods': [], 'pass_rule': {'with_context': {'outcome': 'fail', 'records': 2, 'noninferior': False}}}
+    verdict = make_verdict(rows, metrics, {'mode': 'benchmark', 'complete': True})
+    assert '(10 records)' in verdict['result']
+    assert '(n=2)' in verdict['caveat']
+    assert 'cannot rule out an accuracy loss above 2 percentage points' in verdict['caveat']
+    assert verdict['headline'] == 'Jev misses the study thresholds'

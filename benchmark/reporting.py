@@ -78,6 +78,7 @@ def report(folder):
     json_write(folder / "management_summary.json", summary)
     lines = dataset_lines(dataset, summary["case"], manifest) + verdict_lines(verdict) + [
              f"Run: {folder.name}. Mode: {status['mode']}. Complete: {status['complete']}.",
+             f"Known list-price cost: ${rows.known_cost_usd.sum():.4f}; provider requests: {int(rows.request_count.sum()):,}.",
              "Accuracy counts failed calls and abstentions as wrong. Composite and direct sample sizes can differ.", "",
              "| Method | Context | Records | Accuracy | Failures | Cost per 1,000 |",
              "| --- | --- | ---: | ---: | ---: | ---: |"]

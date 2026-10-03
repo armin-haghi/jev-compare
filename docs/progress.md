@@ -7,7 +7,7 @@ Repository: https://github.com/armin-haghi/jev-compare
 | Source preservation and review | e05b745 preserves the parent page and build brief and records study corrections. |
 | Data and methods | bed9803 implements the 29-line case, preparation and decision methods. |
 | Execution and reporting | 6086536 adds the runner, metrics, coverage charts and independent fixture case. |
-| Validation | 31 tests pass with Python 3.12 and locked dependencies. |
+| Validation | 37 tests pass with Python 3.12 and locked dependencies. |
 | Offline demonstration | All ten method/model combinations produce 160 synthetic prediction rows, repeats, shuffle results and reports. |
 | SEC preparation | 21 archives totaling 2.2 GB produce 148,422 eligible rows; all 29 categories have at least 1,375 rows. |
 | Live discovery | The Gateway catalog name is typesafe-ai/jev; the TypeSafe-compatible request model is jev. |
@@ -33,7 +33,7 @@ The 444-entry SEC industry list is committed. Dataset preparation emits a mappin
 
 The parent plan's 28-line taxonomy becomes 29 lines so that total and component non-operating income remain distinct. Selected-answer calibration and population-distribution agreement are separate metrics. Reports mark fixture, smoke and incomplete runs as non-evidence.
 
-The complete small and full study profiles have not run. Smoke results test integration and execution; they do not establish a model-quality conclusion. Gateway model aliases may expose a requested model name without an immutable underlying weight version.
+The economy small and full profiles are complete. The original configuration specifies 8,700 main records and 1,500 composite records; this budgeted run uses 2,900 and 100 respectively. The original smoke remains an integration check. Gateway model aliases may expose a requested model name without an immutable underlying weight version.
 
 ## The larger run excludes frontier
 
@@ -42,3 +42,11 @@ The economy configuration retains all seven methods, using GPT-5 mini, Jev and r
 The first concurrent prerequisite (20261002T223602Z-77b838c0) stopped at its $1 budget after connection errors. Recorded usage was $0.479136; conservative accounting including unknown requests was $0.8579825. The retry lowers request concurrency from 32 to eight and reduces the GPT-5 mini output ceiling from 4,096 to 1,024 tokens. Saved successful completions use fewer than 1,024 output tokens. The next prerequisite and larger run retain $1 and $5 limits; total new limits including the interrupted run are $7, below the existing key cap.
 
 The reduced-concurrency prerequisite (20261002T230901Z-02e0cb22) completed all seven methods: 720 outputs, 4,964 requests, no failed outputs or unknown usage, and $0.71816821 in list-price cost. Its mechanism checks passed. The larger run uses the same freeze and a $5 software limit.
+
+## The larger test confirms competitiveness
+
+The [economy report](economy-report.md) leads with the tested dataset: 2,900 records, 29 equally sampled categories, 2,304 filers, fiscal years 2021–2025, and a 100-record composite subset. Run 20261002T232137Z-571ebdd4 completed 18,760 outputs and 28,568 requests with zero failures or unknown usage. GPT-5 mini cost $3.46297875; Jev cost $0.720991908. The 5,152.8-second run stayed within its $5 limit. The [validation snapshot](economy-validation.json) preserves the audit, configurations, metrics and cost ledger.
+
+With context, Jev scored 2,777/2,900 (95.76%) versus GPT-5 mini's 2,762/2,900 (95.24%), at approximately 4.3 times lower direct-call cost. The paired filer-cluster 95% interval for the accuracy difference spans −0.14 to +1.20 percentage points, so the observed lead does not establish superiority. The frozen study rule remains unmet on its 100-record common subset, whose interval extends beyond the allowed 2-point accuracy loss. Reporting now explains this distinction automatically. Composite scoring ties warrant protocol review before selecting a method.
+
+All recorded runs total $5.667669716 in known list-price usage. The interrupted concurrent prerequisite also has $0.3788465 of unknown-call reservations, which are not measured charges. Frontier inference remains excluded. All 37 local tests pass; the final audit verified sample membership, category balance, output uniqueness, source hashes and model identities.
