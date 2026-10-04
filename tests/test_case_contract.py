@@ -55,9 +55,18 @@ def test_custom_namespace_is_not_ground_truth():
 def test_latest_filer_label_wins():
     records, _, _ = records_from_tables(*tables(), {"fiscal_years": [2024]})
     old = records[0].model_copy(deep=True)
-    old.record_id = "older"
-    old.source["fy"] = "2021"
+    old.record_id, old.source["fy"], old.source["adsh"] = "older", "2021", "earlier-filing"
+    same_filing = records[0].model_copy(deep=True)
+    same_filing.record_id, same_filing.source["line"] = "same-wording-other-position", "9"
     excluded = []
-    kept, _, _ = finalise(records + [old], excluded)
-    assert len(kept) == 3
-    assert excluded[0]["record_id"] == "older"
+    kept, _, _ = finalise(records + [old, same_filing], excluded)
+    assert len(kept) == 4  # repeated wording within one filing stays; the earlier filing's line goes
+    assert [e["record_id"] for e in excluded] == ["older"]
+
+
+def test_totals_are_answered_not_mapped():
+    assert mapping()["Assets"] == mapping()["OperatingExpenses"] == "not_mapped"
+    from cases.sec_lines.template import candidates
+    from types import SimpleNamespace
+    ids = [c["id"] for c in candidates(SimpleNamespace(input={"statement": "BS"}), {})]
+    assert ids[-1] == "not_mapped" and len(ids) == 16

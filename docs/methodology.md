@@ -36,14 +36,14 @@ TypeSafe documents four [patterns](https://docs.typesafe.ai/patterns) for buildi
 
 ## Metrics
 
-- **Sample:** records are drawn at random from the in-scope records, so the mix of categories follows the data. The analysis reports how incorrect answers are spread across categories.
+- **Dataset:** a fixed set of records drawn at random from the in-scope records, so the mix of categories follows the data. It is saved once with an ID; a random tenth is also asked twice and a tenth with reordered options. The analysis reports how incorrect answers are spread across categories.
 - **Correct:** an answer is correct when it matches the case's answer key. Failed calls and unanswered records count as incorrect. Rules also report the share of records they answer and how many of those answers are correct.
 - **Same records:** two methods are compared on the records both were run on.
 - **Record-level comparison:** for each pair of methods, reports count the records both answer correctly, both answer incorrectly, and only one answers correctly. Reports make no claim beyond the tested records.
 - **Confidence:** for a set of confidence cut-offs, reports show how many answers are at or above each cut-off and how many of those are incorrect. Calibration compares stated confidence with the share of answers that are correct.
 - **Cost:** the main cost measure is cost per 1,000 records for each method, from the tokens each call uses at uncached list prices in US dollars. Reports state the price source, date and per-token prices once, and compare how many input and output tokens each model uses per call. Runs record cost separately for the main comparison, the consistency checks and each pattern test. Costs are not invoices; integration and maintenance costs are excluded.
 - **Speed:** the main speed measure is the median response time per record, measured under the reported concurrent load. Detailed analysis adds the slowest responses (95th percentile).
-- **Consistency:** a random tenth of the sample is asked a second time, and a random tenth is asked with the answer options in a different order. Reports count the answers that change.
+- **Consistency:** reports count how many answers change when a record is asked a second time, or with its answer options in a different order.
 
 [Metric implementation](../benchmark/metrics.py).
 
@@ -90,4 +90,4 @@ Code generates every number, table and chart from the saved results. In the docu
 
 Prompts, sampling and model settings are recorded before inference; predictions, usage and configuration are retained. Reports regenerate from that evidence without model calls.
 
-Runs that tested the same records on the same data can be combined in one report, so a model can be added later without repeating the others. Each model's answers come from one run, and the appendix lists when each model's answers were collected, because a provider can change the model behind a name.
+A run applies one or more models to one dataset: data × models = run. Runs on the same dataset can be combined in one report, so a model can be added later without repeating the others. Each model's answers come from one run, and the appendix lists when each model's answers were collected, because a provider can change the model behind a name.

@@ -164,7 +164,7 @@ def compute(folders):
     prices = {p["model"]: p for run in reversed(runs) for p in run["prices"]}
     return {
         "runs": [{"id": run["folder"].name, "date": f"{run['folder'].name[:4]}-{run['folder'].name[4:6]}-{run['folder'].name[6:8]}",
-                  "mode": run["status"]["mode"], "profile": run["status"]["profile"], "complete": run["status"]["complete"],
+                  "dataset": run["status"].get("dataset"), "mode": run["status"]["mode"], "complete": run["status"]["complete"],
                   "methods": sorted(run["rows"].method.unique()), "outputs": len(run["rows"]),
                   "requests": int(run["rows"].request_count.sum()), "failed_outputs": int(run["rows"].failed.sum()),
                   "unknown_usage_outputs": int((~run["rows"].usage_complete).sum()),

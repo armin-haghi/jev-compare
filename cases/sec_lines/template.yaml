@@ -127,3 +127,26 @@ lines:
 excluded_tags:
   - tag: AccountsPayableAndAccruedLiabilitiesCurrent
     reason: combines accounts payable and accrued liabilities
+
+# Totals and subtotals the template does not hold as categories. Lines with these tags are answered "not mapped".
+not_mapped_tags:
+  # Balance sheet
+  - Assets
+  - AssetsCurrent
+  - AssetsNoncurrent
+  - Liabilities
+  - LiabilitiesCurrent
+  - LiabilitiesNoncurrent
+  - LiabilitiesAndStockholdersEquity
+  # Income statement
+  - OperatingExpenses
+  - CostsAndExpenses
+  - NoninterestExpense
+  - BenefitsLossesAndExpenses
+  - IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest
+  - IncomeLossFromContinuingOperationsBeforeIncomeTaxesMinorityInterestAndIncomeLossFromEquityMethodInvestments
+  - IncomeLossFromContinuingOperationsBeforeInterestExpenseInterestIncomeIncomeTaxesExtraordinaryItemsNoncontrollingInterestsNet
+  - IncomeLossFromContinuingOperations
+  - ComprehensiveIncomeNetOfTax
+  - ComprehensiveIncomeNetOfTaxIncludingPortionAttributableToNoncontrollingInterest
+  - OtherComprehensiveIncomeLossNetOfTax

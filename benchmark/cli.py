@@ -1,7 +1,9 @@
-"""Explicit preparation, smoke, benchmark and artifact-only reporting commands."""
+"""Prepare data, draw a dataset, run models on it, and report — runs on one dataset combine in one report."""
 import argparse
 import json
+import tempfile
 from pathlib import Path
+from benchmark import datasets
 from benchmark.config import load_case, load_env, read_yaml, resolve
 from benchmark.metrics import compute, write_evidence
 
@@ -9,7 +11,7 @@ from benchmark.metrics import compute, write_evidence
 def print_summary(evidence):
     for run in evidence["runs"]:
         note = "" if run["mode"] == "benchmark" and run["complete"] else " Not study evidence."
-        print(f"Run {run['id']}: {run['mode']}, {run['profile']} profile, {'complete' if run['complete'] else 'incomplete'}.{note}")
+        print(f"Run {run['id']}: {run['mode']}, {'complete' if run['complete'] else 'incomplete'}.{note}")
         print(f"{run['outputs']:,} outputs, {run['requests']:,} requests, {run['failed_outputs']:,} failed.")
     for regime, r in evidence["regimes"].items():
         for method, x in sorted(r["methods"].items()):
@@ -17,63 +19,73 @@ def print_summary(evidence):
             print(f"  {regime} {method}: {x['correct']:,} of {x['records']:,} correct; {cost}")
 
 
+def run_folders(results_root, dataset=None, run_ids=()):
+    """All complete runs on a dataset, or the named runs (paths below the results folder)."""
+    root = Path(results_root)
+    if dataset:
+        return sorted(f.parent for f in (root / dataset).glob("*/status.json") if json.loads(f.read_text())["complete"])
+    if any(".." in Path(r).parts or Path(r).is_absolute() for r in run_ids):
+        raise ValueError("--run-id must be a path below the results folder")
+    return [root / r for r in run_ids]
+
+
 def main():
     load_env()
     parser = argparse.ArgumentParser(description=__doc__)
     commands = parser.add_subparsers(dest="command", required=True)
-    for name in ("prepare", "inspect"):
+    for name in ("prepare", "inspect", "sample"):
         child = commands.add_parser(name)
         child.add_argument("--case", default="sec_lines")
         child.add_argument("--case-config")
-    for name in ("run", "smoke", "plan"):
+        if name == "sample":
+            child.add_argument("--size", type=int, required=True, help="Number of records drawn at random")
+            child.add_argument("--seed", type=int, default=20261001)
+    for name in ("run", "plan", "check"):
         child = commands.add_parser(name)
         child.add_argument("--experiment", default="config/experiments/sec_lines.yaml")
-        child.add_argument("--profile", choices=["small", "full"], default="small")
-        child.add_argument("--budget-usd", type=float)
-        child.add_argument("--results-root", default="results")
-        if name == "smoke":
-            child.add_argument("--records-per-line", type=int, default=5)
+        if name != "check":
+            child.add_argument("--dataset", required=True, help="Dataset ID from the sample command")
+        if name == "run":
+            child.add_argument("--budget-usd", type=float)
+            child.add_argument("--results-root", default="results")
     child = commands.add_parser("report")
-    child.add_argument("--run-id", required=True, action="append",
-                       help="Repeat to combine runs that tested the same records, e.g. a later run that adds a model")
+    source = child.add_mutually_exclusive_group(required=True)
+    source.add_argument("--dataset", help="Combine every complete run on this dataset")
+    source.add_argument("--run-id", action="append", help="A run folder below the results folder; repeat to combine runs")
     child.add_argument("--results-root", default="results")
     child.add_argument("--publish-dir", help="Refresh the generated blocks of the documents in this directory")
-    commands.add_parser("demo", help="Run every method against deterministic local fixture responses; no paid calls")
-    child = commands.add_parser("check", help="Validate credentials, pricing and model discovery without inference")
-    child.add_argument("--experiment", default="config/experiments/sec_lines.yaml")
+    commands.add_parser("demo", help="Run every method on a synthetic dataset with fixture responses; no paid calls")
     args = parser.parse_args()
-    if args.command in ("prepare", "inspect"):
-        module = load_case(args.case)
-        config = read_yaml(args.case_config or f"cases/{args.case}/case.yaml")
+
+    if args.command in ("prepare", "inspect", "sample"):
+        case_config = args.case_config or f"cases/{args.case}/case.yaml"
+        module, config = load_case(args.case), read_yaml(case_config)
         if args.command == "prepare":
             print(module.prepare(config))
+        elif args.command == "sample":
+            print(datasets.create(args.case, case_config, args.size, args.seed))
         else:
             directory = Path(config["processed_dir"])
             print((directory / "sec_lines_summary.csv").read_text())
             print((directory / "dataset_manifest.json").read_text())
-            if (directory / "label_splits.parquet").exists():
-                import pandas as pd
-                splits = pd.read_parquet(directory / "label_splits.parquet")
-                ambiguous = splits[splits.filer_split]
-                print(f"Observed disagreement rows: {len(ambiguous)}; showing the first 20")
-                print(ambiguous.head(20).to_string(index=False))
-            records = module.load_records(config)
-            for reference in sorted({r.reference for r in records}):
-                for record in [r for r in records if r.reference == reference][:5]:
-                    print(record.model_dump_json())
-    elif args.command in ("run", "smoke"):
+    elif args.command == "run":
         from benchmark.runner import run
-        folder = run(read_yaml(args.experiment), args.profile, args.budget_usd,
-                  args.records_per_line if args.command == "smoke" else None, args.results_root)
+        folder = run(read_yaml(args.experiment), args.dataset, args.budget_usd, args.results_root)
         print_summary(json.loads((folder / "evidence.json").read_text()))
+        print(f"Results: {folder}")
     elif args.command == "plan":
         from benchmark.runner import workload
-        print(json.dumps(workload(resolve(read_yaml(args.experiment)), args.profile), indent=2))
+        print(json.dumps(workload(resolve(read_yaml(args.experiment)), args.dataset), indent=2))
+    elif args.command == "check":
+        from benchmark.runner import preflight, expand_methods
+        config = resolve(read_yaml(args.experiment))
+        metadata, prices = preflight(config, expand_methods(config))
+        print(json.dumps({"metadata": metadata, "prices": prices}, indent=2))
     elif args.command == "report":
         from benchmark.report import publish
-        if any(Path(r).name != r or r in (".", "..") for r in args.run_id):
-            parser.error("--run-id must be a directory name")
-        folders = [Path(args.results_root) / r for r in args.run_id]
+        folders = run_folders(args.results_root, args.dataset, args.run_id or ())
+        if not folders:
+            parser.error("No complete runs found")
         for folder in folders:
             write_evidence(folder)
         print_summary(compute(folders))
@@ -84,14 +96,16 @@ def main():
         from tests.fixtures.toy_case import prepare
         from tests.fixtures.fake_runtime import FakeRuntime
         from benchmark.runner import run
-        config = read_yaml("tests/fixtures/experiment.yaml")
-        prepare(read_yaml(config["case_config"]))
-        print_summary(json.loads((run(config, budget_usd=1, runtime_factory=FakeRuntime) / "evidence.json").read_text()))
-    elif args.command == "check":
-        from benchmark.runner import preflight, expand_methods
-        config = resolve(read_yaml(args.experiment))
-        metadata, prices = preflight(config, expand_methods(config))
-        print(json.dumps({"metadata": metadata, "prices": prices}, indent=2))
+        work = Path(tempfile.mkdtemp(prefix="jev-demo-"))
+        case_config = work / "case.yaml"
+        case_config.write_text(f"processed_dir: {work / 'data'}\n")
+        prepare(read_yaml(case_config))
+        config = read_yaml("tests/fixtures/experiment.yaml") | {"case_config": str(case_config)}
+        dataset = datasets.create(config["case"], case_config, 8, root=work / "samples")
+        folder = run(config, dataset, budget_usd=1, results_root=work / "results", datasets_root=work / "samples",
+                     runtime_factory=FakeRuntime)
+        print_summary(json.loads((folder / "evidence.json").read_text()))
+        print(f"Demo output: {folder}")
 
 
 if __name__ == "__main__":

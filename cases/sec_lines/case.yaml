@@ -36,3 +36,4 @@ descriptions:
   long_term_debt: Borrowings due beyond the current period.
   other_noncurrent_liabilities: Long-term obligations outside long-term borrowings.
   total_equity: The owners' residual interest in assets after liabilities.
+  not_mapped: A total, subtotal or other line that the template does not hold as a category, such as total assets or income before tax.

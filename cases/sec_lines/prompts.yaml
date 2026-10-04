@@ -3,9 +3,11 @@ chat_model:
     Match one line from a company's financial statement to one line of a standard template.
     Use only the supplied record and candidate information.
     Return the single best template line and a confidence from 0 to 1.
+    Choose not_mapped for a total, subtotal or other line that the template does not hold.
     Confidence is your estimate of the probability that the selected line is correct.
     Do not provide rationale.
 
 decision_model:
   instructions: >
     Which template line does the statement line described in the state belong to?
+    Choose not mapped for a total, subtotal or other line that the template does not hold.

@@ -2,13 +2,9 @@ case: tests.fixtures.toy_case
 case_config: tests/fixtures/case.yaml
 prompts: cases/sec_lines/prompts.yaml
 pricing: tests/fixtures/pricing.yaml
-seed: 20261001
 record_concurrency: 1
 attempts: 3
 rules: true
 decision_models: [{model: typesafe-ai/jev, request_model: jev}]
 chat_models: [{model: openai/gpt-5-mini}, {model: anthropic/claude-sonnet-4.6}]
 context_regimes: [label_only, with_context]
-profiles:
-  small: {records_per_line: 2, repeat_records: 2, repeat_count: 2, shuffle_records: 2}
-  full: {records_per_line: 6, repeat_records: 4, repeat_count: 3, shuffle_records: 4, minimum_eligible: 2}

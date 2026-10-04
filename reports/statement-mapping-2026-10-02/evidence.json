@@ -1609,6 +1609,7 @@
   "runs": [
     {
       "complete": true,
+      "dataset": null,
       "date": "2026-10-02",
       "failed_outputs": 0,
       "id": "20261002T232137Z-571ebdd4",
@@ -1624,7 +1625,6 @@
       "mode": "benchmark",
       "outputs": 18760,
       "predictions_sha256": "f28270deeb4460a1d56f9f6162c496c2959bdaca5bca11727f939d9dedba5537",
-      "profile": "full",
       "record_concurrency": 4,
       "requests": 28568,
       "unknown_usage_outputs": 0

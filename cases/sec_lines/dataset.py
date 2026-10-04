@@ -14,7 +14,7 @@ import requests
 from benchmark.config import file_hash, json_write, read_yaml
 from benchmark.schemas import BenchmarkRecord
 from .features import build_payload, normalize, rules
-from .template import ROOT, candidates, mapping, template
+from .template import NOT_MAPPED, ROOT, candidates, labels, mapping, template
 
 
 def quarters(start, end):
@@ -135,7 +135,7 @@ def records_from_tables(sub, pre, num, tags, config):
             elif not reference:
                 reason = "unmapped_tag"
                 unmapped[tag] += 1
-            elif tag_statement[reference] != statement:
+            elif reference != NOT_MAPPED and tag_statement[reference] != statement:
                 reason = "statement_mismatch"
             elif not definition.get("tlabel"):
                 reason = "missing_tag_definition"
@@ -181,24 +181,29 @@ def finalise(records, excluded):
     consistency = company_consistency(records)
     # Ties resolve by period, accession and stable id, independent of input order.
     records.sort(key=lambda r: (int(r.source["fy"]), str(r.source["period"]), r.source["adsh"], r.record_id), reverse=True)
-    seen, kept = set(), []
+    # Keep a company's latest filing for each wording. Lines repeating a wording inside that filing
+    # (for example several lines worded "Other") differ by position, so they all stay.
+    latest, kept = {}, []
     for record in records:
         key = (str(record.source["cik"]), record.input["statement"], normalize(record.input["label"]))
-        if key in seen:
-            excluded.append({"record_id": record.record_id, **record.source, "exclusion_reason": "duplicate_filer_label"})
-        else:
-            seen.add(key)
+        if latest.setdefault(key, record.source["adsh"]) == record.source["adsh"]:
             kept.append(record)
+        else:
+            excluded.append({"record_id": record.record_id, **record.source, "exclusion_reason": "duplicate_filer_label"})
     groups = defaultdict(list)
     for record in kept:
         groups[(record.input["statement"], normalize(record.input["label"]))].append(record)
     splits = []
     for (statement, label), members in sorted(groups.items()):
-        counts = Counter(r.reference for r in members)
-        flag = len(members) >= 5 and len(counts) >= 2
-        for reference, count in sorted(counts.items()):
+        # Each company counts once per category it uses for this wording.
+        companies = defaultdict(set)
+        for r in members:
+            companies[r.reference].add(str(r.source["cik"]))
+        total = len({str(r.source["cik"]) for r in members})
+        flag = total >= 5 and len(companies) >= 2
+        for reference, users in sorted(companies.items()):
             splits.append({"statement": statement, "normalized_label": label, "reference": reference,
-                           "filers": count, "total_filers": len(members), "share": count / len(members),
+                           "filers": len(users), "total_filers": total, "share": len(users) / total,
                            "filer_split": flag})
         for record in members:
             record.groups["normalized_label"] = label
@@ -244,9 +249,9 @@ def prepare(case_config):
     pd.DataFrame([{"record_id": r.record_id, "payload_json": json.dumps(r.input)} for r in records],
                  columns=["record_id", "payload_json"]).to_parquet(output / "model_inputs.parquet", index=False)
     summary = []
-    for line in template()["lines"]:
-        members = [r for r in records if r.reference == line["id"]]
-        summary.append({"template_line": line["id"], "eligible_records": len(members),
+    for category in labels():
+        members = [r for r in records if r.reference == category]
+        summary.append({"template_line": category, "eligible_records": len(members),
                         "unique_filers": len({r.source["cik"] for r in members}),
                         "unique_labels": len({normalize(r.input["label"]) for r in members}),
                         "share_label_differs": sum(r.groups["label_differs"] == "true" for r in members) / len(members) if members else None,

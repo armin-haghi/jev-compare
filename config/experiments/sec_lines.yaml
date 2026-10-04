@@ -1,9 +1,8 @@
-# Statement-mapping run settings. Every model is called through the Vercel AI Gateway;
-# prices come from the gateway catalog when the run starts.
+# Statement-mapping run settings: which models answer, and how. The dataset is chosen with --dataset.
+# Every model is called through the Vercel AI Gateway; prices come from the gateway catalog when the run starts.
 case: sec_lines
 case_config: cases/sec_lines/case.yaml
 prompts: cases/sec_lines/prompts.yaml
-seed: 20261001
 record_concurrency: 4
 attempts: 3
 timeout_seconds: 120
@@ -26,16 +25,3 @@ chat_models:
 context_regimes:
   - label_only
   - with_context
-
-profiles:
-  small:
-    records_per_line: 2
-    repeat_records: 5
-    repeat_count: 2
-    shuffle_records: 5
-  full:
-    records_per_line: 100
-    repeat_records: 20
-    repeat_count: 2
-    shuffle_records: 20
-    minimum_eligible: 50

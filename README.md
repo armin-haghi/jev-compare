@@ -28,25 +28,25 @@ The demo uses synthetic responses and makes no model calls. Live runs need AI_GA
 ## Commands
 
 ```bash
-uv run python -m benchmark.cli prepare --case sec_lines            # download and prepare SEC data
-uv run python -m benchmark.cli plan --experiment config/experiments/sec_lines.yaml --profile full
-uv run python -m benchmark.cli run --experiment config/experiments/sec_lines.yaml --profile small --budget-usd 1
-uv run python -m benchmark.cli report --run-id RUN_ID --publish-dir reports/STUDY   # refresh generated blocks, no model calls
+uv run python -m benchmark.cli prepare --case sec_lines             # download and prepare SEC data
+uv run python -m benchmark.cli sample --case sec_lines --size 2900  # draw a dataset; prints its ID
+uv run python -m benchmark.cli plan --dataset DATASET_ID            # requests per model, no calls
+uv run python -m benchmark.cli run --dataset DATASET_ID --budget-usd 5
+uv run python -m benchmark.cli report --dataset DATASET_ID --publish-dir reports/STUDY   # no model calls
 ```
 
-Models are listed by name in the settings file: decision models such as `typesafe-ai/jev`, and chat models such as `openai/gpt-5-mini`, `anthropic/claude-sonnet-4.6` or `google/gemini-2.5-flash`. Prices come from the gateway catalog when a run starts.
+A dataset is a fixed random sample saved in data/samples/DATASET_ID/ and tracked in Git. A run applies the models in `config/experiments/sec_lines.yaml` to one dataset: data × models = run. Models are listed by name: decision models such as `typesafe-ai/jev`, and chat models such as `openai/gpt-5-mini`, `anthropic/claude-sonnet-4.6` or `google/gemini-2.5-flash`. Prices come from the gateway catalog when a run starts.
 
-To add a model to an existing comparison, run the same settings with only the new model listed (and `rules: false`), then combine the runs in one report: `report --run-id FIRST_RUN --run-id NEW_RUN --publish-dir reports/STUDY`. The report refuses runs that tested different records or data.
+To add a model later, run the same dataset with only the new model listed (and `rules: false`). `report --dataset` combines every complete run on the dataset; it refuses a model that appears in two runs.
 
-Paid runs require --budget-usd; spending limits reserve for calls in progress.
-
-Each run writes results/RUN_ID/ with predictions, raw responses, configuration, prices, prompts and an evidence file. The report command refreshes the generated tables and charts in a study's documents from those results. Downloaded data, results and .venv stay outside Git.
+Paid runs require --budget-usd; spending limits reserve for calls in progress. Results go to results/DATASET_ID/RUN_ID/ with predictions, raw responses, configuration, prices, prompts and an evidence file. Downloaded SEC data, results and .venv stay outside Git.
 
 ## Code
 
 | Path | Role |
 | --- | --- |
-| benchmark/runner.py | Samples records, calls each method, records answers, usage and cost |
+| benchmark/datasets.py | Draws and saves a dataset: a fixed random sample of a case's records |
+| benchmark/runner.py | Applies the configured models to a dataset; records answers, usage and cost |
 | benchmark/methods/ | One module per method: rules, decision model (Jev), chat model |
 | benchmark/metrics.py | Every number the reports use, computed from saved results |
 | benchmark/report.py | Fills the generated blocks and charts in a study's documents, from one or more runs |
