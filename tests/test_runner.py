@@ -36,7 +36,7 @@ def test_generic_runner_persists_and_regenerates(experiment, tmp_path, monkeypat
     assert set(frame.repeat_index) == {0, 1}
     before = json.loads((path / "evidence.json").read_text())
     assert write_evidence(path) == before
-    assert before["run"]["mode"] == "fixture"
+    assert before["runs"][0]["mode"] == "fixture"
     for method, group in frame.groupby("method"):
         assert len(group[group.shuffled]) == 4
 
@@ -47,7 +47,7 @@ def test_failure_is_kept(experiment, tmp_path):
             raise ValueError("Injected failure")
     path = run(experiment, budget_usd=1, results_root=tmp_path / "results", runtime_factory=Broken)
     frame = pd.read_parquet(path / "predictions.parquet")
-    llm = frame[frame.method.str.contains("llm")]
+    llm = frame[frame.method.str.startswith("chat:")]
     assert llm.failed.all()
     assert not llm.correct.any()
     assert len(llm) > 0
@@ -64,18 +64,15 @@ def test_smoke_is_disjoint_from_small_and_full(experiment):
     assert ids(small["repeat"]) <= ids(small["main"])
 
 
-def test_small_only_configuration_omits_frontier():
+def test_methods_follow_the_model_lists():
     config = read_yaml("tests/fixtures/experiment.yaml")
-    config["llm_tiers"] = ["small"]
-    methods = expand_methods(config)
-    assert len(methods) == 3
-    assert not any(m.get("tier") == "frontier" for m in methods)
-    assert sum(m.get("tier") == "small" for m in methods) == 1
-
-
-def test_frontier_requires_explicit_authorization(experiment, tmp_path):
-    with pytest.raises(ValueError, match="Frontier inference requires explicit authorization"):
-        run(experiment, budget_usd=1, results_root=tmp_path / "results")
+    assert [m["method"] for m in expand_methods(config)] == [
+        "rules_baseline", "decision:typesafe-ai/jev", "chat:openai/gpt-5-mini", "chat:anthropic/claude-sonnet-4.6"]
+    config["rules"], config["decision_models"] = False, []
+    assert [m["method"] for m in expand_methods(config)] == ["chat:openai/gpt-5-mini", "chat:anthropic/claude-sonnet-4.6"]
+    config["chat_models"].append({"model": "openai/gpt-5-mini"})
+    with pytest.raises(ValueError, match="each model once"):
+        expand_methods(config)
 
 
 def test_budget_interruption_keeps_partial_evidence(experiment, tmp_path):
@@ -91,7 +88,7 @@ def test_budget_interruption_keeps_partial_evidence(experiment, tmp_path):
     rows = pd.read_parquet(folder / "predictions.parquet")
     assert rows.iloc[-1].failed
     assert json.loads(rows.iloc[-1].diagnostics_json)["error_type"] == "BudgetExceeded"
-    assert not write_evidence(folder)["run"]["complete"]
+    assert not write_evidence(folder)["runs"][0]["complete"]
 
 
 def test_concurrent_runner_preserves_every_output(experiment, tmp_path):
@@ -108,8 +105,8 @@ def test_concurrent_stop_keeps_inflight_usage(experiment, tmp_path):
     from benchmark.pricing import BudgetExceeded
     import threading
     experiment['record_concurrency'] = 2
-    experiment['methods'] = ['direct_llm']
-    experiment['llm_tiers'] = ['small']
+    experiment['rules'], experiment['decision_models'] = False, []
+    experiment['chat_models'] = [{'model': 'openai/gpt-5-mini'}]
     barrier = threading.Barrier(2)
     class Stopped(FakeRuntime):
         def llm(self, *args):

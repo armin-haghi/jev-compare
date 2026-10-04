@@ -10,7 +10,7 @@ from pathlib import Path
 import pandas as pd
 
 from benchmark.config import json_write, load_case, read_yaml
-from benchmark.metrics import compute, first_answers, is_model
+from benchmark.metrics import combine, compute, first_answers
 
 BLOCK = re.compile(r"(<!-- begin (\S+)(.*?) -->\n).*?(<!-- end -->)", re.S)
 MODELS = {"openai/gpt-5-mini": "GPT-5 mini", "anthropic/claude-sonnet-4.6": "Claude Sonnet 4.6", "typesafe-ai/jev": "Jev", "rules-v1": "Rules"}
@@ -37,13 +37,12 @@ def table(header, rows):
 
 
 class Study:
-    def __init__(self, folder, destination):
-        self.folder, self.destination = Path(folder), Path(destination)
-        self.evidence = compute(folder)
-        self.rows = pd.read_parquet(self.folder / "predictions.parquet")
-        case = read_yaml(self.folder / "resolved_config.yaml")["case"]
-        self.labels = getattr(load_case(case), "labels", dict)()
-        split_file = self.folder / "label_splits.parquet"
+    def __init__(self, folders, destination):
+        first, self.destination = Path(folders[0]), Path(destination)
+        self.evidence = compute(folders)
+        self.rows = combine(folders)[1]
+        self.labels = getattr(load_case(read_yaml(first / "resolved_config.yaml")["case"]), "labels", dict)()
+        split_file = first / "label_splits.parquet"
         self.splits = pd.read_parquet(split_file) if split_file.exists() else None
         self.evidence["tables"] = {}
 
@@ -52,7 +51,7 @@ class Study:
         return self.evidence["regimes"][args[0] if args else "with_context"]
 
     def models(self, r):
-        return sorted((m for m in r["methods"] if is_model(m)), key=lambda m: (m != "jev_direct", m))
+        return r["models"]
 
     def name(self, r, method):
         return MODELS.get(r["methods"][method]["model"], r["methods"][method]["model"])
@@ -193,11 +192,12 @@ class Study:
                 ("Income-statement and balance-sheet lines in the selected filings", "all_lines"),
                 ("In scope: tag on the template list, standard taxonomy, one consolidated USD value", "in_scope_before_repeats"),
                 ("After removing repeats of the same wording by the same company", "in_scope"),
-                ("Sampled for this run", "sampled"))])
+                ("Sampled", "sampled"))])
 
     def sample(self, args):
         d = self.evidence["dataset"]
-        cats = self.regime(args)["categories"]["jev_direct"]
+        r = self.regime(args)
+        cats = r["categories"][r["primary"] or r["models"][0]]
         sizes = sorted({v[0] for v in cats.values()})
         return table(["Property", "Value"], [
             ["Records", n(d["scope"]["sampled"])],
@@ -207,29 +207,30 @@ class Study:
             ["Consistency checks", f"{n(d['repeat_records'])} records asked twice; {n(d['reorder_records'])} with reordered options"]])
 
     def run(self, args):
+        source = {m: run for run in self.evidence["runs"] for m in run["methods"]}
         rows = []
         for regime, r in self.evidence["regimes"].items():
             for m, x in sorted(r["methods"].items()):
-                rows.append([m, MODELS.get(x["model"], x["model"]), regime.replace("_", " "), n(x["records"]), n(x["correct"]),
-                             n(x["requests"]), f"${x['cost_per_1000_usd']:.3f}" if x["cost_per_1000_usd"] is not None else "–"])
-        return table(["Method", "Model", "Input", "Records", "Correct", "Requests", "Cost per 1,000 records"], rows)
+                rows.append([m, MODELS.get(x["model"], x["model"]), source[m]["date"], regime.replace("_", " "), n(x["records"]),
+                             n(x["correct"]), n(x["requests"]), f"${x['cost_per_1000_usd']:.3f}" if x["cost_per_1000_usd"] is not None else "–"])
+        return table(["Method", "Model", "Answers collected", "Input", "Records", "Correct", "Requests", "Cost per 1,000 records"], rows)
 
     # Records ------------------------------------------------------------------
     def answers(self, regime="with_context"):
+        r = self.evidence["regimes"][regime]
         first = first_answers(self.rows[self.rows.context_regime == regime])
-        return {m: g.set_index("record_id") for m, g in first.groupby("method") if is_model(m)}
+        return r, r["models"], {m: first[first.method == m].set_index("record_id") for m in r["models"]}
 
     def records(self, args):
-        answers = self.answers()
-        models = sorted(answers, key=lambda m: (m != "jev_direct", m))
-        r = self.evidence["regimes"]["with_context"]
+        r, models, answers = self.answers()
+        reference = answers[models[0]]
         rows = []
         for prefix in args:
-            matches = [i for i in answers["jev_direct"].index if i.startswith(prefix)]
+            matches = [i for i in reference.index if i.startswith(prefix)]
             if len(matches) != 1:
                 raise ValueError(f"Record prefix must match exactly one record: {prefix}")
             record_id = matches[0]
-            row = answers["jev_direct"].loc[record_id]
+            row = reference.loc[record_id]
             line, source = json.loads(row.input_json), json.loads(row.source_json)
             context = line.get("lines_above", [])[-1:] + [f"**{line['label']}**"] + line.get("lines_below", [])[:1]
             rows.append([f"{source['name']} {source['fy']}: " + " → ".join(context), self.label(row.reference)] +
@@ -239,10 +240,8 @@ class Study:
 
     def worked(self, args):
         statement, wording = args[0], " ".join(args[1:])
-        answers = self.answers()
-        models = sorted(answers, key=lambda m: (m != "jev_direct", m))
-        r = self.evidence["regimes"]["with_context"]
-        jev = answers["jev_direct"]
+        r, models, answers = self.answers()
+        jev = answers[models[0]]
         chosen = [i for i, row in jev.iterrows() if json.loads(row.groups_json).get("normalized_label") == wording
                   and json.loads(row.groups_json).get("statement") == statement]
         split = self.splits[(self.splits.statement == statement) & (self.splits.normalized_label == wording)].set_index("reference")
@@ -353,11 +352,11 @@ class Study:
         return BLOCK.sub(lambda m: m.group(1) + self.block(m.group(2), m.group(3).split()) + m.group(4), text)
 
 
-def publish(folder, destination):
-    """Refresh every generated block in the destination's documents and write their evidence file."""
+def publish(folders, destination):
+    """Refresh every generated block in the destination's documents from one or more runs, and write their evidence file."""
     destination = Path(destination)
     destination.mkdir(parents=True, exist_ok=True)
-    study = Study(folder, destination)
+    study = Study([folders] if isinstance(folders, (str, Path)) else folders, destination)
     for document in sorted(destination.glob("*.md")):
         document.write_text(study.render(document.read_text()))
     json_write(destination / "evidence.json", study.evidence)

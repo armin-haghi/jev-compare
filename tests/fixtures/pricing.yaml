@@ -1,23 +1,18 @@
-# USD per million tokens; catalog snapshot verified 2026-10-02.
-# Costs use uncached list rates for cross-provider comparability.
-# Raw cache token details are retained separately; this is not an invoice.
+# Fixed prices for fixture runs only. Live runs take prices from the Vercel AI Gateway catalog.
 prices:
-  - provider: vercel
-    model: openai/gpt-5-mini
+  - model: openai/gpt-5-mini
     input_per_million: 0.25
     output_per_million: 2.0
     currency: USD
     effective_date: '2026-10-02'
     source_url: https://ai-gateway.vercel.sh/v1/models
-  - provider: vercel
-    model: anthropic/claude-sonnet-4.6
+  - model: anthropic/claude-sonnet-4.6
     input_per_million: 3.0
     output_per_million: 15.0
     currency: USD
     effective_date: '2026-10-02'
     source_url: https://ai-gateway.vercel.sh/v1/models
-  - provider: vercel
-    model: typesafe-ai/jev
+  - model: typesafe-ai/jev
     input_per_million: 0.042
     output_per_million: 0.0
     currency: USD

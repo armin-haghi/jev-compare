@@ -1,4 +1,4 @@
-direct_llm:
+chat_model:
   system: >
     Match one line from a company's financial statement to one line of a standard template.
     Use only the supplied record and candidate information.
@@ -6,6 +6,6 @@ direct_llm:
     Confidence is your estimate of the probability that the selected line is correct.
     Do not provide rationale.
 
-jev_direct:
+decision_model:
   instructions: >
     Which template line does the statement line described in the state belong to?

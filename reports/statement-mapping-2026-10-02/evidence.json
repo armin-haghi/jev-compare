@@ -758,6 +758,10 @@
           "requests": 0
         }
       },
+      "models": [
+        "jev_direct",
+        "direct_llm_small"
+      ],
       "pairs": {
         "direct_llm_small": {
           "both_correct": 2662,
@@ -767,6 +771,7 @@
           "right_only_correct": 71
         }
       },
+      "primary": "jev_direct",
       "routing": {
         "direct_llm_small": [
           {
@@ -1529,6 +1534,10 @@
           "requests": 0
         }
       },
+      "models": [
+        "jev_direct",
+        "direct_llm_small"
+      ],
       "pairs": {
         "direct_llm_small": {
           "both_correct": 2719,
@@ -1538,6 +1547,7 @@
           "right_only_correct": 43
         }
       },
+      "primary": "jev_direct",
       "routing": {
         "direct_llm_small": [
           {
@@ -1596,18 +1606,30 @@
       }
     }
   },
-  "run": {
-    "complete": true,
-    "failed_outputs": 0,
-    "id": "20261002T232137Z-571ebdd4",
-    "mode": "benchmark",
-    "outputs": 18760,
-    "predictions_sha256": "f28270deeb4460a1d56f9f6162c496c2959bdaca5bca11727f939d9dedba5537",
-    "profile": "full",
-    "record_concurrency": 4,
-    "requests": 28568,
-    "unknown_usage_outputs": 0
-  },
+  "runs": [
+    {
+      "complete": true,
+      "date": "2026-10-02",
+      "failed_outputs": 0,
+      "id": "20261002T232137Z-571ebdd4",
+      "methods": [
+        "decomposed_llm_matrix_small",
+        "decomposed_llm_parallel_small",
+        "direct_llm_small",
+        "jev_composite_concurrent",
+        "jev_composite_fanout",
+        "jev_direct",
+        "rules_baseline"
+      ],
+      "mode": "benchmark",
+      "outputs": 18760,
+      "predictions_sha256": "f28270deeb4460a1d56f9f6162c496c2959bdaca5bca11727f939d9dedba5537",
+      "profile": "full",
+      "record_concurrency": 4,
+      "requests": 28568,
+      "unknown_usage_outputs": 0
+    }
+  ],
   "tables": {
     "agreement": {
       "header": [
@@ -2521,6 +2543,7 @@
       "header": [
         "Method",
         "Model",
+        "Answers collected",
         "Input",
         "Records",
         "Correct",
@@ -2531,6 +2554,7 @@
         [
           "decomposed_llm_matrix_small",
           "GPT-5 mini",
+          "2026-10-02",
           "label only",
           "100",
           "34",
@@ -2540,6 +2564,7 @@
         [
           "decomposed_llm_parallel_small",
           "GPT-5 mini",
+          "2026-10-02",
           "label only",
           "100",
           "11",
@@ -2549,6 +2574,7 @@
         [
           "direct_llm_small",
           "GPT-5 mini",
+          "2026-10-02",
           "label only",
           "2,900",
           "2,733",
@@ -2558,6 +2584,7 @@
         [
           "jev_composite_concurrent",
           "Jev",
+          "2026-10-02",
           "label only",
           "100",
           "93",
@@ -2567,6 +2594,7 @@
         [
           "jev_composite_fanout",
           "Jev",
+          "2026-10-02",
           "label only",
           "100",
           "93",
@@ -2576,6 +2604,7 @@
         [
           "jev_direct",
           "Jev",
+          "2026-10-02",
           "label only",
           "2,900",
           "2,732",
@@ -2585,6 +2614,7 @@
         [
           "rules_baseline",
           "Rules",
+          "2026-10-02",
           "label only",
           "2,900",
           "2,024",
@@ -2594,6 +2624,7 @@
         [
           "decomposed_llm_matrix_small",
           "GPT-5 mini",
+          "2026-10-02",
           "with context",
           "100",
           "64",
@@ -2603,6 +2634,7 @@
         [
           "decomposed_llm_parallel_small",
           "GPT-5 mini",
+          "2026-10-02",
           "with context",
           "100",
           "9",
@@ -2612,6 +2644,7 @@
         [
           "direct_llm_small",
           "GPT-5 mini",
+          "2026-10-02",
           "with context",
           "2,900",
           "2,762",
@@ -2621,6 +2654,7 @@
         [
           "jev_composite_concurrent",
           "Jev",
+          "2026-10-02",
           "with context",
           "100",
           "95",
@@ -2630,6 +2664,7 @@
         [
           "jev_composite_fanout",
           "Jev",
+          "2026-10-02",
           "with context",
           "100",
           "94",
@@ -2639,6 +2674,7 @@
         [
           "jev_direct",
           "Jev",
+          "2026-10-02",
           "with context",
           "2,900",
           "2,777",
@@ -2648,6 +2684,7 @@
         [
           "rules_baseline",
           "Rules",
+          "2026-10-02",
           "with context",
           "2,900",
           "2,024",
@@ -2711,7 +2748,7 @@
           "8.8%"
         ],
         [
-          "Sampled for this run",
+          "Sampled",
           "2,900",
           "0.2%"
         ]

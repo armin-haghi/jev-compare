@@ -11,8 +11,9 @@ from benchmark.pricing import cost
 from benchmark.methods.common import validate_probabilities
 
 
-KEYS = {"vercel": "AI_GATEWAY_API_KEY", "typesafe": "TYPESAFE_API_KEY"}
+KEYS = {"vercel": "AI_GATEWAY_API_KEY"}
 GATEWAY = "https://ai-gateway.vercel.sh/v1"
+SYSTEM_ONE = "https://ai-gateway.vercel.sh/typesafe"  # decision models such as Jev
 
 
 def require_key(provider):
@@ -25,11 +26,8 @@ def require_key(provider):
 
 
 def jev_client(config):
-    kwargs = {"api_key": require_key(config["provider"]), "retry": RetryPolicy(max_retries=0),
-              "timeout": config.get("timeout_seconds", 120)}
-    if config.get("base_url"):
-        kwargs["base_url"] = config["base_url"]
-    return TypeSafeClient(**kwargs)
+    return TypeSafeClient(api_key=require_key("vercel"), base_url=SYSTEM_ONE, retry=RetryPolicy(max_retries=0),
+                          timeout=config.get("timeout_seconds", 120))
 
 
 class GatewayError(RuntimeError):

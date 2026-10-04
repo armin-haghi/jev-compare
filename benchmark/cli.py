@@ -3,14 +3,14 @@ import argparse
 import json
 from pathlib import Path
 from benchmark.config import load_case, load_env, read_yaml, resolve
-from benchmark.metrics import write_evidence
+from benchmark.metrics import compute, write_evidence
 
 
 def print_summary(evidence):
-    run = evidence["run"]
-    note = "" if run["mode"] == "benchmark" and run["complete"] else " Not study evidence."
-    print(f"Run {run['id']}: {run['mode']}, {run['profile']} profile, {'complete' if run['complete'] else 'incomplete'}.{note}")
-    print(f"{run['outputs']:,} outputs, {run['requests']:,} requests, {run['failed_outputs']:,} failed.")
+    for run in evidence["runs"]:
+        note = "" if run["mode"] == "benchmark" and run["complete"] else " Not study evidence."
+        print(f"Run {run['id']}: {run['mode']}, {run['profile']} profile, {'complete' if run['complete'] else 'incomplete'}.{note}")
+        print(f"{run['outputs']:,} outputs, {run['requests']:,} requests, {run['failed_outputs']:,} failed.")
     for regime, r in evidence["regimes"].items():
         for method, x in sorted(r["methods"].items()):
             cost = f"${x['cost_per_1000_usd']:.3f} per 1,000 records" if x["cost_per_1000_usd"] is not None else "cost unknown"
@@ -31,12 +31,11 @@ def main():
         child.add_argument("--profile", choices=["small", "full"], default="small")
         child.add_argument("--budget-usd", type=float)
         child.add_argument("--results-root", default="results")
-        child.add_argument("--allow-frontier", action="store_true",
-                           help="Explicitly authorize frontier-model inference; omit until approved")
         if name == "smoke":
             child.add_argument("--records-per-line", type=int, default=5)
     child = commands.add_parser("report")
-    child.add_argument("--run-id", required=True)
+    child.add_argument("--run-id", required=True, action="append",
+                       help="Repeat to combine runs that tested the same records, e.g. a later run that adds a model")
     child.add_argument("--results-root", default="results")
     child.add_argument("--publish-dir", help="Refresh the generated blocks of the documents in this directory")
     commands.add_parser("demo", help="Run every method against deterministic local fixture responses; no paid calls")
@@ -65,20 +64,21 @@ def main():
     elif args.command in ("run", "smoke"):
         from benchmark.runner import run
         folder = run(read_yaml(args.experiment), args.profile, args.budget_usd,
-                  args.records_per_line if args.command == "smoke" else None, args.results_root,
-                  allow_frontier=args.allow_frontier)
+                  args.records_per_line if args.command == "smoke" else None, args.results_root)
         print_summary(json.loads((folder / "evidence.json").read_text()))
     elif args.command == "plan":
         from benchmark.runner import workload
         print(json.dumps(workload(resolve(read_yaml(args.experiment)), args.profile), indent=2))
     elif args.command == "report":
         from benchmark.report import publish
-        if Path(args.run_id).name != args.run_id or args.run_id in (".", ".."):
+        if any(Path(r).name != r or r in (".", "..") for r in args.run_id):
             parser.error("--run-id must be a directory name")
-        folder = Path(args.results_root) / args.run_id
-        print_summary(write_evidence(folder))
+        folders = [Path(args.results_root) / r for r in args.run_id]
+        for folder in folders:
+            write_evidence(folder)
+        print_summary(compute(folders))
         if args.publish_dir:
-            publish(folder, args.publish_dir)
+            publish(folders, args.publish_dir)
             print(f"Documents refreshed in {args.publish_dir}")
     elif args.command == "demo":
         from tests.fixtures.toy_case import prepare
@@ -90,8 +90,8 @@ def main():
     elif args.command == "check":
         from benchmark.runner import preflight, expand_methods
         config = resolve(read_yaml(args.experiment))
-        metadata = preflight(config, expand_methods(config), read_yaml(config["pricing"])["prices"])
-        print(json.dumps(metadata, indent=2))
+        metadata, prices = preflight(config, expand_methods(config))
+        print(json.dumps({"metadata": metadata, "prices": prices}, indent=2))
 
 
 if __name__ == "__main__":

@@ -2,10 +2,10 @@ import math
 import threading
 
 
-def lookup(prices, provider, model):
-    matches = [p for p in prices if p["provider"] == provider and p["model"] == model]
+def lookup(prices, model):
+    matches = [p for p in prices if p["model"] == model]
     if len(matches) != 1:
-        raise ValueError(f"Exactly one price required for {provider}/{model}")
+        raise ValueError(f"Exactly one price required for {model}")
     price = matches[0]
     for key in ("input_per_million", "output_per_million"):
         if not isinstance(price[key], (int, float)) or not math.isfinite(price[key]) or price[key] < 0:

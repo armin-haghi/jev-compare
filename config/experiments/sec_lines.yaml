@@ -1,36 +1,32 @@
-# Settings of the last statement-mapping run: Jev, GPT-5 mini and rules. The next run updates this file.
+# Statement-mapping run settings. Every model is called through the Vercel AI Gateway;
+# prices come from the gateway catalog when the run starts.
 case: sec_lines
 case_config: cases/sec_lines/case.yaml
 prompts: cases/sec_lines/prompts.yaml
-pricing: config/pricing.yaml
 seed: 20261001
 record_concurrency: 4
 attempts: 3
 timeout_seconds: 120
-conventional_llm:
-  small:
-    provider: vercel
-    model: openai/gpt-5-mini
-    temperature: null
+
+# Keyword rules: free and deterministic. Set to false in a run that only adds models.
+rules: true
+
+# Decision models answer through the System One API. request_model is the API's name when it differs from the catalog ID.
+decision_models:
+  - model: typesafe-ai/jev
+    request_model: jev
+
+# Chat models answer through chat completions. Add any gateway model by its ID, for example
+# anthropic/claude-sonnet-4.6 or google/gemini-2.5-flash. Optional settings: reasoning_effort, temperature, max_tokens.
+chat_models:
+  - model: openai/gpt-5-mini
     reasoning_effort: minimal
     max_tokens: 1024
-  frontier:
-    provider: vercel
-    model: anthropic/claude-sonnet-4.6
-    temperature: 0
-    max_tokens: 4096
-jev:
-  provider: vercel
-  model: typesafe-ai/jev
-  request_model: jev
-  base_url: https://ai-gateway.vercel.sh/typesafe
-methods:
-- rules_baseline
-- direct_llm
-- jev_direct
+
 context_regimes:
-- label_only
-- with_context
+  - label_only
+  - with_context
+
 profiles:
   small:
     records_per_line: 2
@@ -43,5 +39,3 @@ profiles:
     repeat_count: 2
     shuffle_records: 20
     minimum_eligible: 50
-llm_tiers:
-- small

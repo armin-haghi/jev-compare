@@ -1,13 +1,13 @@
 import pytest
 from benchmark.methods.common import validate_probabilities
-from benchmark.methods import direct_llm, jev_direct
+from benchmark.methods import chat_model, decision_model
 from benchmark.config import read_yaml
 from benchmark.pricing import Budget, BudgetExceeded
 from tests.fixtures.fake_runtime import FakeRuntime
 from tests.fixtures.toy_case import candidates
 
 
-@pytest.mark.parametrize("module", [direct_llm, jev_direct])
+@pytest.mark.parametrize("module", [chat_model, decision_model])
 def test_every_method_obeys_contract(module):
     config = {"case": "tests.fixtures.toy_case", "prompts": read_yaml("cases/sec_lines/prompts.yaml")}
     config["_runtime"] = FakeRuntime(config, {}, None)

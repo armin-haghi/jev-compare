@@ -1,3 +1,4 @@
+"""A chat model chooses one category and states its confidence in one call."""
 from typing import Literal
 from pydantic import Field, create_model
 from benchmark.schemas import MethodResult
@@ -10,6 +11,6 @@ def predict(payload, candidates, case_config, method_config):
                           category=(Literal[ids], ...),
                           confidence=(float, Field(ge=0, le=1, allow_inf_nan=False)))
     result = method_config["_runtime"].llm(
-        method_config["prompts"]["direct_llm"]["system"], state(payload, candidates), schema)
+        method_config["prompts"]["chat_model"]["system"], state(payload, candidates), schema)
     return MethodResult(prediction=result.category, confidence=result.confidence,
                         probability_of_prediction=result.confidence, confidence_kind="self_reported")

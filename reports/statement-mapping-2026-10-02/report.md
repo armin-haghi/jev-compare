@@ -39,7 +39,7 @@ Verdict, for choosing one category from a fixed list:
 | Income-statement and balance-sheet lines in the selected filings | 1,694,559 | 100.0% |
 | In scope: tag on the template list, standard taxonomy, one consolidated USD value | 412,512 | 24.3% |
 | After removing repeats of the same wording by the same company | 148,422 | 8.8% |
-| Sampled for this run | 2,900 | 0.2% |
+| Sampled | 2,900 | 0.2% |
 <!-- end -->
 
 **The answer key.** Each line's category comes from the tag the company filed, which models do not see. An answer is correct when it matches that category. The tag records the company's own judgement and is not independently reviewed.

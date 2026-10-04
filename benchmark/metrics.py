@@ -1,4 +1,4 @@
-"""Every number the reports use, computed from a run's saved results. No provider calls or case imports."""
+"""Every number the reports use, computed from saved results of one or more runs. No provider calls or case imports."""
 import json
 from pathlib import Path
 
@@ -10,8 +10,18 @@ from benchmark.config import file_hash, json_write, read_yaml
 CUTOFFS = (.99, .95, .9, .8, 0.)
 
 
+JEV = ("typesafe-ai/jev", "jev")
+LEGACY = ("jev_direct", "direct_llm_small", "direct_llm_frontier")  # method names of runs before models were listed by name
+
+
 def is_model(method):
-    return method == "jev_direct" or method.startswith("direct_llm")
+    return method.startswith(("decision:", "chat:")) or method in LEGACY
+
+
+def ordered(methods):
+    """Model methods with Jev first, then decision models, then chat models."""
+    return sorted((m for m in methods if is_model(m)),
+                  key=lambda m: (methods[m]["model"] not in JEV, not m.startswith(("decision:", "jev")), m))
 
 
 def first_answers(rows):
@@ -92,16 +102,19 @@ def wording_groups(first, splits):
 def regime(rows, splits):
     first = first_answers(rows)
     methods = {m: results(g) for m, g in rows.groupby("method")}
-    models = sorted((m for m in methods if is_model(m)), key=lambda m: (m != "jev_direct", m))
+    models = ordered(methods)
     answers = {m: first[first.method == m] for m in models + ["rules_baseline"] if m in methods}
-    out = {"methods": methods,
+    primary = next((m for m in models if methods[m]["model"] in JEV), None)
+    out = {"methods": methods, "models": models, "primary": primary,
            "confidence": {m: confidence(answers[m]) for m in models},
            "categories": {m: {c: [len(g), int(g.correct.sum())] for c, g in a.groupby("reference")} for m, a in answers.items()},
            "pairs": {}, "routing": {}}
-    if "jev_direct" not in models:
+    if primary is None:
         return out
-    jev = answers["jev_direct"]
-    for m in models[1:]:
+    jev = answers[primary]
+    for m in models:
+        if m == primary:
+            continue
         out["pairs"][m] = pair(jev, answers[m])
         out["routing"][m] = routing(jev, answers[m])
     if splits is not None and "normalized_label" in json.loads(first.iloc[0].groups_json):
@@ -113,26 +126,50 @@ def regime(rows, splits):
     return out
 
 
-def compute(folder):
-    folder = Path(folder)
-    rows = pd.read_parquet(folder / "predictions.parquet")
-    split_file = folder / "label_splits.parquet"
+def combine(folders):
+    """Load runs that tested the same records on the same data; each method may come from one run only."""
+    runs = []
+    for folder in map(Path, folders):
+        runs.append({"folder": folder, "rows": pd.read_parquet(folder / "predictions.parquet"),
+                     "status": json.loads((folder / "status.json").read_text()),
+                     "manifest": json.loads((folder / "dataset_manifest.json").read_text()),
+                     "sample": json.loads((folder / "sample_manifest.json").read_text()),
+                     "prices": read_yaml(folder / "pricing.yaml")["prices"],
+                     "config": read_yaml(folder / "resolved_config.yaml")})
+    first, seen = runs[0], {}
+    for run in runs:
+        if run["manifest"]["dataset_sha256"] != first["manifest"]["dataset_sha256"]:
+            raise ValueError(f"{run['folder'].name} used a different dataset from {first['folder'].name}")
+        if run["sample"]["main"] != first["sample"]["main"]:
+            raise ValueError(f"{run['folder'].name} tested different records from {first['folder'].name}")
+        for method in run["rows"].method.unique():
+            if method == "rules_baseline" and method in seen:  # deterministic and free: keep the first run's answers
+                run["rows"] = run["rows"][run["rows"].method != method]
+            elif method in seen:
+                raise ValueError(f"{method} appears in both {seen[method]} and {run['folder'].name}")
+            seen[method] = run["folder"].name
+    return runs, pd.concat([run["rows"] for run in runs], ignore_index=True)
+
+
+def compute(folders):
+    runs, rows = combine([folders] if isinstance(folders, (str, Path)) else folders)
+    first_run = runs[0]
+    split_file = first_run["folder"] / "label_splits.parquet"
     splits = pd.read_parquet(split_file) if split_file.exists() else None
-    status = json.loads((folder / "status.json").read_text())
-    manifest = json.loads((folder / "dataset_manifest.json").read_text())
-    sample = json.loads((folder / "sample_manifest.json").read_text())
-    prices = read_yaml(folder / "pricing.yaml")["prices"]
-    config = read_yaml(folder / "resolved_config.yaml")
+    manifest, sample = first_run["manifest"], first_run["sample"]
     first = first_answers(rows).drop_duplicates("record_id")
     sources = [json.loads(s) for s in first.source_json]
     groups = [json.loads(g) for g in first.groups_json]
     excluded = manifest.get("exclusion_counts", {})
+    prices = {p["model"]: p for run in reversed(runs) for p in run["prices"]}
     return {
-        "run": {"id": folder.name, "mode": status["mode"], "profile": status["profile"], "complete": status["complete"],
-                "outputs": len(rows), "requests": int(rows.request_count.sum()), "failed_outputs": int(rows.failed.sum()),
-                "unknown_usage_outputs": int((~rows.usage_complete).sum()),
-                "record_concurrency": config.get("record_concurrency", 1),
-                "predictions_sha256": file_hash(folder / "predictions.parquet")},
+        "runs": [{"id": run["folder"].name, "date": f"{run['folder'].name[:4]}-{run['folder'].name[4:6]}-{run['folder'].name[6:8]}",
+                  "mode": run["status"]["mode"], "profile": run["status"]["profile"], "complete": run["status"]["complete"],
+                  "methods": sorted(run["rows"].method.unique()), "outputs": len(run["rows"]),
+                  "requests": int(run["rows"].request_count.sum()), "failed_outputs": int(run["rows"].failed.sum()),
+                  "unknown_usage_outputs": int((~run["rows"].usage_complete).sum()),
+                  "record_concurrency": run["config"].get("record_concurrency", 1),
+                  "predictions_sha256": file_hash(run["folder"] / "predictions.parquet")} for run in runs],
         "dataset": {"scope": {"all_lines": manifest.get("records", 0) + manifest.get("excluded", 0),
                               "in_scope_before_repeats": manifest.get("records", 0) + excluded.get("duplicate_filer_label", 0),
                               "in_scope": manifest.get("records"), "sampled": len(sample["main"])},
@@ -141,7 +178,7 @@ def compute(folder):
                     "fiscal_years": sorted({g["fiscal_year"] for g in groups if g.get("fiscal_year")}),
                     "statements": {k: sum(g.get("statement") == k for g in groups) for k in sorted({g.get("statement") for g in groups})},
                     "answer_key_consistency": manifest.get("answer_key_consistency")},
-        "prices": [p for p in prices if p["model"] in set(rows.model)],
+        "prices": [prices[m] for m in sorted(set(rows.model)) if m in prices],
         "regimes": {r: regime(g, splits) for r, g in rows.groupby("context_regime")},
     }
 

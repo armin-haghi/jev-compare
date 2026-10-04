@@ -89,3 +89,5 @@ Code generates every number, table and chart from the saved results. In the docu
 ## Evidence
 
 Prompts, sampling and model settings are recorded before inference; predictions, usage and configuration are retained. Reports regenerate from that evidence without model calls.
+
+Runs that tested the same records on the same data can be combined in one report, so a model can be added later without repeating the others. Each model's answers come from one run, and the appendix lists when each model's answers were collected, because a provider can change the model behind a name.

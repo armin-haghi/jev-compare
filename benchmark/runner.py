@@ -21,24 +21,15 @@ from benchmark.sampling import samples
 from benchmark.schemas import MethodResult
 
 
-METHODS = ("rules_baseline", "direct_llm", "jev_direct")  # each is a module in benchmark/methods
-
-
 def expand_methods(config):
-    result = []
-    for name in config["methods"]:
-        if name not in METHODS:
-            raise ValueError(f"Unknown method: {name}")
-        if "llm" in name:
-            for tier in config.get("llm_tiers", ["small", "frontier"]):
-                if tier not in ("small", "frontier"):
-                    raise ValueError(f"Unknown language-model tier: {tier}")
-                result.append(config["conventional_llm"][tier] |
-                              {"method": f"{name}_{tier}", "base_method": name, "tier": tier})
-        else:
-            result.append((config["jev"] if name.startswith("jev") else {"provider": "rules", "model": "rules-v1"}) |
-                          {"method": name, "base_method": name})
-    return result
+    """Rules, then each decision model and chat model listed by name in the settings."""
+    methods = [{"method": "rules_baseline", "module": "rules_baseline", "provider": "rules", "model": "rules-v1"}] if config.get("rules", True) else []
+    methods += [m | {"method": f"decision:{m['model']}", "module": "decision_model", "provider": "vercel"} for m in config.get("decision_models", [])]
+    methods += [m | {"method": f"chat:{m['model']}", "module": "chat_model", "provider": "vercel"} for m in config.get("chat_models", [])]
+    names = [m["method"] for m in methods]
+    if not names or len(set(names)) != len(names):
+        raise ValueError("Configure at least one method, each model once")
+    return methods
 
 
 def frozen_files(config):
@@ -46,7 +37,7 @@ def frozen_files(config):
     case_module = load_case(config["case"])
     root = Path(case_module.__file__).parent
     paths.extend(p for p in root.rglob("*") if p.suffix in (".py", ".yaml", ".json"))
-    paths.extend(Path(config[k]) for k in ("case_config", "prompts", "pricing"))
+    paths.extend(Path(config[k]) for k in ("case_config", "prompts", "pricing") if config.get(k))
     return {str(p): file_hash(p) for p in sorted(set(paths)) if p.is_file()}
 
 
@@ -55,34 +46,36 @@ def freeze(config):
     return data | {"sha256": digest(data)}
 
 
-def preflight(config, methods, prices):
-    for method in methods:
-        if method["provider"] != "rules":
-            require_key(method["provider"])
-            lookup(prices, method["provider"], method["model"])
-    metadata = {"temperature_policy": {m["method"]: m.get("temperature") for m in methods}}
-    gateway_models = {m["model"] for m in methods if m["provider"] == "vercel"}
-    if gateway_models:
-        response = requests.get(f"{GATEWAY}/models", timeout=60)
-        response.raise_for_status()
-        catalog = {m["id"]: m for m in response.json()["data"]}
-        if gateway_models - catalog.keys():
-            raise ValueError(f"Models absent from Vercel catalog: {sorted(gateway_models - catalog.keys())}")
-        metadata["vercel_models"] = {key: {field: catalog[key].get(field) for field in
-                                    ("id", "name", "pricing", "temperature", "type")} for key in sorted(gateway_models)}
-    if any(m["base_method"].startswith("jev") for m in methods):
-        client = jev_client(config["jev"])
+def preflight(config, methods):
+    """Check credentials and model names, and take prices from the gateway catalog."""
+    models = [m for m in methods if m["provider"] != "rules"]
+    if not models:
+        return {}, []
+    require_key("vercel")
+    response = requests.get(f"{GATEWAY}/models", timeout=60)
+    response.raise_for_status()
+    catalog = {m["id"]: m for m in response.json()["data"]}
+    missing = sorted({m["model"] for m in models} - catalog.keys())
+    if missing:
+        raise ValueError(f"Models absent from the Vercel AI Gateway catalog: {missing}")
+    today = datetime.now(timezone.utc).date().isoformat()
+    prices = [{"model": key, "input_per_million": round(float(catalog[key]["pricing"]["input"]) * 1e6, 6),
+               "output_per_million": round(float(catalog[key]["pricing"].get("output", 0)) * 1e6, 6),
+               "currency": "USD", "effective_date": today, "source_url": f"{GATEWAY}/models"}
+              for key in sorted({m["model"] for m in models})]
+    metadata = {"gateway_models": {key: {f: catalog[key].get(f) for f in ("id", "name", "pricing", "type")}
+                                   for key in sorted({m["model"] for m in models})}}
+    decision = [m.get("request_model", m["model"]) for m in models if m["module"] == "decision_model"]
+    if decision:
+        client = jev_client(config)
         try:
-            available = client.models.list()
-            metadata["jev_models"] = available.model_dump(mode="json")
-            names = {m.name for m in available.models}
-            requested = config["jev"].get("request_model", config["jev"]["model"])
-            metadata["jev_request_model"] = requested
-            if requested not in names:
-                raise ValueError(f"Configured Jev model is absent from models.list(): {config['jev']['model']}; available names: {sorted(names)}")
+            available = {m.name for m in client.models.list().models}
         finally:
             client.close()
-    return metadata
+        if set(decision) - available:
+            raise ValueError(f"Decision models absent from the System One API: {sorted(set(decision) - available)}; available: {sorted(available)}")
+        metadata["decision_models_available"] = sorted(available)
+    return metadata, prices
 
 
 def workload(config, profile="small", smoke_per_line=None):
@@ -126,12 +119,12 @@ def list_next(iterator, count):
 
 
 def run(config, profile="small", budget_usd=None, smoke_per_line=None, results_root="results",
-        runtime_factory=None, run_id=None, allow_frontier=False):
+        runtime_factory=None, run_id=None):
     config = resolve(config)
     if not 1 <= config.get("attempts", 3) <= 3:
         raise ValueError("attempts must be between one and three")
-    if not config["methods"] or not config["context_regimes"]:
-        raise ValueError("Methods and context regimes cannot be empty")
+    if not config["context_regimes"]:
+        raise ValueError("Context regimes cannot be empty")
     for name, settings in config["profiles"].items():
         if any(not isinstance(settings[k], int) or settings[k] < 1 for k in
                ("records_per_line", "repeat_records", "repeat_count", "shuffle_records")):
@@ -147,10 +140,7 @@ def run(config, profile="small", budget_usd=None, smoke_per_line=None, results_r
         raise ValueError("Dataset record IDs are not unique")
     chosen = samples(records, config, profile, smoke_per_line)
     methods = expand_methods(config)
-    if not runtime_factory and not allow_frontier and any(m.get("tier") == "frontier" for m in methods):
-        raise ValueError("Frontier inference requires explicit authorization; use --allow-frontier after approval")
     prompts = read_yaml(config["prompts"])
-    prices = read_yaml(config["pricing"])["prices"]
     frozen = freeze(config)
     dataset_dir = Path(case_config["processed_dir"])
     dataset_manifest = json.loads((dataset_dir / "dataset_manifest.json").read_text())
@@ -168,9 +158,9 @@ def run(config, profile="small", budget_usd=None, smoke_per_line=None, results_r
     if paid and budget_usd is None:
         raise ValueError("Paid execution requires --budget-usd")
     if runtime_factory:
-        provider_metadata = {"fixture": True}
+        provider_metadata, prices = {"fixture": True}, read_yaml(config["pricing"])["prices"]
     else:
-        provider_metadata = preflight(config, methods, prices)
+        provider_metadata, prices = preflight(config, methods)
     budget = Budget(budget_usd or 1)
     run_id = run_id or datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ") + "-" + uuid4().hex[:8]
     if Path(run_id).name != run_id or run_id in (".", ".."):
@@ -225,13 +215,13 @@ def run(config, profile="small", budget_usd=None, smoke_per_line=None, results_r
                                            "timeout_seconds": config.get("timeout_seconds", 120)}
                             runtime = None
                             if method["provider"] != "rules":
-                                price = lookup(prices, method["provider"], method["model"])
+                                price = lookup(prices, method["model"])
                                 runtime = (runtime_factory or Runtime)(call_config, price, budget)
                             call_config["_runtime"] = runtime
                             before = time.perf_counter()
                             failed, error_type, exhausted, fatal_error = False, None, False, None
                             try:
-                                module = importlib.import_module(f"benchmark.methods.{method['base_method']}")
+                                module = importlib.import_module(f"benchmark.methods.{method['module']}")
                                 result = MethodResult.model_validate(module.predict(payload, candidates, case_config, call_config))
                                 if result.prediction not in {c["id"] for c in candidates} and not (method["provider"] == "rules" and result.prediction == "ABSTAIN"):
                                     raise ValueError("Prediction is outside the candidate set")
