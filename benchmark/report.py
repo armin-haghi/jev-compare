@@ -15,8 +15,10 @@ from benchmark.metrics import combine, compute, first_answers
 BLOCK = re.compile(r"(<!-- begin (\S+)(.*?) -->\n).*?(<!-- end -->)", re.S)
 MODELS = {"openai/gpt-5-mini": "GPT-5 mini", "anthropic/claude-sonnet-4.6": "Claude Sonnet 4.6", "typesafe-ai/jev": "Jev", "rules-v1": "Rules"}
 STATEMENTS = {"IS": "income statement", "BS": "balance sheet"}
-LIGHT = {"bg": "#fcfcfb", "ink": "#0b0b0b", "muted": "#52514e", "grid": "#e1e0d9", "axis": "#c3c2b7", "s0": "#2a78d6", "s1": "#eb6834"}
-DARK = {"bg": "#1a1a19", "ink": "#ffffff", "muted": "#c3c2b7", "grid": "#2c2c2a", "axis": "#383835", "s0": "#3987e5", "s1": "#d95926"}
+LIGHT = {"bg": "#fcfcfb", "ink": "#0b0b0b", "muted": "#52514e", "grid": "#e1e0d9", "axis": "#c3c2b7",
+         "s0": "#2a78d6", "s1": "#eb6834", "s2": "#1baf7a", "s3": "#eda100"}
+DARK = {"bg": "#1a1a19", "ink": "#ffffff", "muted": "#c3c2b7", "grid": "#2c2c2a", "axis": "#383835",
+        "s0": "#3987e5", "s1": "#d95926", "s2": "#199e70", "s3": "#c98500"}
 
 
 def n(value):
@@ -54,7 +56,8 @@ class Study:
         return r["models"]
 
     def name(self, r, method):
-        return MODELS.get(r["methods"][method]["model"], r["methods"][method]["model"])
+        model = r["methods"][method]["model"]
+        return self.evidence["model_names"].get(model) or MODELS.get(model, model)
 
     def label(self, category):
         return self.labels.get(category, category.replace("_", " ").capitalize())
@@ -81,22 +84,18 @@ class Study:
     def context(self, args):
         regimes = self.evidence["regimes"]
         r = regimes["with_context"]
-        return table(["Model", "Wording only", "Wording with context"], [
-            [self.name(r, m)] + [f"{n(regimes[k]['methods'][m]['correct'])} of {n(regimes[k]['methods'][m]['records'])}"
-                                 for k in ("label_only", "with_context")] for m in self.models(r)])
+        cell = lambda k, m: (f"{n(x['correct'])} of {n(x['records'])}" if (x := regimes.get(k, {}).get("methods", {}).get(m)) else "–")
+        return table(["Model", "Wording only", "Wording with context"],
+                     [[self.name(r, m), cell("label_only", m), cell("with_context", m)] for m in self.models(r)])
 
     def cutoffs(self, args):
+        """Per model and cut-off: answers at or above it, and how many of those are incorrect."""
         r = self.regime(args)
         models = self.models(r)
-        header = ["Confidence at or above"] + [f"{self.name(r, m)}: {h}" for m in models for h in ("answers", "incorrect")]
-        rows = []
-        for i, point in enumerate(r["confidence"][models[0]]["cutoffs"]):
-            cells = [f"{point['cutoff']:.2f}" if point["cutoff"] else "Any (all answers)"]
-            for m in models:
-                p = r["confidence"][m]["cutoffs"][i]
-                cells += [n(p["answers"]), f"{n(p['incorrect'])} ({pct(p['incorrect'], p['answers'])})"]
-            rows.append(cells)
-        return table(header, rows)
+        points = r["confidence"][models[0]]["cutoffs"]
+        header = ["Model"] + [f"Confidence ≥ {p['cutoff']:.2f}" if p["cutoff"] else "All answers" for p in points]
+        return table(header, [[self.name(r, m)] + [f"{n(p['answers'])} ({n(p['incorrect'])} incorrect, {pct(p['incorrect'], p['answers'])})"
+                                                   for p in r["confidence"][m]["cutoffs"]] for m in models])
 
     def calibration(self, args):
         r = self.regime(args)
@@ -162,7 +161,7 @@ class Study:
         for check, title in (("repeats", "Asked twice"), ("reorders", "Options reordered")):
             for m in self.models(r):
                 rows.append([title, self.name(r, m)] + [
-                    f"{n(regimes[k]['methods'][m][check]['changed'])} of {n(regimes[k]['methods'][m][check]['records'])}"
+                    f"{n(x[check]['changed'])} of {n(x[check]['records'])}" if (x := regimes.get(k, {}).get("methods", {}).get(m)) else "–"
                     for k in ("label_only", "with_context")])
         return table(["Check", "Model", "Changed, wording only", "Changed, with context"], rows)
 
@@ -212,8 +211,10 @@ class Study:
         for regime, r in self.evidence["regimes"].items():
             for m, x in sorted(r["methods"].items()):
                 rows.append([m, MODELS.get(x["model"], x["model"]), source[m]["date"], regime.replace("_", " "), n(x["records"]),
-                             n(x["correct"]), n(x["requests"]), f"${x['cost_per_1000_usd']:.3f}" if x["cost_per_1000_usd"] is not None else "–"])
-        return table(["Method", "Model", "Answers collected", "Input", "Records", "Correct", "Requests", "Cost per 1,000 records"], rows)
+                             n(x["correct"]), n(x["requests"]), n(x.get("answers_with_unpriced_attempts", 0)),
+                             f"${x['cost_per_1000_usd']:.3f}" if x["cost_per_1000_usd"] is not None else "–"])
+        return table(["Method", "Model", "Answers collected", "Input", "Records", "Correct", "Requests",
+                      "Answers with an unpriced failed attempt", "Cost per 1,000 records"], rows)
 
     # Records ------------------------------------------------------------------
     def answers(self, regime="with_context"):
@@ -263,6 +264,15 @@ class Study:
         (self.destination / "charts" / f"{name}.svg").write_text(text)
         return f"![{alt}](charts/{name}.svg)\n", None
 
+    @staticmethod
+    def legend(labels, x):
+        """Swatch and name per series, spaced by name length."""
+        parts = []
+        for i, label in enumerate(labels):
+            parts.append(f'<rect class="s{i}" x="{x}" y="12" width="12" height="12" rx="2"/><text class="ink" x="{x + 18}" y="22">{label}</text>')
+            x += 36 + 7 * len(label)
+        return "".join(parts)
+
     def line_chart(self, name, alt, series, x_label, y_label, x_axis, y_axis, x_fmt, y_fmt, diagonal=False, notes=()):
         """x_axis and y_axis are (low, high, step); notes are (x, y, text) labels placed beside points."""
         left, right, top, bottom = 72, 600, 44, 300
@@ -276,15 +286,15 @@ class Study:
         if diagonal:
             low, high = max(x_axis[0], y_axis[0]), min(x_axis[1], y_axis[1])
             body.append(f'<line class="axis" x1="{sx(low):.1f}" y1="{sy(low):.1f}" x2="{sx(high):.1f}" y2="{sy(high):.1f}"/>'
-                        f'<line class="axis" x1="{left + 308}" x2="{left + 326}" y1="18" y2="18" stroke-width="2"/>'
-                        f'<text class="ink" x="{left + 332}" y="22">Stated confidence = share correct</text>')
+                        f'<line class="axis" x1="{right - 230}" x2="{right - 212}" y1="{bottom - 14}" y2="{bottom - 14}" stroke-width="2"/>'
+                        f'<text class="muted" x="{right - 206}" y="{bottom - 10}">Stated confidence = share correct</text>')
         for i, (label, points) in enumerate(series):
             path = " ".join(f"{'M' if j == 0 else 'L'}{sx(x):.1f},{sy(y):.1f}" for j, (x, y) in enumerate(points))
             body.append(f'<path class="s{i}l" d="{path}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>')
             body += [f'<circle class="s{i} ring" cx="{sx(x):.1f}" cy="{sy(y):.1f}" r="4" stroke-width="2"/>' for x, y in points]
-            body.append(f'<rect class="s{i}" x="{left + 8 + 150 * i}" y="12" width="12" height="12" rx="2"/>'
-                        f'<text class="ink" x="{left + 26 + 150 * i}" y="22">{label}</text>')
+
         body += [f'<text class="ink" x="{sx(x) - 8:.1f}" y="{sy(y) - 10:.1f}" text-anchor="end">{text}</text>' for x, y, text in notes]
+        body.append(self.legend([label for label, _ in series], left + 8))
         body.append(f'<text class="muted" x="{(left + right) / 2}" y="{bottom + 40}" text-anchor="middle">{x_label}</text>'
                     f'<text class="muted" transform="translate(18 {(top + bottom) / 2}) rotate(-90)" text-anchor="middle">{y_label}</text>')
         return self.svg(name, alt, "".join(body))
@@ -297,7 +307,7 @@ class Study:
             points = [(p["cutoff"], p["answers"] / r["methods"][m]["records"] * 100, p["incorrect"] / p["answers"] * 100)
                       for p in r["confidence"][m]["cutoffs"] if p["answers"]]
             series.append((self.name(r, m), [(x, y) for _, x, y in points]))
-            notes += [(x, y, f"cut-off {c:.2f}") for c, x, y in points if c == marked]
+            notes += [(x, y, f"cut-off {c:.2f}") for c, x, y in points if c == marked and len(self.models(r)) <= 2]
         peak = max(y for _, points in series for _, y in points)
         step = next(s for s in (.5, 1, 2, 2.5, 5, 10, 25) if peak / s <= 5)
         return self.line_chart("confidence-cutoffs", "Line chart: for each confidence cut-off, the share of answers at or above it and the share of those that are incorrect, per model", series, "Share of answers at or above the confidence cut-off",
@@ -317,15 +327,13 @@ class Study:
         cats = r["categories"][models[0]]
         wrong = {c: [r["categories"][m][c][0] - r["categories"][m][c][1] for m in models] for c in cats}
         top = sorted((c for c in wrong if any(wrong[c])), key=lambda c: (-sum(wrong[c]), c))[:int(args[1]) if len(args) > 1 else 6]
-        left, right, top_y, band = 290, 600, 44, 44
+        left, right, top_y = 290, 600, 44
+        band = 8 + 18 * len(models)
         scale = max(max(wrong[c]) for c in top) or 1
-        body = []
-        for i, m in enumerate(models):
-            body.append(f'<rect class="s{i}" x="{left + 150 * i}" y="12" width="12" height="12" rx="2"/>'
-                        f'<text class="ink" x="{left + 18 + 150 * i}" y="22">{self.name(r, m)}</text>')
+        body = [self.legend([self.name(r, m) for m in models], 16)]
         for row, c in enumerate(top):
             y0 = top_y + row * band
-            body.append(f'<text class="ink" x="{left - 10}" y="{y0 + 22}" text-anchor="end">{self.label(c)}</text>')
+            body.append(f'<text class="ink" x="{left - 10}" y="{y0 + band / 2 + 2:.1f}" text-anchor="end">{self.label(c)}</text>')
             for i, value in enumerate(wrong[c]):
                 y, w = y0 + 4 + i * 18, (right - left) * value / scale
                 if w:

@@ -51,3 +51,16 @@ def test_a_later_run_on_the_same_dataset_adds_a_model(toy):
     other = toy["run"](added, dataset_id=smaller, run_id="other")
     with pytest.raises(ValueError, match="tested different records"):
         publish([first, other], toy["root"] / "study")
+
+
+def test_a_model_asked_only_one_input_version_shows_dashes(toy):
+    first = toy["run"](run_id="first")
+    context_only = dict(toy["config"], rules=False, decision_models=[], chat_models=[{"model": "openai/gpt-6-luna"}],
+                        context_regimes=["with_context"])
+    later = toy["run"](context_only, run_id="later")
+    destination = toy["root"] / "study"
+    destination.mkdir()
+    (destination / "report.md").write_text("<!-- begin context -->\n<!-- end -->\n<!-- begin consistency -->\n<!-- end -->\n")
+    publish([first, later], destination)
+    text = (destination / "report.md").read_text()
+    assert "| openai/gpt-6-luna | – | 8 of 8 |" in text

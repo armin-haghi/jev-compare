@@ -15,12 +15,17 @@ decision_models:
   - model: typesafe-ai/jev
     request_model: jev
 
-# Chat models answer through chat completions. Add any gateway model by its ID, for example
-# anthropic/claude-sonnet-4.6 or google/gemini-2.5-flash. Optional settings: reasoning_effort, temperature, max_tokens.
+# Chat models answer through chat completions. Add any gateway model by its ID. Each runs at the lowest
+# reasoning effort its catalog entry accepts; max_tokens covers reasoning and the answer.
 chat_models:
-  - model: openai/gpt-5-mini
-    reasoning_effort: minimal
-    max_tokens: 1024
+  - model: google/gemini-3.8-flash
+    reasoning_effort: low
+    max_tokens: 4096
+  - model: openai/gpt-6-luna
+    reasoning_effort: none
+    max_tokens: 4096
+  - model: anthropic/claude-haiku-4.5   # reasoning is off unless requested
+    max_tokens: 4096
 
 context_regimes:
   - label_only

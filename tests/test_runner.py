@@ -99,3 +99,13 @@ def test_concurrent_stop_keeps_inflight_usage(toy):
     rows = pd.read_parquet(folder / "predictions.parquet")
     assert len(rows) == 2 and rows.failed.all()
     assert not json.loads((folder / "status.json").read_text())["complete"]
+
+
+def test_one_model_can_run_alone():
+    from benchmark.cli import select
+    config = read_yaml("tests/fixtures/experiment.yaml")
+    assert [m["method"] for m in expand_methods(select(config, ["openai/gpt-5-mini"]))] == ["chat:openai/gpt-5-mini"]
+    assert [m["method"] for m in expand_methods(select(config, ["rules", "typesafe-ai/jev"]))] == [
+        "rules_baseline", "decision:typesafe-ai/jev"]
+    with pytest.raises(ValueError, match="Not in the settings file"):
+        select(config, ["google/unknown"])

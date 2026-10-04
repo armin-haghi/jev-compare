@@ -19,6 +19,17 @@ def print_summary(evidence):
             print(f"  {regime} {method}: {x['correct']:,} of {x['records']:,} correct; {cost}")
 
 
+def select(config, models):
+    """Keep only the named models, so each model can run as its own run on a dataset."""
+    if not models:
+        return config
+    chosen = {k: [m for m in config.get(k, []) if m["model"] in models] for k in ("decision_models", "chat_models")}
+    unknown = set(models) - {"rules"} - {m["model"] for v in chosen.values() for m in v}
+    if unknown:
+        raise ValueError(f"Not in the settings file: {sorted(unknown)}")
+    return config | chosen | {"rules": "rules" in models}
+
+
 def run_folders(results_root, dataset=None, run_ids=()):
     """All complete runs on a dataset, or the named runs (paths below the results folder)."""
     root = Path(results_root)
@@ -48,6 +59,10 @@ def main():
         if name == "run":
             child.add_argument("--budget-usd", type=float)
             child.add_argument("--results-root", default="results")
+            child.add_argument("--model", action="append",
+                               help="Run only this configured model (repeatable); use 'rules' for the keyword rules")
+            child.add_argument("--input", action="append", choices=["label_only", "with_context"],
+                               help="Ask only this version of each record (repeatable); default: all in the settings file")
     child = commands.add_parser("report")
     source = child.add_mutually_exclusive_group(required=True)
     source.add_argument("--dataset", help="Combine every complete run on this dataset")
@@ -70,7 +85,8 @@ def main():
             print((directory / "dataset_manifest.json").read_text())
     elif args.command == "run":
         from benchmark.runner import run
-        folder = run(read_yaml(args.experiment), args.dataset, args.budget_usd, args.results_root)
+        config = select(read_yaml(args.experiment), args.model) | ({"context_regimes": args.input} if args.input else {})
+        folder = run(config, args.dataset, args.budget_usd, args.results_root)
         print_summary(json.loads((folder / "evidence.json").read_text()))
         print(f"Results: {folder}")
     elif args.command == "plan":

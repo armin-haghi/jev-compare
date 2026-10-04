@@ -42,13 +42,15 @@ def consistency(rows):
 def results(rows):
     first = first_answers(rows)
     answered = first.prediction != "ABSTAIN"
-    known = bool(first.usage_complete.all() and first.cost_usd.notna().all())
-    calls = int(first.request_count.sum())
-    per_call = lambda column: float(first[column].sum() / calls) if known and calls else None
+    priced = first[first.usage_complete]
+    calls = int(priced.request_count.sum())
+    per_call = lambda column: float(priced[column].sum() / calls) if calls else None
     return {"model": first.iloc[0].model, "records": len(first), "correct": int(first.correct.sum()),
             "failed": int(first.failed.sum()), "answered": int(answered.sum()),
-            "answered_correct": int(first.correct[answered].sum()), "requests": calls,
-            "cost_per_1000_usd": float(first.cost_usd.sum() / len(first) * 1000) if known else None,
+            "answered_correct": int(first.correct[answered].sum()), "requests": int(first.request_count.sum()),
+            # Failed attempts that return no usage figures are counted, not priced.
+            "answers_with_unpriced_attempts": int((~first.usage_complete).sum()),
+            "cost_per_1000_usd": float(first.known_cost_usd.sum() / len(first) * 1000),
             "input_tokens_per_call": per_call("input_tokens"), "output_tokens_per_call": per_call("output_tokens"),
             "median_seconds": float(first.latency_ms.median() / 1000),
             "p95_seconds": float(first.latency_ms.quantile(.95) / 1000), **consistency(rows)}
@@ -179,6 +181,8 @@ def compute(folders):
                     "statements": {k: sum(g.get("statement") == k for g in groups) for k in sorted({g.get("statement") for g in groups})},
                     "answer_key_consistency": manifest.get("answer_key_consistency")},
         "prices": [prices[m] for m in sorted(set(rows.model)) if m in prices],
+        "model_names": {key: entry.get("name") for run in runs for source in ("gateway_models", "vercel_models")
+                        for key, entry in json.loads((run["folder"] / "provider_metadata.json").read_text()).get(source, {}).items()},
         "regimes": {r: regime(g, splits) for r, g in rows.groupby("context_regime")},
     }
 

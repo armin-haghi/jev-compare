@@ -25,6 +25,10 @@
       "IS": 1400
     }
   },
+  "model_names": {
+    "openai/gpt-5-mini": "GPT-5 mini",
+    "typesafe-ai/jev": "Jev"
+  },
   "prices": [
     {
       "currency": "USD",
@@ -592,6 +596,7 @@
         "decomposed_llm_matrix_small": {
           "answered": 100,
           "answered_correct": 34,
+          "answers_with_unpriced_attempts": 0,
           "correct": 34,
           "cost_per_1000_usd": 0.7779250000000001,
           "failed": 0,
@@ -616,6 +621,7 @@
         "decomposed_llm_parallel_small": {
           "answered": 100,
           "answered_correct": 11,
+          "answers_with_unpriced_attempts": 0,
           "correct": 11,
           "cost_per_1000_usd": 6.225695,
           "failed": 0,
@@ -640,6 +646,7 @@
         "direct_llm_small": {
           "answered": 2900,
           "answered_correct": 2733,
+          "answers_with_unpriced_attempts": 0,
           "correct": 2733,
           "cost_per_1000_usd": 0.2332525,
           "failed": 0,
@@ -664,6 +671,7 @@
         "jev_composite_concurrent": {
           "answered": 100,
           "answered_correct": 93,
+          "answers_with_unpriced_attempts": 0,
           "correct": 93,
           "cost_per_1000_usd": 1.1949235200000001,
           "failed": 0,
@@ -688,6 +696,7 @@
         "jev_composite_fanout": {
           "answered": 100,
           "answered_correct": 93,
+          "answers_with_unpriced_attempts": 0,
           "correct": 93,
           "cost_per_1000_usd": 0.14272146,
           "failed": 0,
@@ -712,6 +721,7 @@
         "jev_direct": {
           "answered": 2900,
           "answered_correct": 2732,
+          "answers_with_unpriced_attempts": 0,
           "correct": 2732,
           "cost_per_1000_usd": 0.05393970206896553,
           "failed": 0,
@@ -736,6 +746,7 @@
         "rules_baseline": {
           "answered": 2031,
           "answered_correct": 2024,
+          "answers_with_unpriced_attempts": 0,
           "correct": 2024,
           "cost_per_1000_usd": 0.0,
           "failed": 0,
@@ -1368,6 +1379,7 @@
         "decomposed_llm_matrix_small": {
           "answered": 100,
           "answered_correct": 64,
+          "answers_with_unpriced_attempts": 0,
           "correct": 64,
           "cost_per_1000_usd": 0.818975,
           "failed": 0,
@@ -1392,6 +1404,7 @@
         "decomposed_llm_parallel_small": {
           "answered": 100,
           "answered_correct": 9,
+          "answers_with_unpriced_attempts": 0,
           "correct": 9,
           "cost_per_1000_usd": 6.749600000000002,
           "failed": 0,
@@ -1416,6 +1429,7 @@
         "direct_llm_small": {
           "answered": 2900,
           "answered_correct": 2762,
+          "answers_with_unpriced_attempts": 0,
           "correct": 2762,
           "cost_per_1000_usd": 0.25100862068965524,
           "failed": 0,
@@ -1440,6 +1454,7 @@
         "jev_composite_concurrent": {
           "answered": 100,
           "answered_correct": 95,
+          "answers_with_unpriced_attempts": 0,
           "correct": 95,
           "cost_per_1000_usd": 1.3156147200000001,
           "failed": 0,
@@ -1464,6 +1479,7 @@
         "jev_composite_fanout": {
           "answered": 100,
           "answered_correct": 94,
+          "answers_with_unpriced_attempts": 0,
           "correct": 94,
           "cost_per_1000_usd": 0.14687988,
           "failed": 0,
@@ -1488,6 +1504,7 @@
         "jev_direct": {
           "answered": 2900,
           "answered_correct": 2777,
+          "answers_with_unpriced_attempts": 0,
           "correct": 2777,
           "cost_per_1000_usd": 0.05802834413793103,
           "failed": 0,
@@ -1512,6 +1529,7 @@
         "rules_baseline": {
           "answered": 2035,
           "answered_correct": 2024,
+          "answers_with_unpriced_attempts": 0,
           "correct": 2024,
           "cost_per_1000_usd": 0.0,
           "failed": 0,
@@ -2210,47 +2228,29 @@
     },
     "cutoffs": {
       "header": [
-        "Confidence at or above",
-        "Jev: answers",
-        "Jev: incorrect",
-        "GPT-5 mini: answers",
-        "GPT-5 mini: incorrect"
+        "Model",
+        "Confidence \u2265 0.99",
+        "Confidence \u2265 0.95",
+        "Confidence \u2265 0.90",
+        "Confidence \u2265 0.80",
+        "All answers"
       ],
       "rows": [
         [
-          "0.99",
-          "1,921",
-          "7 (0.4%)",
-          "57",
-          "0 (0.0%)"
+          "Jev",
+          "1,921 (7 incorrect, 0.4%)",
+          "2,479 (24 incorrect, 1.0%)",
+          "2,611 (32 incorrect, 1.2%)",
+          "2,717 (54 incorrect, 2.0%)",
+          "2,900 (123 incorrect, 4.2%)"
         ],
         [
-          "0.95",
-          "2,479",
-          "24 (1.0%)",
-          "783",
-          "3 (0.4%)"
-        ],
-        [
-          "0.90",
-          "2,611",
-          "32 (1.2%)",
-          "1,959",
-          "24 (1.2%)"
-        ],
-        [
-          "0.80",
-          "2,717",
-          "54 (2.0%)",
-          "2,651",
-          "73 (2.8%)"
-        ],
-        [
-          "Any (all answers)",
-          "2,900",
-          "123 (4.2%)",
-          "2,900",
-          "138 (4.8%)"
+          "GPT-5 mini",
+          "57 (0 incorrect, 0.0%)",
+          "783 (3 incorrect, 0.4%)",
+          "1,959 (24 incorrect, 1.2%)",
+          "2,651 (73 incorrect, 2.8%)",
+          "2,900 (138 incorrect, 4.8%)"
         ]
       ]
     },
@@ -2548,6 +2548,7 @@
         "Records",
         "Correct",
         "Requests",
+        "Answers with an unpriced failed attempt",
         "Cost per 1,000 records"
       ],
       "rows": [
@@ -2559,6 +2560,7 @@
           "100",
           "34",
           "100",
+          "0",
           "$0.778"
         ],
         [
@@ -2569,6 +2571,7 @@
           "100",
           "11",
           "2,902",
+          "0",
           "$6.226"
         ],
         [
@@ -2579,6 +2582,7 @@
           "2,900",
           "2,733",
           "2,900",
+          "0",
           "$0.233"
         ],
         [
@@ -2589,6 +2593,7 @@
           "100",
           "93",
           "2,902",
+          "0",
           "$1.195"
         ],
         [
@@ -2599,6 +2604,7 @@
           "100",
           "93",
           "100",
+          "0",
           "$0.143"
         ],
         [
@@ -2609,6 +2615,7 @@
           "2,900",
           "2,732",
           "2,900",
+          "0",
           "$0.054"
         ],
         [
@@ -2618,6 +2625,7 @@
           "label only",
           "2,900",
           "2,024",
+          "0",
           "0",
           "$0.000"
         ],
@@ -2629,6 +2637,7 @@
           "100",
           "64",
           "100",
+          "0",
           "$0.819"
         ],
         [
@@ -2639,6 +2648,7 @@
           "100",
           "9",
           "2,902",
+          "0",
           "$6.750"
         ],
         [
@@ -2649,6 +2659,7 @@
           "2,900",
           "2,762",
           "2,900",
+          "0",
           "$0.251"
         ],
         [
@@ -2659,6 +2670,7 @@
           "100",
           "95",
           "2,902",
+          "0",
           "$1.316"
         ],
         [
@@ -2669,6 +2681,7 @@
           "100",
           "94",
           "100",
+          "0",
           "$0.147"
         ],
         [
@@ -2679,6 +2692,7 @@
           "2,900",
           "2,777",
           "2,900",
+          "0",
           "$0.058"
         ],
         [
@@ -2688,6 +2702,7 @@
           "with context",
           "2,900",
           "2,024",
+          "0",
           "0",
           "$0.000"
         ]

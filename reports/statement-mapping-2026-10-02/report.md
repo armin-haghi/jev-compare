@@ -107,13 +107,10 @@ These records show the pattern. They were chosen by hand and do not show how oft
 The table counts the answers at or above each cut-off and how many of them are incorrect. At 0.90, both models' answers are 1.2% incorrect; Jev keeps 2,611 answers and GPT-5 mini 1,959. How many incorrect answers are acceptable is a business decision, not a result of this study.
 
 <!-- begin cutoffs -->
-| Confidence at or above | Jev: answers | Jev: incorrect | GPT-5 mini: answers | GPT-5 mini: incorrect |
-| --- | --- | --- | --- | --- |
-| 0.99 | 1,921 | 7 (0.4%) | 57 | 0 (0.0%) |
-| 0.95 | 2,479 | 24 (1.0%) | 783 | 3 (0.4%) |
-| 0.90 | 2,611 | 32 (1.2%) | 1,959 | 24 (1.2%) |
-| 0.80 | 2,717 | 54 (2.0%) | 2,651 | 73 (2.8%) |
-| Any (all answers) | 2,900 | 123 (4.2%) | 2,900 | 138 (4.8%) |
+| Model | Confidence ≥ 0.99 | Confidence ≥ 0.95 | Confidence ≥ 0.90 | Confidence ≥ 0.80 | All answers |
+| --- | --- | --- | --- | --- | --- |
+| Jev | 1,921 (7 incorrect, 0.4%) | 2,479 (24 incorrect, 1.0%) | 2,611 (32 incorrect, 1.2%) | 2,717 (54 incorrect, 2.0%) | 2,900 (123 incorrect, 4.2%) |
+| GPT-5 mini | 57 (0 incorrect, 0.0%) | 783 (3 incorrect, 0.4%) | 1,959 (24 incorrect, 1.2%) | 2,651 (73 incorrect, 2.8%) | 2,900 (138 incorrect, 4.8%) |
 <!-- end -->
 
 <!-- begin chart-cutoffs -->

@@ -177,22 +177,22 @@ Stated confidence and share correct, with context, in bands of 0.1:
 Run `20261002T232137Z-571ebdd4` produced 18,760 outputs from 28,568 requests, with no failed outputs and no outputs of unknown cost. It followed a completed 58-line run with the same code and settings. The run also executed four combined-scoring variants on a 100-line subset; they are outside the study's methodology, and their results are listed here for completeness.
 
 <!-- begin run -->
-| Method | Model | Answers collected | Input | Records | Correct | Requests | Cost per 1,000 records |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| decomposed_llm_matrix_small | GPT-5 mini | 2026-10-02 | label only | 100 | 34 | 100 | $0.778 |
-| decomposed_llm_parallel_small | GPT-5 mini | 2026-10-02 | label only | 100 | 11 | 2,902 | $6.226 |
-| direct_llm_small | GPT-5 mini | 2026-10-02 | label only | 2,900 | 2,733 | 2,900 | $0.233 |
-| jev_composite_concurrent | Jev | 2026-10-02 | label only | 100 | 93 | 2,902 | $1.195 |
-| jev_composite_fanout | Jev | 2026-10-02 | label only | 100 | 93 | 100 | $0.143 |
-| jev_direct | Jev | 2026-10-02 | label only | 2,900 | 2,732 | 2,900 | $0.054 |
-| rules_baseline | Rules | 2026-10-02 | label only | 2,900 | 2,024 | 0 | $0.000 |
-| decomposed_llm_matrix_small | GPT-5 mini | 2026-10-02 | with context | 100 | 64 | 100 | $0.819 |
-| decomposed_llm_parallel_small | GPT-5 mini | 2026-10-02 | with context | 100 | 9 | 2,902 | $6.750 |
-| direct_llm_small | GPT-5 mini | 2026-10-02 | with context | 2,900 | 2,762 | 2,900 | $0.251 |
-| jev_composite_concurrent | Jev | 2026-10-02 | with context | 100 | 95 | 2,902 | $1.316 |
-| jev_composite_fanout | Jev | 2026-10-02 | with context | 100 | 94 | 100 | $0.147 |
-| jev_direct | Jev | 2026-10-02 | with context | 2,900 | 2,777 | 2,900 | $0.058 |
-| rules_baseline | Rules | 2026-10-02 | with context | 2,900 | 2,024 | 0 | $0.000 |
+| Method | Model | Answers collected | Input | Records | Correct | Requests | Answers with an unpriced failed attempt | Cost per 1,000 records |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| decomposed_llm_matrix_small | GPT-5 mini | 2026-10-02 | label only | 100 | 34 | 100 | 0 | $0.778 |
+| decomposed_llm_parallel_small | GPT-5 mini | 2026-10-02 | label only | 100 | 11 | 2,902 | 0 | $6.226 |
+| direct_llm_small | GPT-5 mini | 2026-10-02 | label only | 2,900 | 2,733 | 2,900 | 0 | $0.233 |
+| jev_composite_concurrent | Jev | 2026-10-02 | label only | 100 | 93 | 2,902 | 0 | $1.195 |
+| jev_composite_fanout | Jev | 2026-10-02 | label only | 100 | 93 | 100 | 0 | $0.143 |
+| jev_direct | Jev | 2026-10-02 | label only | 2,900 | 2,732 | 2,900 | 0 | $0.054 |
+| rules_baseline | Rules | 2026-10-02 | label only | 2,900 | 2,024 | 0 | 0 | $0.000 |
+| decomposed_llm_matrix_small | GPT-5 mini | 2026-10-02 | with context | 100 | 64 | 100 | 0 | $0.819 |
+| decomposed_llm_parallel_small | GPT-5 mini | 2026-10-02 | with context | 100 | 9 | 2,902 | 0 | $6.750 |
+| direct_llm_small | GPT-5 mini | 2026-10-02 | with context | 2,900 | 2,762 | 2,900 | 0 | $0.251 |
+| jev_composite_concurrent | Jev | 2026-10-02 | with context | 100 | 95 | 2,902 | 0 | $1.316 |
+| jev_composite_fanout | Jev | 2026-10-02 | with context | 100 | 94 | 100 | 0 | $0.147 |
+| jev_direct | Jev | 2026-10-02 | with context | 2,900 | 2,777 | 2,900 | 0 | $0.058 |
+| rules_baseline | Rules | 2026-10-02 | with context | 2,900 | 2,024 | 0 | 0 | $0.000 |
 <!-- end -->
 
 ## Reproduce
