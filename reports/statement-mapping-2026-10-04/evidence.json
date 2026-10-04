@@ -1,0 +1,3637 @@
+{
+  "dataset": {
+    "answer_key_consistency": {
+      "changed_category": 502,
+      "company_wordings_in_several_filings": 140367
+    },
+    "companies": 2386,
+    "fiscal_years": [
+      "2021",
+      "2022",
+      "2023",
+      "2024",
+      "2025"
+    ],
+    "reorder_records": 290,
+    "repeat_records": 290,
+    "scope": {
+      "all_lines": 1694559,
+      "in_scope": 210738,
+      "in_scope_before_repeats": 597580,
+      "sampled": 2900
+    },
+    "statements": {
+      "BS": 1655,
+      "IS": 1245
+    }
+  },
+  "model_names": {
+    "anthropic/claude-haiku-4.5": "Claude Haiku 4.5",
+    "google/gemini-3.8-flash": "Gemini 3.8 Flash",
+    "openai/gpt-6-luna": "GPT-6 Luna",
+    "typesafe-ai/jev": "Jev"
+  },
+  "prices": [
+    {
+      "currency": "USD",
+      "effective_date": "2026-10-04",
+      "input_per_million": 1.0,
+      "model": "anthropic/claude-haiku-4.5",
+      "output_per_million": 5.0,
+      "source_url": "https://ai-gateway.vercel.sh/v1/models"
+    },
+    {
+      "currency": "USD",
+      "effective_date": "2026-10-04",
+      "input_per_million": 0.75,
+      "model": "google/gemini-3.8-flash",
+      "output_per_million": 3.75,
+      "source_url": "https://ai-gateway.vercel.sh/v1/models"
+    },
+    {
+      "currency": "USD",
+      "effective_date": "2026-10-04",
+      "input_per_million": 0.1,
+      "model": "openai/gpt-6-luna",
+      "output_per_million": 0.5,
+      "source_url": "https://ai-gateway.vercel.sh/v1/models"
+    },
+    {
+      "currency": "USD",
+      "effective_date": "2026-10-04",
+      "input_per_million": 0.042,
+      "model": "typesafe-ai/jev",
+      "output_per_million": 0.0,
+      "source_url": "https://ai-gateway.vercel.sh/v1/models"
+    }
+  ],
+  "regimes": {
+    "label_only": {
+      "categories": {
+        "chat:google/gemini-3.8-flash": {
+          "accounts_payable": [
+            69,
+            66
+          ],
+          "accrued_liabilities": [
+            55,
+            55
+          ],
+          "cash": [
+            99,
+            99
+          ],
+          "cost_of_revenue": [
+            69,
+            67
+          ],
+          "depreciation_amortization": [
+            18,
+            18
+          ],
+          "goodwill_intangibles": [
+            105,
+            104
+          ],
+          "gross_profit": [
+            42,
+            41
+          ],
+          "income_tax": [
+            142,
+            141
+          ],
+          "interest_expense": [
+            60,
+            59
+          ],
+          "interest_income": [
+            28,
+            25
+          ],
+          "inventory": [
+            52,
+            52
+          ],
+          "long_term_debt": [
+            31,
+            31
+          ],
+          "net_income": [
+            185,
+            185
+          ],
+          "not_mapped": [
+            819,
+            806
+          ],
+          "operating_income": [
+            110,
+            107
+          ],
+          "other_current_assets": [
+            76,
+            75
+          ],
+          "other_current_liabilities": [
+            28,
+            21
+          ],
+          "other_noncurrent_assets": [
+            65,
+            62
+          ],
+          "other_noncurrent_liabilities": [
+            56,
+            55
+          ],
+          "other_nonoperating": [
+            82,
+            67
+          ],
+          "other_operating": [
+            14,
+            7
+          ],
+          "ppe": [
+            102,
+            102
+          ],
+          "receivables": [
+            115,
+            115
+          ],
+          "research_development": [
+            40,
+            39
+          ],
+          "revenue": [
+            93,
+            91
+          ],
+          "sga": [
+            41,
+            41
+          ],
+          "short_term_debt": [
+            39,
+            37
+          ],
+          "short_term_investments": [
+            18,
+            18
+          ],
+          "total_equity": [
+            183,
+            180
+          ],
+          "total_nonoperating": [
+            64,
+            59
+          ]
+        },
+        "chat:openai/gpt-6-luna": {
+          "accounts_payable": [
+            69,
+            67
+          ],
+          "accrued_liabilities": [
+            55,
+            52
+          ],
+          "cash": [
+            99,
+            99
+          ],
+          "cost_of_revenue": [
+            69,
+            66
+          ],
+          "depreciation_amortization": [
+            18,
+            18
+          ],
+          "goodwill_intangibles": [
+            105,
+            104
+          ],
+          "gross_profit": [
+            42,
+            41
+          ],
+          "income_tax": [
+            142,
+            141
+          ],
+          "interest_expense": [
+            60,
+            53
+          ],
+          "interest_income": [
+            28,
+            26
+          ],
+          "inventory": [
+            52,
+            52
+          ],
+          "long_term_debt": [
+            31,
+            29
+          ],
+          "net_income": [
+            185,
+            177
+          ],
+          "not_mapped": [
+            819,
+            804
+          ],
+          "operating_income": [
+            110,
+            107
+          ],
+          "other_current_assets": [
+            76,
+            75
+          ],
+          "other_current_liabilities": [
+            28,
+            24
+          ],
+          "other_noncurrent_assets": [
+            65,
+            61
+          ],
+          "other_noncurrent_liabilities": [
+            56,
+            47
+          ],
+          "other_nonoperating": [
+            82,
+            66
+          ],
+          "other_operating": [
+            14,
+            8
+          ],
+          "ppe": [
+            102,
+            101
+          ],
+          "receivables": [
+            115,
+            115
+          ],
+          "research_development": [
+            40,
+            38
+          ],
+          "revenue": [
+            93,
+            90
+          ],
+          "sga": [
+            41,
+            41
+          ],
+          "short_term_debt": [
+            39,
+            37
+          ],
+          "short_term_investments": [
+            18,
+            18
+          ],
+          "total_equity": [
+            183,
+            180
+          ],
+          "total_nonoperating": [
+            64,
+            52
+          ]
+        },
+        "decision:typesafe-ai/jev": {
+          "accounts_payable": [
+            69,
+            67
+          ],
+          "accrued_liabilities": [
+            55,
+            55
+          ],
+          "cash": [
+            99,
+            99
+          ],
+          "cost_of_revenue": [
+            69,
+            66
+          ],
+          "depreciation_amortization": [
+            18,
+            18
+          ],
+          "goodwill_intangibles": [
+            105,
+            104
+          ],
+          "gross_profit": [
+            42,
+            40
+          ],
+          "income_tax": [
+            142,
+            141
+          ],
+          "interest_expense": [
+            60,
+            59
+          ],
+          "interest_income": [
+            28,
+            25
+          ],
+          "inventory": [
+            52,
+            52
+          ],
+          "long_term_debt": [
+            31,
+            28
+          ],
+          "net_income": [
+            185,
+            181
+          ],
+          "not_mapped": [
+            819,
+            783
+          ],
+          "operating_income": [
+            110,
+            107
+          ],
+          "other_current_assets": [
+            76,
+            76
+          ],
+          "other_current_liabilities": [
+            28,
+            24
+          ],
+          "other_noncurrent_assets": [
+            65,
+            61
+          ],
+          "other_noncurrent_liabilities": [
+            56,
+            46
+          ],
+          "other_nonoperating": [
+            82,
+            36
+          ],
+          "other_operating": [
+            14,
+            8
+          ],
+          "ppe": [
+            102,
+            102
+          ],
+          "receivables": [
+            115,
+            115
+          ],
+          "research_development": [
+            40,
+            40
+          ],
+          "revenue": [
+            93,
+            88
+          ],
+          "sga": [
+            41,
+            41
+          ],
+          "short_term_debt": [
+            39,
+            36
+          ],
+          "short_term_investments": [
+            18,
+            18
+          ],
+          "total_equity": [
+            183,
+            177
+          ],
+          "total_nonoperating": [
+            64,
+            60
+          ]
+        },
+        "rules_baseline": {
+          "accounts_payable": [
+            69,
+            58
+          ],
+          "accrued_liabilities": [
+            55,
+            42
+          ],
+          "cash": [
+            99,
+            76
+          ],
+          "cost_of_revenue": [
+            69,
+            58
+          ],
+          "depreciation_amortization": [
+            18,
+            18
+          ],
+          "goodwill_intangibles": [
+            105,
+            94
+          ],
+          "gross_profit": [
+            42,
+            38
+          ],
+          "income_tax": [
+            142,
+            139
+          ],
+          "interest_expense": [
+            60,
+            59
+          ],
+          "interest_income": [
+            28,
+            22
+          ],
+          "inventory": [
+            52,
+            50
+          ],
+          "long_term_debt": [
+            31,
+            12
+          ],
+          "net_income": [
+            185,
+            176
+          ],
+          "not_mapped": [
+            819,
+            0
+          ],
+          "operating_income": [
+            110,
+            88
+          ],
+          "other_current_assets": [
+            76,
+            71
+          ],
+          "other_current_liabilities": [
+            28,
+            17
+          ],
+          "other_noncurrent_assets": [
+            65,
+            24
+          ],
+          "other_noncurrent_liabilities": [
+            56,
+            38
+          ],
+          "other_nonoperating": [
+            82,
+            1
+          ],
+          "other_operating": [
+            14,
+            6
+          ],
+          "ppe": [
+            102,
+            25
+          ],
+          "receivables": [
+            115,
+            101
+          ],
+          "research_development": [
+            40,
+            36
+          ],
+          "revenue": [
+            93,
+            73
+          ],
+          "sga": [
+            41,
+            32
+          ],
+          "short_term_debt": [
+            39,
+            25
+          ],
+          "short_term_investments": [
+            18,
+            12
+          ],
+          "total_equity": [
+            183,
+            102
+          ],
+          "total_nonoperating": [
+            64,
+            2
+          ]
+        }
+      },
+      "confidence": {
+        "chat:google/gemini-3.8-flash": {
+          "bands": [
+            {
+              "answers": 6,
+              "correct": 3,
+              "from": 0.4,
+              "mean_confidence": 0.425,
+              "to": 0.5
+            },
+            {
+              "answers": 6,
+              "correct": 4,
+              "from": 0.5,
+              "mean_confidence": 0.525,
+              "to": 0.6
+            },
+            {
+              "answers": 11,
+              "correct": 6,
+              "from": 0.6,
+              "mean_confidence": 0.640909090909091,
+              "to": 0.7
+            },
+            {
+              "answers": 27,
+              "correct": 19,
+              "from": 0.7,
+              "mean_confidence": 0.7474074074074074,
+              "to": 0.8
+            },
+            {
+              "answers": 166,
+              "correct": 136,
+              "from": 0.8,
+              "mean_confidence": 0.8454819277108432,
+              "to": 0.9
+            },
+            {
+              "answers": 2684,
+              "correct": 2657,
+              "from": 0.9,
+              "mean_confidence": 0.9900335320417287,
+              "to": 1.0
+            }
+          ],
+          "calibration_gap": 0.002803448275861975,
+          "cutoffs": [
+            {
+              "answers": 2430,
+              "cutoff": 0.99,
+              "incorrect": 11
+            },
+            {
+              "answers": 2629,
+              "cutoff": 0.95,
+              "incorrect": 20
+            },
+            {
+              "answers": 2684,
+              "cutoff": 0.9,
+              "incorrect": 27
+            },
+            {
+              "answers": 2850,
+              "cutoff": 0.8,
+              "incorrect": 57
+            },
+            {
+              "answers": 2900,
+              "cutoff": 0.0,
+              "incorrect": 75
+            }
+          ]
+        },
+        "chat:openai/gpt-6-luna": {
+          "bands": [
+            {
+              "answers": 6,
+              "correct": 3,
+              "from": 0.4,
+              "mean_confidence": 0.44333333333333336,
+              "to": 0.5
+            },
+            {
+              "answers": 49,
+              "correct": 36,
+              "from": 0.5,
+              "mean_confidence": 0.546530612244898,
+              "to": 0.6
+            },
+            {
+              "answers": 26,
+              "correct": 20,
+              "from": 0.6,
+              "mean_confidence": 0.6623076923076924,
+              "to": 0.7
+            },
+            {
+              "answers": 76,
+              "correct": 51,
+              "from": 0.7,
+              "mean_confidence": 0.7557894736842105,
+              "to": 0.8
+            },
+            {
+              "answers": 102,
+              "correct": 76,
+              "from": 0.8,
+              "mean_confidence": 0.8472549019607842,
+              "to": 0.9
+            },
+            {
+              "answers": 2641,
+              "correct": 2603,
+              "from": 0.9,
+              "mean_confidence": 0.9896857251041273,
+              "to": 1.0
+            }
+          ],
+          "calibration_gap": 0.013779310344827702,
+          "cutoffs": [
+            {
+              "answers": 2343,
+              "cutoff": 0.99,
+              "incorrect": 13
+            },
+            {
+              "answers": 2598,
+              "cutoff": 0.95,
+              "incorrect": 31
+            },
+            {
+              "answers": 2641,
+              "cutoff": 0.9,
+              "incorrect": 38
+            },
+            {
+              "answers": 2743,
+              "cutoff": 0.8,
+              "incorrect": 64
+            },
+            {
+              "answers": 2900,
+              "cutoff": 0.0,
+              "incorrect": 111
+            }
+          ]
+        },
+        "decision:typesafe-ai/jev": {
+          "bands": [
+            {
+              "answers": 6,
+              "correct": 2,
+              "from": 0.2,
+              "mean_confidence": 0.25833333333333336,
+              "to": 0.3
+            },
+            {
+              "answers": 19,
+              "correct": 11,
+              "from": 0.3,
+              "mean_confidence": 0.3457894736842105,
+              "to": 0.4
+            },
+            {
+              "answers": 67,
+              "correct": 41,
+              "from": 0.4,
+              "mean_confidence": 0.45223880597014926,
+              "to": 0.5
+            },
+            {
+              "answers": 107,
+              "correct": 70,
+              "from": 0.5,
+              "mean_confidence": 0.5441121495327104,
+              "to": 0.6
+            },
+            {
+              "answers": 97,
+              "correct": 79,
+              "from": 0.6,
+              "mean_confidence": 0.6435051546391752,
+              "to": 0.7
+            },
+            {
+              "answers": 60,
+              "correct": 51,
+              "from": 0.7,
+              "mean_confidence": 0.7401666666666668,
+              "to": 0.8
+            },
+            {
+              "answers": 169,
+              "correct": 154,
+              "from": 0.8,
+              "mean_confidence": 0.858343195266272,
+              "to": 0.9
+            },
+            {
+              "answers": 2375,
+              "correct": 2345,
+              "from": 0.9,
+              "mean_confidence": 0.9842105263157894,
+              "to": 1.0
+            }
+          ],
+          "calibration_gap": 0.023093103448275892,
+          "cutoffs": [
+            {
+              "answers": 1622,
+              "cutoff": 0.99,
+              "incorrect": 4
+            },
+            {
+              "answers": 2150,
+              "cutoff": 0.95,
+              "incorrect": 10
+            },
+            {
+              "answers": 2375,
+              "cutoff": 0.9,
+              "incorrect": 30
+            },
+            {
+              "answers": 2544,
+              "cutoff": 0.8,
+              "incorrect": 45
+            },
+            {
+              "answers": 2900,
+              "cutoff": 0.0,
+              "incorrect": 147
+            }
+          ]
+        }
+      },
+      "methods": {
+        "chat:google/gemini-3.8-flash": {
+          "answered": 2900,
+          "answered_correct": 2825,
+          "answers_with_unpriced_attempts": 1,
+          "correct": 2825,
+          "cost_per_1000_usd": 0.6580756034482759,
+          "failed": 0,
+          "input_tokens_per_call": 773.8765091410831,
+          "median_seconds": 1.8770301874901634,
+          "model": "google/gemini-3.8-flash",
+          "output_tokens_per_call": 20.71576405657123,
+          "p95_seconds": 3.2584292351239093,
+          "records": 2900,
+          "reorders": {
+            "changed": 0,
+            "failed": 0,
+            "records": 290
+          },
+          "repeats": {
+            "changed": 0,
+            "failed": 0,
+            "records": 290
+          },
+          "requests": 2901
+        },
+        "chat:openai/gpt-6-luna": {
+          "answered": 2900,
+          "answered_correct": 2789,
+          "answers_with_unpriced_attempts": 4,
+          "correct": 2789,
+          "cost_per_1000_usd": 0.08243431034482758,
+          "failed": 0,
+          "input_tokens_per_call": 721.5027624309392,
+          "median_seconds": 1.448882312484784,
+          "model": "openai/gpt-6-luna",
+          "output_tokens_per_call": 20.565262430939228,
+          "p95_seconds": 2.229413114592898,
+          "records": 2900,
+          "reorders": {
+            "changed": 9,
+            "failed": 0,
+            "records": 290
+          },
+          "repeats": {
+            "changed": 0,
+            "failed": 0,
+            "records": 290
+          },
+          "requests": 2904
+        },
+        "decision:typesafe-ai/jev": {
+          "answered": 2900,
+          "answered_correct": 2753,
+          "answers_with_unpriced_attempts": 2,
+          "correct": 2753,
+          "cost_per_1000_usd": 0.05878199793103448,
+          "failed": 0,
+          "input_tokens_per_call": 1399.5676328502416,
+          "median_seconds": 0.5751433330005966,
+          "model": "typesafe-ai/jev",
+          "output_tokens_per_call": 167.1942719116632,
+          "p95_seconds": 0.8497039455163755,
+          "records": 2900,
+          "reorders": {
+            "changed": 5,
+            "failed": 0,
+            "records": 290
+          },
+          "repeats": {
+            "changed": 2,
+            "failed": 0,
+            "records": 290
+          },
+          "requests": 2902
+        },
+        "rules_baseline": {
+          "answered": 1606,
+          "answered_correct": 1495,
+          "answers_with_unpriced_attempts": 0,
+          "correct": 1495,
+          "cost_per_1000_usd": 0.0,
+          "failed": 0,
+          "input_tokens_per_call": null,
+          "median_seconds": 1.9875005818903446e-05,
+          "model": "rules-v1",
+          "output_tokens_per_call": null,
+          "p95_seconds": 2.658302546478808e-05,
+          "records": 2900,
+          "reorders": {
+            "changed": 0,
+            "failed": 0,
+            "records": 290
+          },
+          "repeats": {
+            "changed": 0,
+            "failed": 0,
+            "records": 290
+          },
+          "requests": 0
+        }
+      },
+      "models": [
+        "decision:typesafe-ai/jev",
+        "chat:google/gemini-3.8-flash",
+        "chat:openai/gpt-6-luna"
+      ],
+      "pairs": {
+        "chat:google/gemini-3.8-flash": {
+          "both_correct": 2742,
+          "both_incorrect": 64,
+          "left_only_correct": 11,
+          "records": 2900,
+          "right_only_correct": 83
+        },
+        "chat:openai/gpt-6-luna": {
+          "both_correct": 2720,
+          "both_incorrect": 78,
+          "left_only_correct": 33,
+          "records": 2900,
+          "right_only_correct": 69
+        }
+      },
+      "primary": "decision:typesafe-ai/jev",
+      "routing": {
+        "chat:google/gemini-3.8-flash": [
+          {
+            "cutoff": 0.95,
+            "jev_correct": 613,
+            "other_correct": 685,
+            "records": 750
+          },
+          {
+            "cutoff": 0.9,
+            "jev_correct": 408,
+            "other_correct": 467,
+            "records": 525
+          },
+          {
+            "cutoff": 0.8,
+            "jev_correct": 254,
+            "other_correct": 306,
+            "records": 356
+          }
+        ],
+        "chat:openai/gpt-6-luna": [
+          {
+            "cutoff": 0.95,
+            "jev_correct": 613,
+            "other_correct": 649,
+            "records": 750
+          },
+          {
+            "cutoff": 0.9,
+            "jev_correct": 408,
+            "other_correct": 432,
+            "records": 525
+          },
+          {
+            "cutoff": 0.8,
+            "jev_correct": 254,
+            "other_correct": 270,
+            "records": 356
+          }
+        ]
+      },
+      "wording": {
+        "groups": {
+          "chat:google/gemini-3.8-flash": {
+            "new": [
+              262,
+              249
+            ],
+            "unusual": [
+              55,
+              8
+            ],
+            "usual": [
+              2583,
+              2568
+            ]
+          },
+          "chat:openai/gpt-6-luna": {
+            "new": [
+              262,
+              247
+            ],
+            "unusual": [
+              55,
+              12
+            ],
+            "usual": [
+              2583,
+              2530
+            ]
+          },
+          "decision:typesafe-ai/jev": {
+            "new": [
+              262,
+              243
+            ],
+            "unusual": [
+              55,
+              10
+            ],
+            "usual": [
+              2583,
+              2500
+            ]
+          }
+        },
+        "other_company_agreement": 0.9684340210259643,
+        "records_with_other_companies": 2638
+      }
+    },
+    "with_context": {
+      "categories": {
+        "chat:anthropic/claude-haiku-4.5": {
+          "accounts_payable": [
+            69,
+            68
+          ],
+          "accrued_liabilities": [
+            55,
+            54
+          ],
+          "cash": [
+            99,
+            99
+          ],
+          "cost_of_revenue": [
+            69,
+            66
+          ],
+          "depreciation_amortization": [
+            18,
+            18
+          ],
+          "goodwill_intangibles": [
+            105,
+            104
+          ],
+          "gross_profit": [
+            42,
+            41
+          ],
+          "income_tax": [
+            142,
+            141
+          ],
+          "interest_expense": [
+            60,
+            59
+          ],
+          "interest_income": [
+            28,
+            24
+          ],
+          "inventory": [
+            52,
+            52
+          ],
+          "long_term_debt": [
+            31,
+            29
+          ],
+          "net_income": [
+            185,
+            182
+          ],
+          "not_mapped": [
+            819,
+            790
+          ],
+          "operating_income": [
+            110,
+            107
+          ],
+          "other_current_assets": [
+            76,
+            75
+          ],
+          "other_current_liabilities": [
+            28,
+            24
+          ],
+          "other_noncurrent_assets": [
+            65,
+            65
+          ],
+          "other_noncurrent_liabilities": [
+            56,
+            55
+          ],
+          "other_nonoperating": [
+            82,
+            75
+          ],
+          "other_operating": [
+            14,
+            10
+          ],
+          "ppe": [
+            102,
+            101
+          ],
+          "receivables": [
+            115,
+            115
+          ],
+          "research_development": [
+            40,
+            39
+          ],
+          "revenue": [
+            93,
+            91
+          ],
+          "sga": [
+            41,
+            41
+          ],
+          "short_term_debt": [
+            39,
+            38
+          ],
+          "short_term_investments": [
+            18,
+            18
+          ],
+          "total_equity": [
+            183,
+            179
+          ],
+          "total_nonoperating": [
+            64,
+            36
+          ]
+        },
+        "chat:google/gemini-3.8-flash": {
+          "accounts_payable": [
+            69,
+            68
+          ],
+          "accrued_liabilities": [
+            55,
+            55
+          ],
+          "cash": [
+            99,
+            99
+          ],
+          "cost_of_revenue": [
+            69,
+            67
+          ],
+          "depreciation_amortization": [
+            18,
+            18
+          ],
+          "goodwill_intangibles": [
+            105,
+            104
+          ],
+          "gross_profit": [
+            42,
+            41
+          ],
+          "income_tax": [
+            142,
+            141
+          ],
+          "interest_expense": [
+            60,
+            59
+          ],
+          "interest_income": [
+            28,
+            27
+          ],
+          "inventory": [
+            52,
+            52
+          ],
+          "long_term_debt": [
+            31,
+            31
+          ],
+          "net_income": [
+            185,
+            185
+          ],
+          "not_mapped": [
+            819,
+            810
+          ],
+          "operating_income": [
+            110,
+            109
+          ],
+          "other_current_assets": [
+            76,
+            75
+          ],
+          "other_current_liabilities": [
+            28,
+            24
+          ],
+          "other_noncurrent_assets": [
+            65,
+            65
+          ],
+          "other_noncurrent_liabilities": [
+            56,
+            56
+          ],
+          "other_nonoperating": [
+            82,
+            60
+          ],
+          "other_operating": [
+            14,
+            9
+          ],
+          "ppe": [
+            102,
+            102
+          ],
+          "receivables": [
+            115,
+            115
+          ],
+          "research_development": [
+            40,
+            39
+          ],
+          "revenue": [
+            93,
+            92
+          ],
+          "sga": [
+            41,
+            41
+          ],
+          "short_term_debt": [
+            39,
+            38
+          ],
+          "short_term_investments": [
+            18,
+            18
+          ],
+          "total_equity": [
+            183,
+            158
+          ],
+          "total_nonoperating": [
+            64,
+            63
+          ]
+        },
+        "chat:openai/gpt-6-luna": {
+          "accounts_payable": [
+            69,
+            67
+          ],
+          "accrued_liabilities": [
+            55,
+            54
+          ],
+          "cash": [
+            99,
+            99
+          ],
+          "cost_of_revenue": [
+            69,
+            66
+          ],
+          "depreciation_amortization": [
+            18,
+            18
+          ],
+          "goodwill_intangibles": [
+            105,
+            104
+          ],
+          "gross_profit": [
+            42,
+            41
+          ],
+          "income_tax": [
+            142,
+            141
+          ],
+          "interest_expense": [
+            60,
+            57
+          ],
+          "interest_income": [
+            28,
+            26
+          ],
+          "inventory": [
+            52,
+            52
+          ],
+          "long_term_debt": [
+            31,
+            31
+          ],
+          "net_income": [
+            185,
+            178
+          ],
+          "not_mapped": [
+            819,
+            802
+          ],
+          "operating_income": [
+            110,
+            107
+          ],
+          "other_current_assets": [
+            76,
+            75
+          ],
+          "other_current_liabilities": [
+            28,
+            24
+          ],
+          "other_noncurrent_assets": [
+            65,
+            65
+          ],
+          "other_noncurrent_liabilities": [
+            56,
+            56
+          ],
+          "other_nonoperating": [
+            82,
+            69
+          ],
+          "other_operating": [
+            14,
+            10
+          ],
+          "ppe": [
+            102,
+            102
+          ],
+          "receivables": [
+            115,
+            115
+          ],
+          "research_development": [
+            40,
+            39
+          ],
+          "revenue": [
+            93,
+            90
+          ],
+          "sga": [
+            41,
+            41
+          ],
+          "short_term_debt": [
+            39,
+            37
+          ],
+          "short_term_investments": [
+            18,
+            18
+          ],
+          "total_equity": [
+            183,
+            183
+          ],
+          "total_nonoperating": [
+            64,
+            52
+          ]
+        },
+        "decision:typesafe-ai/jev": {
+          "accounts_payable": [
+            69,
+            66
+          ],
+          "accrued_liabilities": [
+            55,
+            55
+          ],
+          "cash": [
+            99,
+            98
+          ],
+          "cost_of_revenue": [
+            69,
+            66
+          ],
+          "depreciation_amortization": [
+            18,
+            18
+          ],
+          "goodwill_intangibles": [
+            105,
+            104
+          ],
+          "gross_profit": [
+            42,
+            41
+          ],
+          "income_tax": [
+            142,
+            141
+          ],
+          "interest_expense": [
+            60,
+            59
+          ],
+          "interest_income": [
+            28,
+            26
+          ],
+          "inventory": [
+            52,
+            52
+          ],
+          "long_term_debt": [
+            31,
+            29
+          ],
+          "net_income": [
+            185,
+            161
+          ],
+          "not_mapped": [
+            819,
+            791
+          ],
+          "operating_income": [
+            110,
+            109
+          ],
+          "other_current_assets": [
+            76,
+            75
+          ],
+          "other_current_liabilities": [
+            28,
+            23
+          ],
+          "other_noncurrent_assets": [
+            65,
+            64
+          ],
+          "other_noncurrent_liabilities": [
+            56,
+            54
+          ],
+          "other_nonoperating": [
+            82,
+            47
+          ],
+          "other_operating": [
+            14,
+            9
+          ],
+          "ppe": [
+            102,
+            102
+          ],
+          "receivables": [
+            115,
+            115
+          ],
+          "research_development": [
+            40,
+            39
+          ],
+          "revenue": [
+            93,
+            86
+          ],
+          "sga": [
+            41,
+            41
+          ],
+          "short_term_debt": [
+            39,
+            37
+          ],
+          "short_term_investments": [
+            18,
+            18
+          ],
+          "total_equity": [
+            183,
+            165
+          ],
+          "total_nonoperating": [
+            64,
+            59
+          ]
+        },
+        "rules_baseline": {
+          "accounts_payable": [
+            69,
+            58
+          ],
+          "accrued_liabilities": [
+            55,
+            42
+          ],
+          "cash": [
+            99,
+            76
+          ],
+          "cost_of_revenue": [
+            69,
+            58
+          ],
+          "depreciation_amortization": [
+            18,
+            18
+          ],
+          "goodwill_intangibles": [
+            105,
+            94
+          ],
+          "gross_profit": [
+            42,
+            38
+          ],
+          "income_tax": [
+            142,
+            139
+          ],
+          "interest_expense": [
+            60,
+            59
+          ],
+          "interest_income": [
+            28,
+            22
+          ],
+          "inventory": [
+            52,
+            50
+          ],
+          "long_term_debt": [
+            31,
+            12
+          ],
+          "net_income": [
+            185,
+            176
+          ],
+          "not_mapped": [
+            819,
+            0
+          ],
+          "operating_income": [
+            110,
+            88
+          ],
+          "other_current_assets": [
+            76,
+            71
+          ],
+          "other_current_liabilities": [
+            28,
+            17
+          ],
+          "other_noncurrent_assets": [
+            65,
+            24
+          ],
+          "other_noncurrent_liabilities": [
+            56,
+            38
+          ],
+          "other_nonoperating": [
+            82,
+            1
+          ],
+          "other_operating": [
+            14,
+            6
+          ],
+          "ppe": [
+            102,
+            25
+          ],
+          "receivables": [
+            115,
+            101
+          ],
+          "research_development": [
+            40,
+            36
+          ],
+          "revenue": [
+            93,
+            73
+          ],
+          "sga": [
+            41,
+            32
+          ],
+          "short_term_debt": [
+            39,
+            25
+          ],
+          "short_term_investments": [
+            18,
+            12
+          ],
+          "total_equity": [
+            183,
+            102
+          ],
+          "total_nonoperating": [
+            64,
+            2
+          ]
+        }
+      },
+      "confidence": {
+        "chat:anthropic/claude-haiku-4.5": {
+          "bands": [
+            {
+              "answers": 2,
+              "correct": 0,
+              "from": 0.1,
+              "mean_confidence": 0.15,
+              "to": 0.2
+            },
+            {
+              "answers": 3,
+              "correct": 0,
+              "from": 0.3,
+              "mean_confidence": 0.3499999999999999,
+              "to": 0.4
+            },
+            {
+              "answers": 3,
+              "correct": 0,
+              "from": 0.4,
+              "mean_confidence": 0.45,
+              "to": 0.5
+            },
+            {
+              "answers": 3,
+              "correct": 1,
+              "from": 0.6,
+              "mean_confidence": 0.65,
+              "to": 0.7
+            },
+            {
+              "answers": 84,
+              "correct": 58,
+              "from": 0.7,
+              "mean_confidence": 0.74,
+              "to": 0.8
+            },
+            {
+              "answers": 194,
+              "correct": 160,
+              "from": 0.8,
+              "mean_confidence": 0.8495360824742266,
+              "to": 0.9
+            },
+            {
+              "answers": 2611,
+              "correct": 2577,
+              "from": 0.9,
+              "mean_confidence": 0.9538376101110685,
+              "to": 1.0
+            }
+          ],
+          "calibration_gap": 0.03418965517241386,
+          "cutoffs": [
+            {
+              "answers": 177,
+              "cutoff": 0.99,
+              "incorrect": 0
+            },
+            {
+              "answers": 2254,
+              "cutoff": 0.95,
+              "incorrect": 19
+            },
+            {
+              "answers": 2611,
+              "cutoff": 0.9,
+              "incorrect": 34
+            },
+            {
+              "answers": 2805,
+              "cutoff": 0.8,
+              "incorrect": 68
+            },
+            {
+              "answers": 2900,
+              "cutoff": 0.0,
+              "incorrect": 104
+            }
+          ]
+        },
+        "chat:google/gemini-3.8-flash": {
+          "bands": [
+            {
+              "answers": 2,
+              "correct": 2,
+              "from": 0.3,
+              "mean_confidence": 0.32499999999999996,
+              "to": 0.4
+            },
+            {
+              "answers": 2,
+              "correct": 1,
+              "from": 0.4,
+              "mean_confidence": 0.4,
+              "to": 0.5
+            },
+            {
+              "answers": 1,
+              "correct": 0,
+              "from": 0.5,
+              "mean_confidence": 0.55,
+              "to": 0.6
+            },
+            {
+              "answers": 1,
+              "correct": 0,
+              "from": 0.6,
+              "mean_confidence": 0.65,
+              "to": 0.7
+            },
+            {
+              "answers": 2,
+              "correct": 2,
+              "from": 0.7,
+              "mean_confidence": 0.75,
+              "to": 0.8
+            },
+            {
+              "answers": 66,
+              "correct": 39,
+              "from": 0.8,
+              "mean_confidence": 0.848181818181818,
+              "to": 0.9
+            },
+            {
+              "answers": 2826,
+              "correct": 2777,
+              "from": 0.9,
+              "mean_confidence": 0.9871337579617836,
+              "to": 1.0
+            }
+          ],
+          "calibration_gap": 0.011334482758620873,
+          "cutoffs": [
+            {
+              "answers": 2396,
+              "cutoff": 0.99,
+              "incorrect": 11
+            },
+            {
+              "answers": 2792,
+              "cutoff": 0.95,
+              "incorrect": 43
+            },
+            {
+              "answers": 2826,
+              "cutoff": 0.9,
+              "incorrect": 49
+            },
+            {
+              "answers": 2892,
+              "cutoff": 0.8,
+              "incorrect": 76
+            },
+            {
+              "answers": 2900,
+              "cutoff": 0.0,
+              "incorrect": 79
+            }
+          ]
+        },
+        "chat:openai/gpt-6-luna": {
+          "bands": [
+            {
+              "answers": 2,
+              "correct": 1,
+              "from": 0.4,
+              "mean_confidence": 0.44999999999999996,
+              "to": 0.5
+            },
+            {
+              "answers": 12,
+              "correct": 11,
+              "from": 0.5,
+              "mean_confidence": 0.5716666666666667,
+              "to": 0.6
+            },
+            {
+              "answers": 25,
+              "correct": 22,
+              "from": 0.6,
+              "mean_confidence": 0.6624,
+              "to": 0.7
+            },
+            {
+              "answers": 59,
+              "correct": 46,
+              "from": 0.7,
+              "mean_confidence": 0.7616949152542373,
+              "to": 0.8
+            },
+            {
+              "answers": 122,
+              "correct": 93,
+              "from": 0.8,
+              "mean_confidence": 0.8494262295081968,
+              "to": 0.9
+            },
+            {
+              "answers": 2680,
+              "correct": 2646,
+              "from": 0.9,
+              "mean_confidence": 0.9881194029850746,
+              "to": 1.0
+            }
+          ],
+          "calibration_gap": 0.008113793103448314,
+          "cutoffs": [
+            {
+              "answers": 2297,
+              "cutoff": 0.99,
+              "incorrect": 11
+            },
+            {
+              "answers": 2603,
+              "cutoff": 0.95,
+              "incorrect": 24
+            },
+            {
+              "answers": 2680,
+              "cutoff": 0.9,
+              "incorrect": 34
+            },
+            {
+              "answers": 2802,
+              "cutoff": 0.8,
+              "incorrect": 63
+            },
+            {
+              "answers": 2900,
+              "cutoff": 0.0,
+              "incorrect": 81
+            }
+          ]
+        },
+        "decision:typesafe-ai/jev": {
+          "bands": [
+            {
+              "answers": 3,
+              "correct": 0,
+              "from": 0.2,
+              "mean_confidence": 0.24666666666666667,
+              "to": 0.3
+            },
+            {
+              "answers": 7,
+              "correct": 6,
+              "from": 0.3,
+              "mean_confidence": 0.35,
+              "to": 0.4
+            },
+            {
+              "answers": 56,
+              "correct": 30,
+              "from": 0.4,
+              "mean_confidence": 0.46875,
+              "to": 0.5
+            },
+            {
+              "answers": 94,
+              "correct": 58,
+              "from": 0.5,
+              "mean_confidence": 0.5448936170212766,
+              "to": 0.6
+            },
+            {
+              "answers": 107,
+              "correct": 76,
+              "from": 0.6,
+              "mean_confidence": 0.6442056074766356,
+              "to": 0.7
+            },
+            {
+              "answers": 122,
+              "correct": 103,
+              "from": 0.7,
+              "mean_confidence": 0.7527868852459016,
+              "to": 0.8
+            },
+            {
+              "answers": 280,
+              "correct": 260,
+              "from": 0.8,
+              "mean_confidence": 0.8543571428571427,
+              "to": 0.9
+            },
+            {
+              "answers": 2231,
+              "correct": 2217,
+              "from": 0.9,
+              "mean_confidence": 0.975912147019274,
+              "to": 1.0
+            }
+          ],
+          "calibration_gap": 0.03226551724137921,
+          "cutoffs": [
+            {
+              "answers": 1044,
+              "cutoff": 0.99,
+              "incorrect": 3
+            },
+            {
+              "answers": 1976,
+              "cutoff": 0.95,
+              "incorrect": 10
+            },
+            {
+              "answers": 2231,
+              "cutoff": 0.9,
+              "incorrect": 14
+            },
+            {
+              "answers": 2511,
+              "cutoff": 0.8,
+              "incorrect": 34
+            },
+            {
+              "answers": 2900,
+              "cutoff": 0.0,
+              "incorrect": 150
+            }
+          ]
+        }
+      },
+      "methods": {
+        "chat:anthropic/claude-haiku-4.5": {
+          "answered": 2900,
+          "answered_correct": 2796,
+          "answers_with_unpriced_attempts": 0,
+          "correct": 2796,
+          "cost_per_1000_usd": 1.1842848275862068,
+          "failed": 0,
+          "input_tokens_per_call": 1086.9244827586208,
+          "median_seconds": 1.0909835000056773,
+          "model": "anthropic/claude-haiku-4.5",
+          "output_tokens_per_call": 19.47206896551724,
+          "p95_seconds": 1.552757225331151,
+          "records": 2900,
+          "reorders": {
+            "changed": 7,
+            "failed": 0,
+            "records": 290
+          },
+          "repeats": {
+            "changed": 6,
+            "failed": 0,
+            "records": 290
+          },
+          "requests": 2900
+        },
+        "chat:google/gemini-3.8-flash": {
+          "answered": 2900,
+          "answered_correct": 2821,
+          "answers_with_unpriced_attempts": 3,
+          "correct": 2821,
+          "cost_per_1000_usd": 0.7350659482758621,
+          "failed": 0,
+          "input_tokens_per_call": 855.328615809458,
+          "median_seconds": 1.9041939585004002,
+          "model": "google/gemini-3.8-flash",
+          "output_tokens_per_call": 24.94166379012772,
+          "p95_seconds": 3.724509728854172,
+          "records": 2900,
+          "reorders": {
+            "changed": 3,
+            "failed": 0,
+            "records": 290
+          },
+          "repeats": {
+            "changed": 0,
+            "failed": 0,
+            "records": 290
+          },
+          "requests": 2903
+        },
+        "chat:openai/gpt-6-luna": {
+          "answered": 2900,
+          "answered_correct": 2819,
+          "answers_with_unpriced_attempts": 0,
+          "correct": 2819,
+          "cost_per_1000_usd": 0.08969651724137931,
+          "failed": 0,
+          "input_tokens_per_call": 793.6393103448275,
+          "median_seconds": 1.4540707914857194,
+          "model": "openai/gpt-6-luna",
+          "output_tokens_per_call": 20.665172413793105,
+          "p95_seconds": 2.2293644621531703,
+          "records": 2900,
+          "reorders": {
+            "changed": 6,
+            "failed": 0,
+            "records": 290
+          },
+          "repeats": {
+            "changed": 1,
+            "failed": 0,
+            "records": 290
+          },
+          "requests": 2900
+        },
+        "decision:typesafe-ai/jev": {
+          "answered": 2900,
+          "answered_correct": 2750,
+          "answers_with_unpriced_attempts": 1,
+          "correct": 2750,
+          "cost_per_1000_usd": 0.06289385586206897,
+          "failed": 0,
+          "input_tokens_per_call": 1497.4956881683338,
+          "median_seconds": 0.5571204169827979,
+          "model": "typesafe-ai/jev",
+          "output_tokens_per_call": 167.22249051397034,
+          "p95_seconds": 0.8619126556499394,
+          "records": 2900,
+          "reorders": {
+            "changed": 3,
+            "failed": 0,
+            "records": 290
+          },
+          "repeats": {
+            "changed": 4,
+            "failed": 0,
+            "records": 290
+          },
+          "requests": 2901
+        },
+        "rules_baseline": {
+          "answered": 1608,
+          "answered_correct": 1495,
+          "answers_with_unpriced_attempts": 0,
+          "correct": 1495,
+          "cost_per_1000_usd": 0.0,
+          "failed": 0,
+          "input_tokens_per_call": null,
+          "median_seconds": 2.2459018509835005e-05,
+          "model": "rules-v1",
+          "output_tokens_per_call": null,
+          "p95_seconds": 2.9332994017750025e-05,
+          "records": 2900,
+          "reorders": {
+            "changed": 0,
+            "failed": 0,
+            "records": 290
+          },
+          "repeats": {
+            "changed": 0,
+            "failed": 0,
+            "records": 290
+          },
+          "requests": 0
+        }
+      },
+      "models": [
+        "decision:typesafe-ai/jev",
+        "chat:anthropic/claude-haiku-4.5",
+        "chat:google/gemini-3.8-flash",
+        "chat:openai/gpt-6-luna"
+      ],
+      "pairs": {
+        "chat:anthropic/claude-haiku-4.5": {
+          "both_correct": 2702,
+          "both_incorrect": 56,
+          "left_only_correct": 48,
+          "records": 2900,
+          "right_only_correct": 94
+        },
+        "chat:google/gemini-3.8-flash": {
+          "both_correct": 2734,
+          "both_incorrect": 63,
+          "left_only_correct": 16,
+          "records": 2900,
+          "right_only_correct": 87
+        },
+        "chat:openai/gpt-6-luna": {
+          "both_correct": 2725,
+          "both_incorrect": 56,
+          "left_only_correct": 25,
+          "records": 2900,
+          "right_only_correct": 94
+        }
+      },
+      "primary": "decision:typesafe-ai/jev",
+      "routing": {
+        "chat:anthropic/claude-haiku-4.5": [
+          {
+            "cutoff": 0.95,
+            "jev_correct": 784,
+            "other_correct": 835,
+            "records": 924
+          },
+          {
+            "cutoff": 0.9,
+            "jev_correct": 533,
+            "other_correct": 583,
+            "records": 669
+          },
+          {
+            "cutoff": 0.8,
+            "jev_correct": 273,
+            "other_correct": 319,
+            "records": 389
+          }
+        ],
+        "chat:google/gemini-3.8-flash": [
+          {
+            "cutoff": 0.95,
+            "jev_correct": 784,
+            "other_correct": 854,
+            "records": 924
+          },
+          {
+            "cutoff": 0.9,
+            "jev_correct": 533,
+            "other_correct": 601,
+            "records": 669
+          },
+          {
+            "cutoff": 0.8,
+            "jev_correct": 273,
+            "other_correct": 334,
+            "records": 389
+          }
+        ],
+        "chat:openai/gpt-6-luna": [
+          {
+            "cutoff": 0.95,
+            "jev_correct": 784,
+            "other_correct": 854,
+            "records": 924
+          },
+          {
+            "cutoff": 0.9,
+            "jev_correct": 533,
+            "other_correct": 601,
+            "records": 669
+          },
+          {
+            "cutoff": 0.8,
+            "jev_correct": 273,
+            "other_correct": 333,
+            "records": 389
+          }
+        ]
+      },
+      "wording": {
+        "groups": {
+          "chat:anthropic/claude-haiku-4.5": {
+            "new": [
+              262,
+              248
+            ],
+            "unusual": [
+              55,
+              22
+            ],
+            "usual": [
+              2583,
+              2526
+            ]
+          },
+          "chat:google/gemini-3.8-flash": {
+            "new": [
+              262,
+              237
+            ],
+            "unusual": [
+              55,
+              24
+            ],
+            "usual": [
+              2583,
+              2560
+            ]
+          },
+          "chat:openai/gpt-6-luna": {
+            "new": [
+              262,
+              248
+            ],
+            "unusual": [
+              55,
+              19
+            ],
+            "usual": [
+              2583,
+              2552
+            ]
+          },
+          "decision:typesafe-ai/jev": {
+            "new": [
+              262,
+              229
+            ],
+            "unusual": [
+              55,
+              11
+            ],
+            "usual": [
+              2583,
+              2510
+            ]
+          }
+        },
+        "other_company_agreement": 0.9684340210259643,
+        "records_with_other_companies": 2638
+      }
+    }
+  },
+  "runs": [
+    {
+      "complete": true,
+      "dataset": "sec_lines-2900-8bad7b33",
+      "date": "2026-10-04",
+      "failed_outputs": 0,
+      "id": "20261004T101511Z-jev-324f",
+      "methods": [
+        "decision:typesafe-ai/jev",
+        "rules_baseline"
+      ],
+      "mode": "benchmark",
+      "outputs": 13920,
+      "predictions_sha256": "1ddf5c9e7aa5c0016bdcf7b74aefca0c03020000b8c3f0164c0ffce9afc03088",
+      "record_concurrency": 4,
+      "requests": 6966,
+      "unknown_usage_outputs": 6
+    },
+    {
+      "complete": true,
+      "dataset": "sec_lines-2900-8bad7b33",
+      "date": "2026-10-04",
+      "failed_outputs": 0,
+      "id": "20261004T102720Z-gemini-3.8-flash-073d",
+      "methods": [
+        "chat:google/gemini-3.8-flash"
+      ],
+      "mode": "benchmark",
+      "outputs": 6960,
+      "predictions_sha256": "0696c0e80323bbd31134b3027e96ee8a8c6069920903a7d91450a00e52c3dc28",
+      "record_concurrency": 4,
+      "requests": 6965,
+      "unknown_usage_outputs": 5
+    },
+    {
+      "complete": true,
+      "dataset": "sec_lines-2900-8bad7b33",
+      "date": "2026-10-04",
+      "failed_outputs": 0,
+      "id": "20261004T102723Z-gpt-6-luna-110b",
+      "methods": [
+        "chat:openai/gpt-6-luna"
+      ],
+      "mode": "benchmark",
+      "outputs": 6960,
+      "predictions_sha256": "bb01388f6982aad29fdbd7038ce3057a512f108de45f3823fa2e1d9c08b53e69",
+      "record_concurrency": 4,
+      "requests": 6964,
+      "unknown_usage_outputs": 4
+    },
+    {
+      "complete": true,
+      "dataset": "sec_lines-2900-8bad7b33",
+      "date": "2026-10-04",
+      "failed_outputs": 0,
+      "id": "20261004T111422Z-claude-haiku-4.5-696c",
+      "methods": [
+        "chat:anthropic/claude-haiku-4.5"
+      ],
+      "mode": "benchmark",
+      "outputs": 3480,
+      "predictions_sha256": "812fb04f092e6beb3acf9443691116f152c790371e4daeb82a37b79fff33dd76",
+      "record_concurrency": 4,
+      "requests": 3480,
+      "unknown_usage_outputs": 0
+    }
+  ],
+  "tables": {
+    "agreement": {
+      "header": [
+        "Comparison",
+        "Cases",
+        "Same category"
+      ],
+      "rows": [
+        [
+          "Same company, same wording, different filings",
+          "140,367",
+          "99.6%"
+        ],
+        [
+          "Two different companies, same wording",
+          "2,638 sampled records",
+          "96.8%"
+        ]
+      ]
+    },
+    "calibration": {
+      "header": [
+        "Model",
+        "Stated confidence",
+        "Answers",
+        "Average stated",
+        "Share correct"
+      ],
+      "rows": [
+        [
+          "Jev",
+          "0.2\u20130.3",
+          "3",
+          "0.25",
+          "0.0%"
+        ],
+        [
+          "Jev",
+          "0.3\u20130.4",
+          "7",
+          "0.35",
+          "85.7%"
+        ],
+        [
+          "Jev",
+          "0.4\u20130.5",
+          "56",
+          "0.47",
+          "53.6%"
+        ],
+        [
+          "Jev",
+          "0.5\u20130.6",
+          "94",
+          "0.54",
+          "61.7%"
+        ],
+        [
+          "Jev",
+          "0.6\u20130.7",
+          "107",
+          "0.64",
+          "71.0%"
+        ],
+        [
+          "Jev",
+          "0.7\u20130.8",
+          "122",
+          "0.75",
+          "84.4%"
+        ],
+        [
+          "Jev",
+          "0.8\u20130.9",
+          "280",
+          "0.85",
+          "92.9%"
+        ],
+        [
+          "Jev",
+          "0.9\u20131.0",
+          "2,231",
+          "0.98",
+          "99.4%"
+        ],
+        [
+          "Jev",
+          "All answers: average gap",
+          "",
+          "",
+          "3.2 points"
+        ],
+        [
+          "Claude Haiku 4.5",
+          "0.1\u20130.2",
+          "2",
+          "0.15",
+          "0.0%"
+        ],
+        [
+          "Claude Haiku 4.5",
+          "0.3\u20130.4",
+          "3",
+          "0.35",
+          "0.0%"
+        ],
+        [
+          "Claude Haiku 4.5",
+          "0.4\u20130.5",
+          "3",
+          "0.45",
+          "0.0%"
+        ],
+        [
+          "Claude Haiku 4.5",
+          "0.6\u20130.7",
+          "3",
+          "0.65",
+          "33.3%"
+        ],
+        [
+          "Claude Haiku 4.5",
+          "0.7\u20130.8",
+          "84",
+          "0.74",
+          "69.0%"
+        ],
+        [
+          "Claude Haiku 4.5",
+          "0.8\u20130.9",
+          "194",
+          "0.85",
+          "82.5%"
+        ],
+        [
+          "Claude Haiku 4.5",
+          "0.9\u20131.0",
+          "2,611",
+          "0.95",
+          "98.7%"
+        ],
+        [
+          "Claude Haiku 4.5",
+          "All answers: average gap",
+          "",
+          "",
+          "3.4 points"
+        ],
+        [
+          "Gemini 3.8 Flash",
+          "0.3\u20130.4",
+          "2",
+          "0.32",
+          "100.0%"
+        ],
+        [
+          "Gemini 3.8 Flash",
+          "0.4\u20130.5",
+          "2",
+          "0.40",
+          "50.0%"
+        ],
+        [
+          "Gemini 3.8 Flash",
+          "0.5\u20130.6",
+          "1",
+          "0.55",
+          "0.0%"
+        ],
+        [
+          "Gemini 3.8 Flash",
+          "0.6\u20130.7",
+          "1",
+          "0.65",
+          "0.0%"
+        ],
+        [
+          "Gemini 3.8 Flash",
+          "0.7\u20130.8",
+          "2",
+          "0.75",
+          "100.0%"
+        ],
+        [
+          "Gemini 3.8 Flash",
+          "0.8\u20130.9",
+          "66",
+          "0.85",
+          "59.1%"
+        ],
+        [
+          "Gemini 3.8 Flash",
+          "0.9\u20131.0",
+          "2,826",
+          "0.99",
+          "98.3%"
+        ],
+        [
+          "Gemini 3.8 Flash",
+          "All answers: average gap",
+          "",
+          "",
+          "1.1 points"
+        ],
+        [
+          "GPT-6 Luna",
+          "0.4\u20130.5",
+          "2",
+          "0.45",
+          "50.0%"
+        ],
+        [
+          "GPT-6 Luna",
+          "0.5\u20130.6",
+          "12",
+          "0.57",
+          "91.7%"
+        ],
+        [
+          "GPT-6 Luna",
+          "0.6\u20130.7",
+          "25",
+          "0.66",
+          "88.0%"
+        ],
+        [
+          "GPT-6 Luna",
+          "0.7\u20130.8",
+          "59",
+          "0.76",
+          "78.0%"
+        ],
+        [
+          "GPT-6 Luna",
+          "0.8\u20130.9",
+          "122",
+          "0.85",
+          "76.2%"
+        ],
+        [
+          "GPT-6 Luna",
+          "0.9\u20131.0",
+          "2,680",
+          "0.99",
+          "98.7%"
+        ],
+        [
+          "GPT-6 Luna",
+          "All answers: average gap",
+          "",
+          "",
+          "0.8 points"
+        ]
+      ]
+    },
+    "categories": {
+      "header": [
+        "Category",
+        "Records",
+        "Jev correct",
+        "Claude Haiku 4.5 correct",
+        "Gemini 3.8 Flash correct",
+        "GPT-6 Luna correct"
+      ],
+      "rows": [
+        [
+          "Not mapped",
+          "819",
+          "791",
+          "790",
+          "810",
+          "802"
+        ],
+        [
+          "Other non-operating income or expense",
+          "82",
+          "47",
+          "75",
+          "60",
+          "69"
+        ],
+        [
+          "Total equity",
+          "183",
+          "165",
+          "179",
+          "158",
+          "183"
+        ],
+        [
+          "Total non-operating income or expense",
+          "64",
+          "59",
+          "36",
+          "63",
+          "52"
+        ],
+        [
+          "Net income",
+          "185",
+          "161",
+          "182",
+          "185",
+          "178"
+        ],
+        [
+          "Other operating items",
+          "14",
+          "9",
+          "10",
+          "9",
+          "10"
+        ],
+        [
+          "Other current liabilities",
+          "28",
+          "23",
+          "24",
+          "24",
+          "24"
+        ],
+        [
+          "Revenue",
+          "93",
+          "86",
+          "91",
+          "92",
+          "90"
+        ],
+        [
+          "Cost of revenue",
+          "69",
+          "66",
+          "66",
+          "67",
+          "66"
+        ],
+        [
+          "Interest income",
+          "28",
+          "26",
+          "24",
+          "27",
+          "26"
+        ],
+        [
+          "Operating income",
+          "110",
+          "109",
+          "107",
+          "109",
+          "107"
+        ],
+        [
+          "Accounts payable",
+          "69",
+          "66",
+          "68",
+          "68",
+          "67"
+        ],
+        [
+          "Interest expense",
+          "60",
+          "59",
+          "59",
+          "59",
+          "57"
+        ],
+        [
+          "Short-term debt",
+          "39",
+          "37",
+          "38",
+          "38",
+          "37"
+        ],
+        [
+          "Goodwill and intangibles",
+          "105",
+          "104",
+          "104",
+          "104",
+          "104"
+        ],
+        [
+          "Gross profit",
+          "42",
+          "41",
+          "41",
+          "41",
+          "41"
+        ],
+        [
+          "Income tax",
+          "142",
+          "141",
+          "141",
+          "141",
+          "141"
+        ],
+        [
+          "Long-term debt",
+          "31",
+          "29",
+          "29",
+          "31",
+          "31"
+        ],
+        [
+          "Other current assets",
+          "76",
+          "75",
+          "75",
+          "75",
+          "75"
+        ],
+        [
+          "Research and development",
+          "40",
+          "39",
+          "39",
+          "39",
+          "39"
+        ],
+        [
+          "Other non-current liabilities",
+          "56",
+          "54",
+          "55",
+          "56",
+          "56"
+        ],
+        [
+          "Accrued liabilities",
+          "55",
+          "55",
+          "54",
+          "55",
+          "54"
+        ],
+        [
+          "Cash",
+          "99",
+          "98",
+          "99",
+          "99",
+          "99"
+        ],
+        [
+          "Other non-current assets",
+          "65",
+          "64",
+          "65",
+          "65",
+          "65"
+        ],
+        [
+          "Property, plant and equipment",
+          "102",
+          "102",
+          "101",
+          "102",
+          "102"
+        ],
+        [
+          "Depreciation and amortisation",
+          "18",
+          "18",
+          "18",
+          "18",
+          "18"
+        ],
+        [
+          "Inventory",
+          "52",
+          "52",
+          "52",
+          "52",
+          "52"
+        ],
+        [
+          "Receivables",
+          "115",
+          "115",
+          "115",
+          "115",
+          "115"
+        ],
+        [
+          "Selling, general and administrative",
+          "41",
+          "41",
+          "41",
+          "41",
+          "41"
+        ],
+        [
+          "Short-term investments",
+          "18",
+          "18",
+          "18",
+          "18",
+          "18"
+        ]
+      ]
+    },
+    "consistency": {
+      "header": [
+        "Check",
+        "Model",
+        "Changed, wording only",
+        "Changed, with context"
+      ],
+      "rows": [
+        [
+          "Asked twice",
+          "Jev",
+          "2 of 290",
+          "4 of 290"
+        ],
+        [
+          "Asked twice",
+          "Claude Haiku 4.5",
+          "\u2013",
+          "6 of 290"
+        ],
+        [
+          "Asked twice",
+          "Gemini 3.8 Flash",
+          "0 of 290",
+          "0 of 290"
+        ],
+        [
+          "Asked twice",
+          "GPT-6 Luna",
+          "0 of 290",
+          "1 of 290"
+        ],
+        [
+          "Options reordered",
+          "Jev",
+          "5 of 290",
+          "3 of 290"
+        ],
+        [
+          "Options reordered",
+          "Claude Haiku 4.5",
+          "\u2013",
+          "7 of 290"
+        ],
+        [
+          "Options reordered",
+          "Gemini 3.8 Flash",
+          "0 of 290",
+          "3 of 290"
+        ],
+        [
+          "Options reordered",
+          "GPT-6 Luna",
+          "9 of 290",
+          "6 of 290"
+        ]
+      ]
+    },
+    "context": {
+      "header": [
+        "Model",
+        "Wording only",
+        "Wording with context"
+      ],
+      "rows": [
+        [
+          "Jev",
+          "2,753 of 2,900",
+          "2,750 of 2,900"
+        ],
+        [
+          "Claude Haiku 4.5",
+          "\u2013",
+          "2,796 of 2,900"
+        ],
+        [
+          "Gemini 3.8 Flash",
+          "2,825 of 2,900",
+          "2,821 of 2,900"
+        ],
+        [
+          "GPT-6 Luna",
+          "2,789 of 2,900",
+          "2,819 of 2,900"
+        ]
+      ]
+    },
+    "cutoffs": {
+      "header": [
+        "Model",
+        "Confidence \u2265 0.99",
+        "Confidence \u2265 0.95",
+        "Confidence \u2265 0.90",
+        "Confidence \u2265 0.80",
+        "All answers"
+      ],
+      "rows": [
+        [
+          "Jev",
+          "1,044 (3 incorrect, 0.3%)",
+          "1,976 (10 incorrect, 0.5%)",
+          "2,231 (14 incorrect, 0.6%)",
+          "2,511 (34 incorrect, 1.4%)",
+          "2,900 (150 incorrect, 5.2%)"
+        ],
+        [
+          "Claude Haiku 4.5",
+          "177 (0 incorrect, 0.0%)",
+          "2,254 (19 incorrect, 0.8%)",
+          "2,611 (34 incorrect, 1.3%)",
+          "2,805 (68 incorrect, 2.4%)",
+          "2,900 (104 incorrect, 3.6%)"
+        ],
+        [
+          "Gemini 3.8 Flash",
+          "2,396 (11 incorrect, 0.5%)",
+          "2,792 (43 incorrect, 1.5%)",
+          "2,826 (49 incorrect, 1.7%)",
+          "2,892 (76 incorrect, 2.6%)",
+          "2,900 (79 incorrect, 2.7%)"
+        ],
+        [
+          "GPT-6 Luna",
+          "2,297 (11 incorrect, 0.5%)",
+          "2,603 (24 incorrect, 0.9%)",
+          "2,680 (34 incorrect, 1.3%)",
+          "2,802 (63 incorrect, 2.2%)",
+          "2,900 (81 incorrect, 2.8%)"
+        ]
+      ]
+    },
+    "errors with_context 6": {
+      "header": [
+        "Category",
+        "Records",
+        "Jev incorrect",
+        "Claude Haiku 4.5 incorrect",
+        "Gemini 3.8 Flash incorrect",
+        "GPT-6 Luna incorrect"
+      ],
+      "rows": [
+        [
+          "Not mapped",
+          "819",
+          "28",
+          "29",
+          "9",
+          "17"
+        ],
+        [
+          "Other non-operating income or expense",
+          "82",
+          "35",
+          "7",
+          "22",
+          "13"
+        ],
+        [
+          "Total equity",
+          "183",
+          "18",
+          "4",
+          "25",
+          "0"
+        ],
+        [
+          "Total non-operating income or expense",
+          "64",
+          "5",
+          "28",
+          "1",
+          "12"
+        ],
+        [
+          "Net income",
+          "185",
+          "24",
+          "3",
+          "0",
+          "7"
+        ],
+        [
+          "Other operating items",
+          "14",
+          "5",
+          "4",
+          "5",
+          "4"
+        ],
+        [
+          "Other 24 categories",
+          "1,553",
+          "35",
+          "29",
+          "17",
+          "28"
+        ],
+        [
+          "All categories",
+          "2,900",
+          "150",
+          "104",
+          "79",
+          "81"
+        ]
+      ]
+    },
+    "pairs": {
+      "header": [
+        "Comparison",
+        "Both correct",
+        "Both incorrect",
+        "Only Jev correct",
+        "Only the other model correct"
+      ],
+      "rows": [
+        [
+          "Jev and Claude Haiku 4.5",
+          "2,702",
+          "56",
+          "48",
+          "94"
+        ],
+        [
+          "Jev and Gemini 3.8 Flash",
+          "2,734",
+          "63",
+          "16",
+          "87"
+        ],
+        [
+          "Jev and GPT-6 Luna",
+          "2,725",
+          "56",
+          "25",
+          "94"
+        ]
+      ]
+    },
+    "pairs label_only": {
+      "header": [
+        "Comparison",
+        "Both correct",
+        "Both incorrect",
+        "Only Jev correct",
+        "Only the other model correct"
+      ],
+      "rows": [
+        [
+          "Jev and Gemini 3.8 Flash",
+          "2,742",
+          "64",
+          "11",
+          "83"
+        ],
+        [
+          "Jev and GPT-6 Luna",
+          "2,720",
+          "78",
+          "33",
+          "69"
+        ]
+      ]
+    },
+    "prices": {
+      "header": [
+        "Model",
+        "Per million input tokens",
+        "Per million output tokens",
+        "Price date",
+        "Source"
+      ],
+      "rows": [
+        [
+          "Claude Haiku 4.5",
+          "$1",
+          "$5",
+          "2026-10-04",
+          "https://ai-gateway.vercel.sh/v1/models"
+        ],
+        [
+          "Gemini 3.8 Flash",
+          "$0.75",
+          "$3.75",
+          "2026-10-04",
+          "https://ai-gateway.vercel.sh/v1/models"
+        ],
+        [
+          "GPT-6 Luna",
+          "$0.1",
+          "$0.5",
+          "2026-10-04",
+          "https://ai-gateway.vercel.sh/v1/models"
+        ],
+        [
+          "Jev",
+          "$0.042",
+          "$0",
+          "2026-10-04",
+          "https://ai-gateway.vercel.sh/v1/models"
+        ]
+      ]
+    },
+    "records 288987609f3e 47cb950009bb 071c6ebcda5f 229cbf50c961 2a5235e7a21d": {
+      "header": [
+        "Company: line in context",
+        "Answer key",
+        "Jev",
+        "Claude Haiku 4.5",
+        "Gemini 3.8 Flash",
+        "GPT-6 Luna"
+      ],
+      "rows": [
+        [
+          "[BTCS INC. 2025](https://www.sec.gov/Archives/edgar/data/1436229/000149315226012916/0001493152-26-012916-index.htm): Total other assets \u2192 **Total Assets** \u2192 Accounts payable and accrued expenses",
+          "Not mapped",
+          "\u2713 Not mapped (0.99)",
+          "\u2713 Not mapped (0.98)",
+          "\u2713 Not mapped (1.00)",
+          "\u2713 Not mapped (1.00)"
+        ],
+        [
+          "[REATA PHARMACEUTICALS INC 2022](https://www.sec.gov/Archives/edgar/data/1358762/000095017023004236/0000950170-23-004236-index.htm): Total expenses \u2192 **Other income (expense), net** \u2192 Loss before taxes on income",
+          "Total non-operating income or expense",
+          "\u2713 Total non-operating income or expense (0.95)",
+          "\u2717 Other non-operating income or expense (0.85)",
+          "\u2713 Total non-operating income or expense (0.85)",
+          "\u2717 Other non-operating income or expense (0.86)"
+        ],
+        [
+          "[ONEWATER MARINE INC. 2021](https://www.sec.gov/Archives/edgar/data/1772921/000114036121042274/0001140361-21-042274-index.htm): Less: Net income attributable to non-controlling interest \u2192 **Net (loss) income attributable to One Water Marine Holdings, LLC** \u2192 Earnings per share, Basic (in dollars per share)",
+          "Net income",
+          "\u2717 Not mapped (0.70)",
+          "\u2713 Net income (0.95)",
+          "\u2713 Net income (0.95)",
+          "\u2713 Net income (0.96)"
+        ],
+        [
+          "[VERVE THERAPEUTICS, INC. 2024](https://www.sec.gov/Archives/edgar/data/1840574/000095017025028376/0000950170-25-028376-index.htm): Unrealized gain (loss) on marketable securities \u2192 **Comprehensive loss**",
+          "Not mapped",
+          "\u2717 Net income (0.80)",
+          "\u2713 Not mapped (0.95)",
+          "\u2713 Not mapped (0.99)",
+          "\u2713 Not mapped (0.96)"
+        ],
+        [
+          "[LOCKHEED MARTIN CORP 2025](https://www.sec.gov/Archives/edgar/data/936468/000162828026004195/0001628280-26-004195-index.htm): Other unallocated, net \u2192 **Total operating costs and expenses** \u2192 Gross profit",
+          "Cost of revenue",
+          "\u2717 Not mapped (0.88)",
+          "\u2717 Not mapped (0.95)",
+          "\u2717 Not mapped (0.99)",
+          "\u2717 Not mapped (0.96)"
+        ]
+      ]
+    },
+    "records 47cb950009bb 071c6ebcda5f 2a5235e7a21d": {
+      "header": [
+        "Company: line in context",
+        "Answer key",
+        "Jev",
+        "Claude Haiku 4.5",
+        "Gemini 3.8 Flash",
+        "GPT-6 Luna"
+      ],
+      "rows": [
+        [
+          "[REATA PHARMACEUTICALS INC 2022](https://www.sec.gov/Archives/edgar/data/1358762/000095017023004236/0000950170-23-004236-index.htm): Total expenses \u2192 **Other income (expense), net** \u2192 Loss before taxes on income",
+          "Total non-operating income or expense",
+          "\u2713 Total non-operating income or expense (0.95)",
+          "\u2717 Other non-operating income or expense (0.85)",
+          "\u2713 Total non-operating income or expense (0.85)",
+          "\u2717 Other non-operating income or expense (0.86)"
+        ],
+        [
+          "[ONEWATER MARINE INC. 2021](https://www.sec.gov/Archives/edgar/data/1772921/000114036121042274/0001140361-21-042274-index.htm): Less: Net income attributable to non-controlling interest \u2192 **Net (loss) income attributable to One Water Marine Holdings, LLC** \u2192 Earnings per share, Basic (in dollars per share)",
+          "Net income",
+          "\u2717 Not mapped (0.70)",
+          "\u2713 Net income (0.95)",
+          "\u2713 Net income (0.95)",
+          "\u2713 Net income (0.96)"
+        ],
+        [
+          "[LOCKHEED MARTIN CORP 2025](https://www.sec.gov/Archives/edgar/data/936468/000162828026004195/0001628280-26-004195-index.htm): Other unallocated, net \u2192 **Total operating costs and expenses** \u2192 Gross profit",
+          "Cost of revenue",
+          "\u2717 Not mapped (0.88)",
+          "\u2717 Not mapped (0.95)",
+          "\u2717 Not mapped (0.99)",
+          "\u2717 Not mapped (0.96)"
+        ]
+      ]
+    },
+    "results": {
+      "header": [
+        "Model",
+        "Correct",
+        "Cost per 1,000 records",
+        "Median response"
+      ],
+      "rows": [
+        [
+          "Jev",
+          "2,750 of 2,900 (94.8%)",
+          "$0.063",
+          "0.56s"
+        ],
+        [
+          "Claude Haiku 4.5",
+          "2,796 of 2,900 (96.4%)",
+          "$1.184",
+          "1.09s"
+        ],
+        [
+          "Gemini 3.8 Flash",
+          "2,821 of 2,900 (97.3%)",
+          "$0.735",
+          "1.90s"
+        ],
+        [
+          "GPT-6 Luna",
+          "2,819 of 2,900 (97.2%)",
+          "$0.090",
+          "1.45s"
+        ]
+      ]
+    },
+    "results label_only": {
+      "header": [
+        "Model",
+        "Correct",
+        "Cost per 1,000 records",
+        "Median response"
+      ],
+      "rows": [
+        [
+          "Jev",
+          "2,753 of 2,900 (94.9%)",
+          "$0.059",
+          "0.58s"
+        ],
+        [
+          "Gemini 3.8 Flash",
+          "2,825 of 2,900 (97.4%)",
+          "$0.658",
+          "1.88s"
+        ],
+        [
+          "GPT-6 Luna",
+          "2,789 of 2,900 (96.2%)",
+          "$0.082",
+          "1.45s"
+        ]
+      ]
+    },
+    "routing": {
+      "header": [
+        "Jev confidence below",
+        "Records",
+        "Jev correct",
+        "Other model",
+        "Other model correct"
+      ],
+      "rows": [
+        [
+          "0.95",
+          "924",
+          "784",
+          "Claude Haiku 4.5",
+          "835"
+        ],
+        [
+          "0.90",
+          "669",
+          "533",
+          "Claude Haiku 4.5",
+          "583"
+        ],
+        [
+          "0.80",
+          "389",
+          "273",
+          "Claude Haiku 4.5",
+          "319"
+        ],
+        [
+          "0.95",
+          "924",
+          "784",
+          "Gemini 3.8 Flash",
+          "854"
+        ],
+        [
+          "0.90",
+          "669",
+          "533",
+          "Gemini 3.8 Flash",
+          "601"
+        ],
+        [
+          "0.80",
+          "389",
+          "273",
+          "Gemini 3.8 Flash",
+          "334"
+        ],
+        [
+          "0.95",
+          "924",
+          "784",
+          "GPT-6 Luna",
+          "854"
+        ],
+        [
+          "0.90",
+          "669",
+          "533",
+          "GPT-6 Luna",
+          "601"
+        ],
+        [
+          "0.80",
+          "389",
+          "273",
+          "GPT-6 Luna",
+          "333"
+        ]
+      ]
+    },
+    "rules": {
+      "header": [
+        "Records",
+        "Answered by rules",
+        "Correct among answered",
+        "Left unanswered"
+      ],
+      "rows": [
+        [
+          "2,900",
+          "1,608",
+          "1,495 of 1,608",
+          "1,292"
+        ]
+      ]
+    },
+    "run": {
+      "header": [
+        "Method",
+        "Model",
+        "Answers collected",
+        "Input",
+        "Records",
+        "Correct",
+        "Requests",
+        "Answers with an unpriced failed attempt",
+        "Cost per 1,000 records"
+      ],
+      "rows": [
+        [
+          "chat:google/gemini-3.8-flash",
+          "google/gemini-3.8-flash",
+          "2026-10-04",
+          "label only",
+          "2,900",
+          "2,825",
+          "2,901",
+          "1",
+          "$0.658"
+        ],
+        [
+          "chat:openai/gpt-6-luna",
+          "openai/gpt-6-luna",
+          "2026-10-04",
+          "label only",
+          "2,900",
+          "2,789",
+          "2,904",
+          "4",
+          "$0.082"
+        ],
+        [
+          "decision:typesafe-ai/jev",
+          "Jev",
+          "2026-10-04",
+          "label only",
+          "2,900",
+          "2,753",
+          "2,902",
+          "2",
+          "$0.059"
+        ],
+        [
+          "rules_baseline",
+          "Rules",
+          "2026-10-04",
+          "label only",
+          "2,900",
+          "1,495",
+          "0",
+          "0",
+          "$0.000"
+        ],
+        [
+          "chat:anthropic/claude-haiku-4.5",
+          "anthropic/claude-haiku-4.5",
+          "2026-10-04",
+          "with context",
+          "2,900",
+          "2,796",
+          "2,900",
+          "0",
+          "$1.184"
+        ],
+        [
+          "chat:google/gemini-3.8-flash",
+          "google/gemini-3.8-flash",
+          "2026-10-04",
+          "with context",
+          "2,900",
+          "2,821",
+          "2,903",
+          "3",
+          "$0.735"
+        ],
+        [
+          "chat:openai/gpt-6-luna",
+          "openai/gpt-6-luna",
+          "2026-10-04",
+          "with context",
+          "2,900",
+          "2,819",
+          "2,900",
+          "0",
+          "$0.090"
+        ],
+        [
+          "decision:typesafe-ai/jev",
+          "Jev",
+          "2026-10-04",
+          "with context",
+          "2,900",
+          "2,750",
+          "2,901",
+          "1",
+          "$0.063"
+        ],
+        [
+          "rules_baseline",
+          "Rules",
+          "2026-10-04",
+          "with context",
+          "2,900",
+          "1,495",
+          "0",
+          "0",
+          "$0.000"
+        ]
+      ]
+    },
+    "sample": {
+      "header": [
+        "Property",
+        "Value"
+      ],
+      "rows": [
+        [
+          "Records",
+          "2,900"
+        ],
+        [
+          "Categories",
+          "30; 14\u2013819 records each"
+        ],
+        [
+          "Companies",
+          "2,386"
+        ],
+        [
+          "Fiscal years",
+          "2021, 2022, 2023, 2024, 2025"
+        ],
+        [
+          "Statements",
+          "1,655 balance sheet lines; 1,245 income statement lines"
+        ],
+        [
+          "Consistency checks",
+          "290 records asked twice; 290 with reordered options"
+        ]
+      ]
+    },
+    "scope": {
+      "header": [
+        "Step",
+        "Lines",
+        "Share of all lines"
+      ],
+      "rows": [
+        [
+          "Income-statement and balance-sheet lines in the selected filings",
+          "1,694,559",
+          "100.0%"
+        ],
+        [
+          "In scope: a standard tag on the case's lists and one consolidated USD value",
+          "597,580",
+          "35.3%"
+        ],
+        [
+          "After removing repeats of the same wording by the same company",
+          "210,738",
+          "12.4%"
+        ],
+        [
+          "Sampled",
+          "2,900",
+          "0.2%"
+        ]
+      ]
+    },
+    "speed": {
+      "header": [
+        "Model",
+        "Median response",
+        "95th percentile"
+      ],
+      "rows": [
+        [
+          "Jev",
+          "0.56s",
+          "0.86s"
+        ],
+        [
+          "Claude Haiku 4.5",
+          "1.09s",
+          "1.55s"
+        ],
+        [
+          "Gemini 3.8 Flash",
+          "1.90s",
+          "3.72s"
+        ],
+        [
+          "GPT-6 Luna",
+          "1.45s",
+          "2.23s"
+        ]
+      ]
+    },
+    "tokens": {
+      "header": [
+        "Model",
+        "Input tokens per call",
+        "Output tokens per call",
+        "Price per million input tokens",
+        "Price per million output tokens",
+        "Cost per 1,000 records"
+      ],
+      "rows": [
+        [
+          "Jev",
+          "1,497",
+          "167",
+          "$0.042",
+          "$0",
+          "$0.063"
+        ],
+        [
+          "Claude Haiku 4.5",
+          "1,087",
+          "19",
+          "$1",
+          "$5",
+          "$1.184"
+        ],
+        [
+          "Gemini 3.8 Flash",
+          "855",
+          "25",
+          "$0.75",
+          "$3.75",
+          "$0.735"
+        ],
+        [
+          "GPT-6 Luna",
+          "794",
+          "21",
+          "$0.1",
+          "$0.5",
+          "$0.090"
+        ]
+      ]
+    },
+    "wording": {
+      "header": [
+        "The company's tag for its wording is",
+        "Records",
+        "Jev correct",
+        "Claude Haiku 4.5 correct",
+        "Gemini 3.8 Flash correct",
+        "GPT-6 Luna correct"
+      ],
+      "rows": [
+        [
+          "The usual choice of other companies using the wording",
+          "2,583",
+          "2,510 (97.2%)",
+          "2,526 (97.8%)",
+          "2,560 (99.1%)",
+          "2,552 (98.8%)"
+        ],
+        [
+          "Different from the usual choice",
+          "55",
+          "11 (20.0%)",
+          "22 (40.0%)",
+          "24 (43.6%)",
+          "19 (34.5%)"
+        ],
+        [
+          "Wording no other company uses",
+          "262",
+          "229 (87.4%)",
+          "248 (94.7%)",
+          "237 (90.5%)",
+          "248 (94.7%)"
+        ]
+      ]
+    }
+  }
+}

@@ -59,13 +59,16 @@ Each run publishes three documents and an evidence file. The documents follow th
 
 | Document | Reader | Content |
 | --- | --- | --- |
-| Summary | Management | One page: question and verdict, main results, confidence, where incorrect answers concentrate, next steps. Each section can become one slide. |
-| Detailed report | Analysts and decision makers | The summary's sections in more depth, with real records as examples, plus test scope, record-level comparison, cost and speed, consistency, development effort and limits. |
+| Summary | Management | One to two pages in the detailed report's order, condensed. Each section can become one slide. |
+| Detailed report | Analysts and decision makers | Purpose; what was tested and the outcome, in a few lines each; the method choices that serve the purpose; results; what they mean for the use case; development (building, running, testing, monitoring); backlog. |
 | Appendix: methods and data | Anyone checking or rerunning the study | Case spec, sampling, prompts, model settings, price basis, results for every category, and a record of everything the run executed. |
 | Evidence file | Reviewers and software | Every number and table in the documents, generated from the saved results. |
 
 Writing rules for all three documents:
 
+- Start with the purpose. Every section serves it.
+- Describe the choices that define the method, not the history of how they were reached.
+- No sentence without information.
 - Plain, descriptive headings and short sentences.
 - "Correct" means the answer matches the answer key; it is defined once.
 - Counts with their totals, such as 2,777 of 2,900, rather than percentages alone.

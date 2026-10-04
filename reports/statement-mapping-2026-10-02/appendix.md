@@ -36,7 +36,7 @@ Lines come from 21 quarterly archives of the SEC Financial Statement Data Sets (
 | Step | Lines | Share of all lines |
 | --- | --- | --- |
 | Income-statement and balance-sheet lines in the selected filings | 1,694,559 | 100.0% |
-| In scope: tag on the template list, standard taxonomy, one consolidated USD value | 412,512 | 24.3% |
+| In scope: a standard tag on the case's lists and one consolidated USD value | 412,512 | 24.3% |
 | After removing repeats of the same wording by the same company | 148,422 | 8.8% |
 | Sampled | 2,900 | 0.2% |
 <!-- end -->

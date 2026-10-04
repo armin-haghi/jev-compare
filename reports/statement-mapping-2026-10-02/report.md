@@ -37,7 +37,7 @@ Verdict, for choosing one category from a fixed list:
 | Step | Lines | Share of all lines |
 | --- | --- | --- |
 | Income-statement and balance-sheet lines in the selected filings | 1,694,559 | 100.0% |
-| In scope: tag on the template list, standard taxonomy, one consolidated USD value | 412,512 | 24.3% |
+| In scope: a standard tag on the case's lists and one consolidated USD value | 412,512 | 24.3% |
 | After removing repeats of the same wording by the same company | 148,422 | 8.8% |
 | Sampled | 2,900 | 0.2% |
 <!-- end -->
@@ -97,11 +97,11 @@ These records show the pattern. They were chosen by hand and do not show how oft
 <!-- begin records ac73de54840e 0c9ccb042e54 345ea022f832 c9e3087c1ea7 03517731f696 -->
 | Company: line in context | Answer key | Jev | GPT-5 mini |
 | --- | --- | --- | --- |
-| BOXABL INC. 2025: Accumulated deficit → **Total stockholders equity** → Total liabilities and stockholders equity | Total equity | ✓ Total equity (1.00) | ✓ Total equity (0.90) |
-| 23ANDME HOLDING CO. 2024: Interest income, net → **Other income (expense), net** → Loss before reorganization items and income taxes | Total non-operating income or expense | ✓ Total non-operating income or expense (0.65) | ✗ Other non-operating income or expense (0.90) |
-| FUTUREFUEL CORP. 2025: Gain on marketable securities → **Other income, net** → Other income | Other non-operating income or expense | ✗ Total non-operating income or expense (0.63) | ✓ Other non-operating income or expense (0.85) |
-| HST GLOBAL, INC. 2023: Revenues → **Consulting, related party** → General and administrative | Other operating items | ✗ Revenue (0.29) | ✗ Revenue (0.70) |
-| BIOMARIN PHARMACEUTICAL INC 2025: Interest expense → **Other income (expense), net** → INCOME BEFORE INCOME TAXES | Other operating items | ✗ Total non-operating income or expense (0.97) | ✗ Other non-operating income or expense (0.90) |
+| [BOXABL INC. 2025](https://www.sec.gov/Archives/edgar/data/1816937/000149315226013273/0001493152-26-013273-index.htm): Accumulated deficit → **Total stockholders equity** → Total liabilities and stockholders equity | Total equity | ✓ Total equity (1.00) | ✓ Total equity (0.90) |
+| [23ANDME HOLDING CO. 2024](https://www.sec.gov/Archives/edgar/data/1804591/000162828025030786/0001628280-25-030786-index.htm): Interest income, net → **Other income (expense), net** → Loss before reorganization items and income taxes | Total non-operating income or expense | ✓ Total non-operating income or expense (0.65) | ✗ Other non-operating income or expense (0.90) |
+| [FUTUREFUEL CORP. 2025](https://www.sec.gov/Archives/edgar/data/1337298/000143774926008411/0001437749-26-008411-index.htm): Gain on marketable securities → **Other income, net** → Other income | Other non-operating income or expense | ✗ Total non-operating income or expense (0.63) | ✓ Other non-operating income or expense (0.85) |
+| [HST GLOBAL, INC. 2023](https://www.sec.gov/Archives/edgar/data/797564/000167479624000003/0001674796-24-000003-index.htm): Revenues → **Consulting, related party** → General and administrative | Other operating items | ✗ Revenue (0.29) | ✗ Revenue (0.70) |
+| [BIOMARIN PHARMACEUTICAL INC 2025](https://www.sec.gov/Archives/edgar/data/1048477/000104847726000004/0001048477-26-000004-index.htm): Interest expense → **Other income (expense), net** → INCOME BEFORE INCOME TAXES | Other operating items | ✗ Total non-operating income or expense (0.97) | ✗ Other non-operating income or expense (0.90) |
 <!-- end -->
 
 The table counts the answers at or above each cut-off and how many of them are incorrect. At 0.90, both models' answers are 1.2% incorrect; Jev keeps 2,611 answers and GPT-5 mini 1,959. How many incorrect answers are acceptable is a business decision, not a result of this study.
@@ -188,10 +188,10 @@ On unusual lines there are two kinds of miss, and the data cannot separate them 
 <!-- begin records b32fa21cc869 56f6e4658a67 b16c03b1d4d7 3000a6d98dea -->
 | Company: line in context | Answer key | Jev | GPT-5 mini |
 | --- | --- | --- | --- |
-| EMPIRE PETROLEUM CORP 2024: Operating Loss → **Interest Expense** → Other Income (Expense) | Total non-operating income or expense | ✗ Interest expense (0.99) | ✗ Interest expense (0.98) |
-| JOBY AVIATION, INC. 2025: Operating expenses: → **Cost of Revenue** → Research and development | Other operating items | ✗ Cost of revenue (0.98) | ✗ Cost of revenue (0.95) |
-| ROPER TECHNOLOGIES INC 2025: Equity investments gain, net → **Other (income) expense, net** → Earnings before income taxes | Total non-operating income or expense | ✗ Other non-operating income or expense (0.63) | ✗ Other non-operating income or expense (0.85) |
-| GREEN GIANT INC. 2023: Inventory → **Other assets** → Prepayment | Other current assets | ✗ Other non-current assets (0.64) | ✗ Other non-current assets (0.79) |
+| [EMPIRE PETROLEUM CORP 2024](https://www.sec.gov/Archives/edgar/data/887396/000107261325000246/0001072613-25-000246-index.htm): Operating Loss → **Interest Expense** → Other Income (Expense) | Total non-operating income or expense | ✗ Interest expense (0.99) | ✗ Interest expense (0.98) |
+| [JOBY AVIATION, INC. 2025](https://www.sec.gov/Archives/edgar/data/1819848/000181984826000160/0001819848-26-000160-index.htm): Operating expenses: → **Cost of Revenue** → Research and development | Other operating items | ✗ Cost of revenue (0.98) | ✗ Cost of revenue (0.95) |
+| [ROPER TECHNOLOGIES INC 2025](https://www.sec.gov/Archives/edgar/data/882835/000088283526000009/0000882835-26-000009-index.htm): Equity investments gain, net → **Other (income) expense, net** → Earnings before income taxes | Total non-operating income or expense | ✗ Other non-operating income or expense (0.63) | ✗ Other non-operating income or expense (0.85) |
+| [GREEN GIANT INC. 2023](https://www.sec.gov/Archives/edgar/data/1158420/000121390023099290/0001213900-23-099290-index.htm): Inventory → **Other assets** → Prepayment | Other current assets | ✗ Other non-current assets (0.64) | ✗ Other non-current assets (0.79) |
 <!-- end -->
 
 ## 6. Cost and speed

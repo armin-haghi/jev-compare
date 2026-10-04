@@ -2,7 +2,7 @@
 
 This repository compares Jev, TypeSafe's model that answers a fixed question by choosing from predefined answers, with a conventional language model and programmed rules on repeated finance data-management decisions. Each study reports one case; the methodology applies to other cases.
 
-**Latest study:** statement mapping, run of 2 October 2026 — [summary](reports/statement-mapping-2026-10-02/summary.md), [detailed report](reports/statement-mapping-2026-10-02/report.md), [appendix: methods and data](reports/statement-mapping-2026-10-02/appendix.md).
+**Latest study:** statement mapping, runs of 4 October 2026 — [summary](reports/statement-mapping-2026-10-04/summary.md), [detailed report](reports/statement-mapping-2026-10-04/report.md), [appendix: methods and data](reports/statement-mapping-2026-10-04/appendix.md). Earlier study: [2 October 2026](reports/statement-mapping-2026-10-02/summary.md).
 
 | Document | Purpose |
 | --- | --- |

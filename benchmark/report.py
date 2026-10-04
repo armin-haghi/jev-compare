@@ -181,7 +181,7 @@ class Study:
 
     def prices(self, args):
         return table(["Model", "Per million input tokens", "Per million output tokens", "Price date", "Source"], [
-            [MODELS.get(p["model"], p["model"]), usd(p["input_per_million"]), usd(p["output_per_million"]), p["effective_date"], p["source_url"]]
+            [self.evidence["model_names"].get(p["model"]) or MODELS.get(p["model"], p["model"]), usd(p["input_per_million"]), usd(p["output_per_million"]), p["effective_date"], p["source_url"]]
             for p in self.evidence["prices"]])
 
     def scope(self, args):
@@ -189,7 +189,7 @@ class Study:
         return table(["Step", "Lines", "Share of all lines"], [
             [step, n(s[k]), pct(s[k], s["all_lines"])] for step, k in (
                 ("Income-statement and balance-sheet lines in the selected filings", "all_lines"),
-                ("In scope: tag on the template list, standard taxonomy, one consolidated USD value", "in_scope_before_repeats"),
+                ("In scope: a standard tag on the case's lists and one consolidated USD value", "in_scope_before_repeats"),
                 ("After removing repeats of the same wording by the same company", "in_scope"),
                 ("Sampled", "sampled"))])
 
@@ -234,7 +234,8 @@ class Study:
             row = reference.loc[record_id]
             line, source = json.loads(row.input_json), json.loads(row.source_json)
             context = line.get("lines_above", [])[-1:] + [f"**{line['label']}**"] + line.get("lines_below", [])[:1]
-            rows.append([f"{source['name']} {source['fy']}: " + " → ".join(context), self.label(row.reference)] +
+            filing = f"https://www.sec.gov/Archives/edgar/data/{int(source['cik'])}/{source['adsh'].replace('-', '')}/{source['adsh']}-index.htm"
+            rows.append([f"[{source['name']} {source['fy']}]({filing}): " + " → ".join(context), self.label(row.reference)] +
                         [f"{'✓' if a.correct else '✗'} {self.label(a.prediction)} ({a.confidence:.2f})"
                          for m in models for a in [answers[m].loc[record_id]]])
         return table(["Company: line in context", "Answer key"] + [self.name(r, m) for m in models], rows)
@@ -318,8 +319,9 @@ class Study:
         r = self.regime(args)
         series = [(self.name(r, m), [(b["mean_confidence"], b["correct"] / b["answers"]) for b in r["confidence"][m]["bands"] if b["answers"] >= 20])
                   for m in self.models(r)]
+        low = min([.5] + [int(v * 10) / 10 for _, points in series for point in points for v in point])
         return self.line_chart("calibration", "Line chart: stated confidence against the share of answers that were correct, per model, with the line where they are equal", series, "Stated confidence (bands with at least 20 answers)", "Share correct",
-                               (.5, 1, .1), (.5, 1, .1), lambda v: f"{v:.1f}", lambda v: f"{v:.0%}", diagonal=True)
+                               (low, 1, .1), (low, 1, .1), lambda v: f"{v:.1f}", lambda v: f"{v:.0%}", diagonal=True)
 
     def chart_errors(self, args):
         r = self.regime(args)
