@@ -2,7 +2,6 @@ import importlib
 import json
 import random
 import shutil
-import subprocess
 import time
 import threading
 from concurrent.futures import ThreadPoolExecutor, wait, FIRST_COMPLETED
@@ -15,21 +14,14 @@ import requests
 import yaml
 
 from benchmark.config import digest, file_hash, json_write, load_case, read_yaml, resolve
+from benchmark.metrics import write_evidence
 from benchmark.pricing import Budget, BudgetExceeded, lookup
-from benchmark.runtime import Runtime, CallFailed, require_key, jev_client, chat_client
+from benchmark.runtime import GATEWAY, Runtime, CallFailed, require_key, jev_client
 from benchmark.sampling import samples
 from benchmark.schemas import MethodResult
 
 
-METHODS = {
-    "rules_baseline": ("rules_baseline", "rules"),
-    "direct_llm": ("direct_llm", "direct"),
-    "decomposed_llm_matrix": ("decomposed_llm", "matrix"),
-    "decomposed_llm_parallel": ("decomposed_llm", "parallel"),
-    "jev_direct": ("jev_direct", "direct"),
-    "jev_composite_concurrent": ("jev_composite", "concurrent"),
-    "jev_composite_fanout": ("jev_composite", "fanout"),
-}
+METHODS = ("rules_baseline", "direct_llm", "jev_direct")  # each is a module in benchmark/methods
 
 
 def expand_methods(config):
@@ -37,16 +29,15 @@ def expand_methods(config):
     for name in config["methods"]:
         if name not in METHODS:
             raise ValueError(f"Unknown method: {name}")
-        module, strategy = METHODS[name]
         if "llm" in name:
             for tier in config.get("llm_tiers", ["small", "frontier"]):
                 if tier not in ("small", "frontier"):
                     raise ValueError(f"Unknown language-model tier: {tier}")
                 result.append(config["conventional_llm"][tier] |
-                              {"method": f"{name}_{tier}", "base_method": name, "module": module, "strategy": strategy, "tier": tier})
+                              {"method": f"{name}_{tier}", "base_method": name, "tier": tier})
         else:
             result.append((config["jev"] if name.startswith("jev") else {"provider": "rules", "model": "rules-v1"}) |
-                          {"method": name, "base_method": name, "module": module, "strategy": strategy})
+                          {"method": name, "base_method": name})
     return result
 
 
@@ -72,7 +63,7 @@ def preflight(config, methods, prices):
     metadata = {"temperature_policy": {m["method"]: m.get("temperature") for m in methods}}
     gateway_models = {m["model"] for m in methods if m["provider"] == "vercel"}
     if gateway_models:
-        response = requests.get("https://ai-gateway.vercel.sh/v1/models", timeout=60)
+        response = requests.get(f"{GATEWAY}/models", timeout=60)
         response.raise_for_status()
         catalog = {m["id"]: m for m in response.json()["data"]}
         if gateway_models - catalog.keys():
@@ -94,14 +85,6 @@ def preflight(config, methods, prices):
     return metadata
 
 
-def check_small_gate(root, fingerprint):
-    for status_file in root.glob("*/status.json"):
-        status = json.loads(status_file.read_text())
-        if status.get("profile") == "small" and status.get("mode") == "benchmark" and status.get("complete") and status.get("mechanism_verified") and status.get("fingerprint") == fingerprint:
-            return str(status_file.parent)
-    raise ValueError("Full profile requires a completed small profile with matching code, configuration and dataset")
-
-
 def workload(config, profile="small", smoke_per_line=None):
     case = load_case(config["case"])
     case_config = read_yaml(config["case_config"])
@@ -109,19 +92,14 @@ def workload(config, profile="small", smoke_per_line=None):
     chosen = samples(records, config, profile, smoke_per_line)
     repeats = {r.record_id for r in chosen["repeat"]}
     shuffles = {r.record_id for r in chosen["shuffle"]}
+    evaluations = sum((1 + (config["profiles"][profile]["repeat_count"]-1 if r.record_id in repeats else 0)
+                       + int(r.record_id in shuffles)) * len(config["context_regimes"]) for r in chosen["main"])
     output = []
     for method in expand_methods(config):
-        composite = "composite" in method["base_method"] or "decomposed" in method["base_method"]
-        calls, evaluations = 0, 0
-        for record in chosen["composite" if composite else "main"]:
-            multiplier = 1 + (config["profiles"][profile]["repeat_count"]-1 if record.record_id in repeats else 0) + int(record.record_id in shuffles)
-            multiplier *= len(config["context_regimes"])
-            per_record = 2 * len(case.candidates(record, case_config)) if method["strategy"] in ("parallel", "concurrent") else 1
-            calls += multiplier * per_record if method["provider"] != "rules" else 0
-            evaluations += multiplier
+        calls = evaluations if method["provider"] != "rules" else 0
         output.append({"method": method["method"], "evaluations": evaluations, "requests_before_retries": calls,
                        "maximum_requests": calls * config.get("attempts", 3)})
-    return {"profile": profile, "main_records": len(chosen["main"]), "composite_records": len(chosen["composite"]),
+    return {"profile": profile, "main_records": len(chosen["main"]),
             "methods": output, "requests_before_retries": sum(m["requests_before_retries"] for m in output)}
 
 
@@ -152,13 +130,11 @@ def run(config, profile="small", budget_usd=None, smoke_per_line=None, results_r
     config = resolve(config)
     if not 1 <= config.get("attempts", 3) <= 3:
         raise ValueError("attempts must be between one and three")
-    if config.get("question_concurrency", 8) < 1:
-        raise ValueError("question_concurrency must be positive")
     if not config["methods"] or not config["context_regimes"]:
         raise ValueError("Methods and context regimes cannot be empty")
     for name, settings in config["profiles"].items():
         if any(not isinstance(settings[k], int) or settings[k] < 1 for k in
-               ("records_per_line", "composite_records", "repeat_records", "repeat_count", "shuffle_records")):
+               ("records_per_line", "repeat_records", "repeat_count", "shuffle_records")):
             raise ValueError(f"Profile sizes must be positive integers: {name}")
     if not isinstance(config.get("record_concurrency", 1), int) or not 1 <= config.get("record_concurrency", 1) <= 16:
         raise ValueError("record_concurrency must be an integer between 1 and 16")
@@ -186,10 +162,8 @@ def run(config, profile="small", budget_usd=None, smoke_per_line=None, results_r
         artifact = Path(case_config.get("sic_file", case_root / filename)) if key == "sic_sha256" else case_root / filename
         if key in dataset_manifest and file_hash(artifact) != dataset_manifest[key]:
             raise ValueError(f"{filename} changed after dataset preparation")
-    fingerprint = digest({"freeze": frozen["sha256"], "dataset": actual_hash})
     root = Path(results_root)
     mode = "fixture" if runtime_factory else "smoke" if smoke_per_line is not None else "benchmark"
-    predecessor = check_small_gate(root, fingerprint) if profile == "full" and mode == "benchmark" else None
     paid = any(m["provider"] != "rules" for m in methods)
     if paid and budget_usd is None:
         raise ValueError("Paid execution requires --budget-usd")
@@ -221,15 +195,13 @@ def run(config, profile="small", budget_usd=None, smoke_per_line=None, results_r
     rows = []
     journal_lock = threading.Lock()
     stop = threading.Event()
-    status = {"profile": profile, "mode": mode, "fingerprint": fingerprint, "complete": False,
-              "small_predecessor": predecessor, "run_id": run_id}
+    status = {"profile": profile, "mode": mode, "complete": False, "run_id": run_id, "dataset_sha256": actual_hash}
     json_write(folder / "status.json", status)
     repeat_ids = {r.record_id for r in chosen["repeat"]}
     shuffle_ids = {r.record_id for r in chosen["shuffle"]}
     try:
         with (folder / "predictions.jsonl").open("a") as journal:
             for method in methods:
-                is_composite = "composite" in method["base_method"] or "decomposed" in method["base_method"]
                 def predict_record(record):
                     for regime in config["context_regimes"]:
                         jobs = [(0, False)]
@@ -250,7 +222,6 @@ def run(config, profile="small", budget_usd=None, smoke_per_line=None, results_r
                                 random.Random(f"{config['seed']}|{record.record_id}").shuffle(candidates)
                             call_config = {**method, "case": config["case"], "prompts": prompts,
                                            "attempts": config.get("attempts", 3),
-                                           "question_concurrency": config.get("question_concurrency", 8),
                                            "timeout_seconds": config.get("timeout_seconds", 120)}
                             runtime = None
                             if method["provider"] != "rules":
@@ -260,7 +231,7 @@ def run(config, profile="small", budget_usd=None, smoke_per_line=None, results_r
                             before = time.perf_counter()
                             failed, error_type, exhausted, fatal_error = False, None, False, None
                             try:
-                                module = importlib.import_module(f"benchmark.methods.{method['module']}")
+                                module = importlib.import_module(f"benchmark.methods.{method['base_method']}")
                                 result = MethodResult.model_validate(module.predict(payload, candidates, case_config, call_config))
                                 if result.prediction not in {c["id"] for c in candidates} and not (method["provider"] == "rules" and result.prediction == "ABSTAIN"):
                                     raise ValueError("Prediction is outside the candidate set")
@@ -280,7 +251,7 @@ def run(config, profile="small", budget_usd=None, smoke_per_line=None, results_r
                                 runtime.close()
                             diagnostics = result.diagnostics | {"calls": usage.pop("calls"), "error_type": error_type}
                             row = {"record_id": record.record_id, "case_id": record.case_id, "profile": profile,
-                                   "context_regime": regime, "method": method["method"], "strategy": method["strategy"],
+                                   "context_regime": regime, "method": method["method"],
                                    "model": method["model"], "repeat_index": repeat, "shuffled": shuffled,
                                    "prediction": result.prediction, "confidence": result.confidence,
                                    "confidence_kind": result.confidence_kind,
@@ -303,12 +274,9 @@ def run(config, profile="small", budget_usd=None, smoke_per_line=None, results_r
                                 stop.set()
                                 raise fatal_error
                     print(f"{method['method']}: {record.record_id[:12]} ({len(rows)} outputs)", flush=True)
-                execute_records(predict_record, chosen["composite" if is_composite else "main"], config.get("record_concurrency", 1))
+                execute_records(predict_record, chosen["main"], config.get("record_concurrency", 1))
         status["complete"] = True
     finally:
-        successful = {(r["method"], r["context_regime"]) for r in rows if not r["failed"] and r["shuffled"]}
-        required = {(m["method"], c) for m in methods for c in config["context_regimes"]}
-        status["mechanism_verified"] = status["complete"] and required <= successful
         status["wall_time_seconds"] = time.perf_counter() - start
         status["conservative_budget_used_usd"] = budget.spent
         status["known_list_price_cost_usd"] = sum(row.get("known_cost_usd", 0) for row in rows)
@@ -327,6 +295,5 @@ def run(config, profile="small", budget_usd=None, smoke_per_line=None, results_r
             provider_metadata["returned_model_ids"] = {key: sorted(names) for key, names in returned.items()}
             provider_metadata["version_limit"] = "Gateway aliases may echo the requested name without exposing immutable underlying weights."
             json_write(folder / "provider_metadata.json", provider_metadata)
-    from benchmark.reporting import report
-    report(folder)
+    write_evidence(folder)
     return folder

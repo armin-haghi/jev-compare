@@ -1,6 +1,5 @@
-from pathlib import Path
 import pandas as pd
-from benchmark.config import load_case, read_yaml
+from benchmark.config import load_case
 from cases.sec_lines.dataset import records_from_tables, finalise, quarters
 from cases.sec_lines.template import mapping, template
 
@@ -59,6 +58,6 @@ def test_latest_filer_label_wins():
     old.record_id = "older"
     old.source["fy"] = "2021"
     excluded = []
-    kept, _ = finalise(records + [old], excluded)
+    kept, _, _ = finalise(records + [old], excluded)
     assert len(kept) == 3
     assert excluded[0]["record_id"] == "older"

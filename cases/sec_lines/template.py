@@ -38,3 +38,11 @@ def candidates(record, case_config):
         for index, line in enumerate(template()["lines"])
         if line["statement"] == record.input["statement"]
     ]
+
+
+def labels():
+    return {line["id"]: line["label"] for line in template()["lines"]}
+
+
+def is_correct(prediction, reference, case_config):
+    return prediction == reference

@@ -163,7 +163,22 @@ def records_from_tables(sub, pre, num, tags, config):
     return records, excluded, unmapped
 
 
+def company_consistency(records):
+    """How often a company maps the same wording to the same category in different filings.
+
+    Wording that appears more than once in one filing is skipped: those lines differ by position.
+    """
+    filings = defaultdict(lambda: defaultdict(list))
+    for r in records:
+        key = (str(r.source["cik"]), r.input["statement"], normalize(r.input["label"]))
+        filings[key][r.source["adsh"]].append(r.reference)
+    repeated = [f for f in filings.values() if len(f) > 1 and all(len(v) == 1 for v in f.values())]
+    return {"company_wordings_in_several_filings": len(repeated),
+            "changed_category": sum(len({v[0] for v in f.values()}) > 1 for f in repeated)}
+
+
 def finalise(records, excluded):
+    consistency = company_consistency(records)
     # Ties resolve by period, accession and stable id, independent of input order.
     records.sort(key=lambda r: (int(r.source["fy"]), str(r.source["period"]), r.source["adsh"], r.record_id), reverse=True)
     seen, kept = set(), []
@@ -190,7 +205,7 @@ def finalise(records, excluded):
             record.groups["filer_split"] = str(flag).lower()
             result = rules(build_payload(record, "with_context", {}), candidates(record, {}), {})
             record.groups["baseline_miss"] = str(result.prediction != record.reference).lower()
-    return sorted(kept, key=lambda r: r.record_id), splits
+    return sorted(kept, key=lambda r: r.record_id), splits, consistency
 
 
 def save_records(path, records):
@@ -211,7 +226,7 @@ def prepare(case_config):
     output.mkdir(parents=True, exist_ok=True)
     sic_path = Path(config["sic_file"])
     if not sic_path.exists():
-        from scripts.fetch_sic import fetch
+        from .sic import fetch
         fetch(os.environ.get("SEC_USER_AGENT", ""), sic_path)
     all_records, excluded, unmapped, sources = [], [], Counter(), []
     for quarter in quarters(config["quarter_start"], config["quarter_end"]):
@@ -222,7 +237,7 @@ def prepare(case_config):
         unmapped.update(counts)
         sources.append({"quarter": quarter, "sha256": file_hash(path), "bytes": path.stat().st_size})
         print(f"{quarter}: {len(records)} eligible before deduplication", flush=True)
-    records, splits = finalise(all_records, excluded)
+    records, splits, consistency = finalise(all_records, excluded)
     save_records(output / "eligible_records.parquet", records)
     pd.DataFrame(excluded or [], columns=None if excluded else ["record_id", "exclusion_reason"]).to_parquet(output / "excluded_records.parquet", index=False)
     pd.DataFrame(splits, columns=["statement", "normalized_label", "reference", "filers", "total_filers", "share", "filer_split"]).to_parquet(output / "label_splits.parquet", index=False)
@@ -243,6 +258,7 @@ def prepare(case_config):
         "case": "sec_lines", "retrieved_at": datetime.now(timezone.utc).isoformat(),
         "sources": sources, "filters": config, "records": len(records),
         "excluded": len(excluded), "exclusion_counts": dict(Counter(r["exclusion_reason"] for r in excluded)),
+        "answer_key_consistency": consistency,
         "dataset_sha256": file_hash(output / "eligible_records.parquet"),
         "template_sha256": file_hash(ROOT / "template.yaml"), "sic_sha256": file_hash(sic_path),
         "limitations": ["Filed tags are a proxy answer key, not independently audited truth.",

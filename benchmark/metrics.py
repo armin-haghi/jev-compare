@@ -1,215 +1,152 @@
-"""Metrics consume stored predictions; no provider calls or case imports."""
+"""Every number the reports use, computed from a run's saved results. No provider calls or case imports."""
 import json
-import math
-from collections import defaultdict
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
 
+from benchmark.config import file_hash, json_write, read_yaml
 
-def fraction(values):
-    return float(np.mean(values)) if len(values) else None
-
-
-def coverage(rows, levels=(1, .9, .8, .7, .5)):
-    ordered = rows.sort_values(["confidence", "record_id"], ascending=[False, True], kind="stable")
-    output = []
-    for level in levels:
-        count = max(1, math.ceil(len(rows) * level)) if len(rows) else 0
-        retained = ordered.head(count)
-        output.append({"target_coverage": level, "coverage": count / len(rows) if len(rows) else 0,
-                       "accuracy": fraction(retained.correct), "records": count})
-    return output
+CUTOFFS = (.99, .95, .9, .8, 0.)
 
 
-def calibration(rows, bins=10):
-    eligible = rows[rows.probability_of_prediction.notna() & ~rows.failed]
-    if eligible.empty:
-        return {"available": False, "records": 0}
-    p = eligible.probability_of_prediction.to_numpy(dtype=float)
-    y = eligible.correct.to_numpy(dtype=float)
-    assigned = np.minimum((p * bins).astype(int), bins - 1)
-    ece, bucket_rows = 0., []
-    for bucket in range(bins):
-        mask = assigned == bucket
-        if not mask.any():
-            continue
-        confidence, accuracy = float(p[mask].mean()), float(y[mask].mean())
-        ece += float(mask.mean()) * abs(confidence - accuracy)
-        bucket_rows.append({"lower": bucket / bins, "upper": (bucket + 1) / bins,
-                            "records": int(mask.sum()), "mean_probability": confidence, "accuracy": accuracy})
-    return {"available": True, "records": len(eligible), "excluded_records": len(rows) - len(eligible),
-            "selected_answer_brier": float(np.mean((p-y)**2)), "expected_calibration_error": ece,
-            "bins": bucket_rows}
+def is_model(method):
+    return method == "jev_direct" or method.startswith("direct_llm")
 
 
-def pairwise(left, right, seed=20261001, draws=2000):
+def first_answers(rows):
+    return rows[(rows.repeat_index == 0) & ~rows.shuffled]
+
+
+def consistency(rows):
+    """Answers that changed when a record was asked again, or with its options reordered."""
+    repeats = [g for _, g in rows[~rows.shuffled].groupby("record_id") if len(g) > 1]
+    reorders = rows[rows.shuffled].merge(first_answers(rows), on="record_id", suffixes=("", "_first"))
+    return {"repeats": {"records": len(repeats), "failed": sum(bool(g.failed.any()) for g in repeats),
+                        "changed": sum(g.prediction.nunique() > 1 for g in repeats if not g.failed.any())},
+            "reorders": {"records": len(reorders), "failed": int((reorders.failed | reorders.failed_first).sum()),
+                         "changed": int(((reorders.prediction != reorders.prediction_first)
+                                         & ~reorders.failed & ~reorders.failed_first).sum())}}
+
+
+def results(rows):
+    first = first_answers(rows)
+    answered = first.prediction != "ABSTAIN"
+    known = bool(first.usage_complete.all() and first.cost_usd.notna().all())
+    calls = int(first.request_count.sum())
+    per_call = lambda column: float(first[column].sum() / calls) if known and calls else None
+    return {"model": first.iloc[0].model, "records": len(first), "correct": int(first.correct.sum()),
+            "failed": int(first.failed.sum()), "answered": int(answered.sum()),
+            "answered_correct": int(first.correct[answered].sum()), "requests": calls,
+            "cost_per_1000_usd": float(first.cost_usd.sum() / len(first) * 1000) if known else None,
+            "input_tokens_per_call": per_call("input_tokens"), "output_tokens_per_call": per_call("output_tokens"),
+            "median_seconds": float(first.latency_ms.median() / 1000),
+            "p95_seconds": float(first.latency_ms.quantile(.95) / 1000), **consistency(rows)}
+
+
+def confidence(first):
+    c, ok = first.confidence.to_numpy(float), first.correct.to_numpy(bool)
+    band = np.minimum((c * 10).astype(int), 9)
+    bands = [{"from": b / 10, "to": (b + 1) / 10, "answers": int((band == b).sum()),
+              "mean_confidence": float(c[band == b].mean()), "correct": int(ok[band == b].sum())}
+             for b in range(10) if (band == b).any()]
+    return {"cutoffs": [{"cutoff": t, "answers": int((c >= t).sum()), "incorrect": int(((c >= t) & ~ok).sum())}
+                        for t in CUTOFFS],
+            "bands": bands,
+            "calibration_gap": sum(b["answers"] * abs(b["mean_confidence"] - b["correct"] / b["answers"])
+                                   for b in bands) / len(c)}
+
+
+def pair(left, right):
     joined = left.merge(right, on="record_id", suffixes=("_left", "_right"), validate="one_to_one")
-    if joined.empty:
-        return {"records": 0, "available": False}
-    delta = joined.correct_left.to_numpy(dtype=float) - joined.correct_right.to_numpy(dtype=float)
-    rng = np.random.default_rng(seed)
-    # Bounded batches avoid an O(draws * corpus size) allocation.
-    row_samples = [float(delta[rng.integers(0, len(delta), len(delta))].mean()) for _ in range(draws)]
-    clusters = defaultdict(list)
-    for i, source in enumerate(joined.source_json_left):
-        clusters[str(json.loads(source).get("cik", joined.iloc[i].record_id))].append(delta[i])
-    totals = np.array([sum(v) for v in clusters.values()])
-    counts = np.array([len(v) for v in clusters.values()])
-    cluster_samples = []
-    for _ in range(draws):
-        indices = rng.integers(0, len(totals), len(totals))
-        cluster_samples.append(float(totals[indices].sum() / counts[indices].sum()))
-    a, b = int(np.sum(delta == 1)), int(np.sum(delta == -1))
-    discordant = a+b
-    if discordant:
-        k = min(a, b)
-        logs = [math.lgamma(discordant+1) - math.lgamma(i+1) - math.lgamma(discordant-i+1)
-                - discordant * math.log(2) for i in range(k+1)]
-        maximum = max(logs)
-        p_value = min(1., 2 * math.exp(maximum) * sum(math.exp(x-maximum) for x in logs))
-    else:
-        p_value = 1.
-    return {"available": True, "records": len(delta), "filers": len(clusters),
-            "accuracy_difference": float(delta.mean()),
-            "paired_bootstrap_95": [float(x) for x in np.quantile(row_samples, [.025, .975])],
-            "filer_cluster_bootstrap_95": [float(x) for x in np.quantile(cluster_samples, [.025, .975])],
-            "mcnemar_exact_p": p_value, "left_only_correct": a, "right_only_correct": b}
+    a, b = joined.correct_left.astype(bool), joined.correct_right.astype(bool)
+    return {"records": len(joined), "both_correct": int((a & b).sum()), "both_incorrect": int((~a & ~b).sum()),
+            "left_only_correct": int((a & ~b).sum()), "right_only_correct": int((~a & b).sum())}
 
 
-def distribution_agreement(rows, splits):
-    if splits is None or splits.empty:
-        return {"available": False, "reason": "No label-distribution artifact", "records": 0}
-    targets = {}
-    for (statement, label), group in splits.groupby(["statement", "normalized_label"]):
-        targets[(statement, label)] = dict(zip(group.reference, group.share))
-    differences = []
-    for row in rows.itertuples():
-        groups = json.loads(row.groups_json)
-        if groups.get("filer_split") != "true" or row.failed:
-            continue
-        observed = targets.get((groups.get("statement"), groups.get("normalized_label")))
-        predicted = json.loads(row.diagnostics_json).get("distribution")
-        if observed is None or predicted is None:
-            continue
-        ids = set(observed) | set(predicted)
-        differences.append(sum(abs(observed.get(k, 0) - predicted.get(k, 0)) for k in ids) / len(ids))
-    return {"available": bool(differences), "records": len(differences),
-            "mean_absolute_difference": fraction(differences),
-            "interpretation": "Descriptive agreement with population label shares, not individual probability calibration"}
+def routing(jev, other):
+    joined = jev.merge(other, on="record_id", suffixes=("_jev", "_other"))
+    return [{"cutoff": t, "records": int(below.sum()), "jev_correct": int(joined.correct_jev[below].sum()),
+             "other_correct": int(joined.correct_other[below].sum())}
+            for t in CUTOFFS[1:-1] for below in [joined.confidence_jev < t]]
 
 
-def metric_group(all_rows, splits, expected_repeats):
-    rows = all_rows[(all_rows.repeat_index == 0) & ~all_rows.shuffled]
-    groups = defaultdict(list)
-    for row in rows.itertuples():
-        for dimension, value in json.loads(row.groups_json).items():
-            if dimension != "normalized_label":
-                groups[(dimension, value)].append(bool(row.correct))
-    confusion = rows.groupby(["reference", "prediction"]).size().reset_index(name="records").to_dict("records")
-    repeated = all_rows[~all_rows.shuffled].groupby("record_id")
-    changes, ranges, incomplete = [], [], 0
-    for _, group in repeated:
-        if len(group) < 2:
+def wording_groups(first, splits):
+    """Whether each record's answer key is the usual choice of other companies using the same wording."""
+    counts = {key: dict(zip(g.reference, g.filers)) for key, g in splits.groupby(["statement", "normalized_label"])}
+    groups, agreement = {}, []
+    for row in first.itertuples():
+        g = json.loads(row.groups_json)
+        others = dict(counts.get((g.get("statement"), g.get("normalized_label")), {}))
+        others[row.reference] = others.get(row.reference, 0) - 1
+        total = sum(others.values())
+        if total <= 0:
+            groups[row.record_id] = "new"
             continue
-        if len(group) != expected_repeats or group.failed.any():
-            incomplete += 1
-            continue
-        changes.append(group.prediction.nunique() > 1)
-        ranges.append(float(group.confidence.max() - group.confidence.min()))
-    shuffled = all_rows[all_rows.shuffled].merge(rows, on="record_id", suffixes=("_shuffle", "_original"), validate="one_to_one")
-    valid_shuffles = shuffled[~shuffled.failed_shuffle & ~shuffled.failed_original] if len(shuffled) else shuffled
-    diagnostics = [json.loads(s) for s in rows.diagnostics_json]
-    known_cost = bool(all_rows.usage_complete.all()) and bool(all_rows.cost_usd.notna().all())
-    base_cost_known = bool(rows.usage_complete.all()) and bool(rows.cost_usd.notna().all())
-    expected = [d["expected_variant"] for d in diagnostics if "expected_variant" in d]
-    expected_correct = [d["expected_variant"]["prediction"] == row.reference
-                        for d, row in zip(diagnostics, rows.itertuples()) if "expected_variant" in d]
+        usual = max(others.items(), key=lambda kv: (kv[1], kv[0]))[0]
+        groups[row.record_id] = "usual" if usual == row.reference else "unusual"
+        agreement.append(others.get(row.reference, 0) / total)
+    return groups, agreement
+
+
+def regime(rows, splits):
+    first = first_answers(rows)
+    methods = {m: results(g) for m, g in rows.groupby("method")}
+    models = sorted((m for m in methods if is_model(m)), key=lambda m: (m != "jev_direct", m))
+    answers = {m: first[first.method == m] for m in models + ["rules_baseline"] if m in methods}
+    out = {"methods": methods,
+           "confidence": {m: confidence(answers[m]) for m in models},
+           "categories": {m: {c: [len(g), int(g.correct.sum())] for c, g in a.groupby("reference")} for m, a in answers.items()},
+           "pairs": {}, "routing": {}}
+    if "jev_direct" not in models:
+        return out
+    jev = answers["jev_direct"]
+    for m in models[1:]:
+        out["pairs"][m] = pair(jev, answers[m])
+        out["routing"][m] = routing(jev, answers[m])
+    if splits is not None and "normalized_label" in json.loads(first.iloc[0].groups_json):
+        groups, agreement = wording_groups(jev, splits)
+        counts = lambda a: {k: [int((g == k).sum()), int((g[a.correct.to_numpy()] == k).sum())] for k in ("usual", "unusual", "new")
+                            for g in [a.record_id.map(groups)]}
+        out["wording"] = {"other_company_agreement": float(np.mean(agreement)), "records_with_other_companies": len(agreement),
+                          "groups": {m: counts(answers[m]) for m in models}}
+    return out
+
+
+def compute(folder):
+    folder = Path(folder)
+    rows = pd.read_parquet(folder / "predictions.parquet")
+    split_file = folder / "label_splits.parquet"
+    splits = pd.read_parquet(split_file) if split_file.exists() else None
+    status = json.loads((folder / "status.json").read_text())
+    manifest = json.loads((folder / "dataset_manifest.json").read_text())
+    sample = json.loads((folder / "sample_manifest.json").read_text())
+    prices = read_yaml(folder / "pricing.yaml")["prices"]
+    config = read_yaml(folder / "resolved_config.yaml")
+    first = first_answers(rows).drop_duplicates("record_id")
+    sources = [json.loads(s) for s in first.source_json]
+    groups = [json.loads(g) for g in first.groups_json]
+    excluded = manifest.get("exclusion_counts", {})
     return {
-        "records": len(rows), "accuracy": fraction(rows.correct), "failure_rate": fraction(rows.failed),
-        "baseline_coverage": fraction(rows.prediction != "ABSTAIN"),
-        "tie_rate": fraction([bool(d.get("ties")) for d in diagnostics]),
-        "by_group": [{"dimension": key[0], "value": key[1], "records": len(values), "accuracy": fraction(values)}
-                     for key, values in sorted(groups.items())],
-        "confusion_matrix": confusion, "confidence_coverage": coverage(rows),
-        "calibration": calibration(rows), "distribution_agreement": distribution_agreement(rows, splits),
-        "repeatability": {"records": len(changes), "incomplete_or_failed": incomplete,
-                          "all_predictions_same": 1 - fraction(changes) if changes else None,
-                          "at_least_one_change": fraction(changes), "mean_confidence_range": fraction(ranges)},
-        "option_order": {"records": len(valid_shuffles), "attempted_records": len(shuffled),
-                         "failed_pairs": len(shuffled) - len(valid_shuffles),
-                         "prediction_change_rate": fraction(valid_shuffles.prediction_shuffle != valid_shuffles.prediction_original) if len(valid_shuffles) else None},
-        "latency_ms": {"median": float(rows.latency_ms.median()), "p95": float(rows.latency_ms.quantile(.95))},
-        "total_method_wall_seconds": float(all_rows.latency_ms.sum() / 1000),
-        "usage": {"request_count": int(all_rows.request_count.sum()), "complete": known_cost,
-                  "input_tokens": int(all_rows.input_tokens.sum()) if known_cost else None,
-                  "output_tokens": int(all_rows.output_tokens.sum()) if known_cost else None},
-        "cost": {"basis": "uncached list-price estimate; failed unknown usage remains unknown",
-                 "total_usd": float(all_rows.cost_usd.sum()) if known_cost else None,
-                 "known_usd_lower_bound": float(all_rows.known_cost_usd.sum()) if "known_cost_usd" in all_rows else float(all_rows.cost_usd.sum()),
-                 "base_cost_per_record": float(rows.cost_usd.sum() / len(rows)) if base_cost_known and len(rows) else None,
-                 "base_cost_per_1000": float(rows.cost_usd.sum() / len(rows) * 1000) if base_cost_known and len(rows) else None},
-        "expected_score_variant": {"records_with_scores": len(expected),
-                                   "accuracy": sum(expected_correct) / len(rows) if len(rows) and str(rows.iloc[0].method).startswith("jev_composite") else None}
+        "run": {"id": folder.name, "mode": status["mode"], "profile": status["profile"], "complete": status["complete"],
+                "outputs": len(rows), "requests": int(rows.request_count.sum()), "failed_outputs": int(rows.failed.sum()),
+                "unknown_usage_outputs": int((~rows.usage_complete).sum()),
+                "record_concurrency": config.get("record_concurrency", 1),
+                "predictions_sha256": file_hash(folder / "predictions.parquet")},
+        "dataset": {"scope": {"all_lines": manifest.get("records", 0) + manifest.get("excluded", 0),
+                              "in_scope_before_repeats": manifest.get("records", 0) + excluded.get("duplicate_filer_label", 0),
+                              "in_scope": manifest.get("records"), "sampled": len(sample["main"])},
+                    "repeat_records": len(sample["repeat"]), "reorder_records": len(sample["shuffle"]),
+                    "companies": len({str(s["cik"]) for s in sources if s.get("cik")}),
+                    "fiscal_years": sorted({g["fiscal_year"] for g in groups if g.get("fiscal_year")}),
+                    "statements": {k: sum(g.get("statement") == k for g in groups) for k in sorted({g.get("statement") for g in groups})},
+                    "answer_key_consistency": manifest.get("answer_key_consistency")},
+        "prices": [p for p in prices if p["model"] in set(rows.model)],
+        "regimes": {r: regime(g, splits) for r, g in rows.groupby("context_regime")},
     }
 
 
-def pass_rule(base, seed, draws):
-    jev = base[base.method == "jev_direct"]
-    llm_names = sorted(m for m in base.method.unique() if "llm" in m)
-    if jev.empty or not llm_names:
-        return {"outcome": "unavailable", "reason": "Jev direct and language model results are required"}
-    common = set(jev.record_id)
-    for method in llm_names:
-        common &= set(base[base.method == method].record_id)
-    if not common:
-        return {"outcome": "unavailable", "reason": "No common evaluated records"}
-    matched = base[base.record_id.isin(common)]
-    comparator = sorted(llm_names, key=lambda name: (-matched[matched.method == name].correct.mean(), name))[0]
-    left, right = matched[matched.method == "jev_direct"], matched[matched.method == comparator]
-    test = pairwise(left, right, seed, draws)
-    noninferior = test["filer_cluster_bootstrap_95"][0] >= -.02
-    higher_retained = coverage(left, [.8])[0]["accuracy"] > coverage(right, [.8])[0]["accuracy"]
-    price_known = left.usage_complete.all() and right.usage_complete.all() and left.cost_usd.notna().all() and right.cost_usd.notna().all()
-    ratio = float(left.cost_usd.sum() / right.cost_usd.sum()) if price_known and right.cost_usd.sum() > 0 else None
-    cheap = ratio <= .2 if ratio is not None else None
-    outcome = "pass" if noninferior and (cheap is True or higher_retained) else "fail"
-    if noninferior and not higher_retained and cheap is None:
-        outcome = "inconclusive"
-    return {"outcome": outcome, "records": len(common), "best_llm": comparator, "comparison": test,
-            "noninferior": noninferior, "cost_ratio": ratio, "at_most_one_fifth_cost": cheap,
-            "higher_accuracy_at_80_coverage": bool(higher_retained),
-            "limitations": ["Best comparator is selected on this sample; this is exploratory.",
-                            "Pass rule uses filer-cluster bootstrap on the common method intersection."]}
-
-
-def compute(rows, config, splits=None):
-    if rows.empty:
-        return {"methods": [], "pairwise": [], "pass_rule": {}}
-    repeats = config["profiles"][rows.iloc[0].profile]["repeat_count"]
-    methods = []
-    for (method, regime), group in rows.groupby(["method", "context_regime"]):
-        methods.append({"method": method, "context_regime": regime, "model": group.iloc[0].model,
-                        **metric_group(group, splits, repeats)})
-    base = rows[(rows.repeat_index == 0) & ~rows.shuffled]
-    pairs, rules, execution = [], {}, []
-    for regime, group in base.groupby("context_regime"):
-        jev = group[group.method == "jev_direct"]
-        for method in sorted(group.method.unique()):
-            if "llm" in method and not jev.empty:
-                pairs.append({"left": "jev_direct", "right": method, "context_regime": regime,
-                              **pairwise(jev, group[group.method == method], config["seed"], config.get("bootstrap_samples", 2000))})
-        rules[regime] = pass_rule(group, config["seed"], config.get("bootstrap_samples", 2000))
-        a = group[group.method == "jev_composite_concurrent"]
-        b = group[group.method == "jev_composite_fanout"]
-        matched = a.merge(b, on="record_id", suffixes=("_concurrent", "_fanout"))
-        if len(matched):
-            valid = matched[~matched.failed_concurrent & ~matched.failed_fanout]
-            components_same = []
-            for row in valid.itertuples():
-                x, y = json.loads(row.diagnostics_json_concurrent), json.loads(row.diagnostics_json_fanout)
-                components_same.append(all(x.get(k) == y.get(k) for k in ("wording", "position", "metadata")))
-            execution.append({"context_regime": regime, "records": len(valid), "failed_pairs": len(matched)-len(valid),
-                              "prediction_agreement": fraction(valid.prediction_concurrent == valid.prediction_fanout),
-                              "component_agreement": fraction(components_same)})
-    return {"methods": methods, "pairwise": pairs, "pass_rule": rules, "jev_execution_comparison": execution}
+def write_evidence(folder):
+    evidence = compute(folder)
+    json_write(Path(folder) / "evidence.json", evidence)
+    return evidence

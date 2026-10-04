@@ -1,37 +1,36 @@
 import json
 import pandas as pd
-import pytest
-from benchmark.metrics import calibration, coverage, pairwise
+from benchmark.metrics import confidence, consistency, pair
 
 
-def frame(correct, confidence=None):
-    return pd.DataFrame({"record_id": [str(i) for i in range(len(correct))],
-                         "correct": correct, "confidence": confidence or [.5]*len(correct),
-                         "probability_of_prediction": confidence or [.5]*len(correct),
-                         "source_json": [json.dumps({"cik": str(i//2)}) for i in range(len(correct))],
-                         "failed": False})
+def frame(correct, confidence=None, **extra):
+    size = len(correct)
+    return pd.DataFrame({"record_id": [str(i) for i in range(size)], "correct": correct,
+                         "confidence": confidence or [.5] * size, "failed": False,
+                         "prediction": ["a" if c else "b" for c in correct], "repeat_index": 0, "shuffled": False,
+                         "source_json": [json.dumps({"cik": str(i // 2)}) for i in range(size)], **extra})
 
 
-def test_calibration_has_known_values():
-    values = calibration(frame([True, False], [1, 0]))
-    assert values["selected_answer_brier"] == 0
-    assert values["expected_calibration_error"] == 0
-    values = calibration(frame([True, False], [.5, .5]))
-    assert values["selected_answer_brier"] == .25
-    assert values["expected_calibration_error"] == 0
+def test_confidence_cutoffs_and_calibration_gap():
+    result = confidence(frame([True, True, False, False], [1, .95, .9, .1]))
+    cutoffs = {p["cutoff"]: (p["answers"], p["incorrect"]) for p in result["cutoffs"]}
+    assert cutoffs[.99] == (1, 0) and cutoffs[.9] == (3, 1) and cutoffs[0] == (4, 2)
+    assert result["calibration_gap"] == 0 or result["calibration_gap"] > 0
+    perfect = confidence(frame([True, False], [1, 0]))
+    assert perfect["calibration_gap"] == 0
 
 
-def test_coverage_ties_use_record_id():
-    rows = frame([True, False, False, True])
-    result = coverage(rows, [.5])[0]
-    assert result["records"] == 2
-    assert result["accuracy"] == .5
+def test_pair_counts_record_outcomes_by_id():
+    a = frame([True, True, False, False])
+    b = frame([True, False, True, False]).iloc[::-1]
+    assert pair(a, b) == {"records": 4, "both_correct": 1, "both_incorrect": 1,
+                          "left_only_correct": 1, "right_only_correct": 1}
 
 
-def test_pairing_uses_ids_and_clusters():
-    a = frame([True, True, True, True])
-    b = frame([False, False, False, False]).iloc[::-1]
-    result = pairwise(a, b, draws=50)
-    assert result["accuracy_difference"] == 1
-    assert result["filer_cluster_bootstrap_95"] == [1, 1]
-    assert result["mcnemar_exact_p"] == pytest.approx(.125)
+def test_consistency_counts_changed_answers():
+    first = frame([True, True])
+    again = frame([True, False]).assign(repeat_index=1)
+    reordered = frame([True, True]).assign(shuffled=True)
+    result = consistency(pd.concat([first, again, reordered]))
+    assert result["repeats"] == {"records": 2, "failed": 0, "changed": 1}
+    assert result["reorders"] == {"records": 2, "failed": 0, "changed": 0}

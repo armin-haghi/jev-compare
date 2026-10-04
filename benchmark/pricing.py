@@ -1,6 +1,5 @@
 import math
 import threading
-from benchmark.config import read_yaml
 
 
 def lookup(prices, provider, model):

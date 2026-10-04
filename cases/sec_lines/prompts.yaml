@@ -6,27 +6,6 @@ direct_llm:
     Confidence is your estimate of the probability that the selected line is correct.
     Do not provide rationale.
 
-decomposed_llm:
-  system: >
-    Score every candidate template line independently on wording fit and position fit.
-    Use integer scores from 0 to 4 using the supplied rubric.
-    If the information needed for a dimension is missing, use 2 for that dimension.
-    Do not choose the final line and do not provide rationale.
-
 jev_direct:
   instructions: >
     Which template line does the statement line described in the state belong to?
-
-jev_composite:
-  wording: >
-    For candidate {candidate_id}, how well does the statement line's wording mean the same thing as the candidate?
-  position: >
-    For candidate {candidate_id}, how well does the statement line's place among its neighbouring lines fit the candidate?
-    If neighbouring lines are not supplied, choose the middle level.
-
-score_levels:
-  - Contradictory or no fit
-  - Weak fit
-  - Plausible fit or information missing
-  - Strong fit
-  - Direct fit

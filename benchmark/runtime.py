@@ -3,17 +3,16 @@ import json
 import os
 import threading
 import time
-from typing import Callable
 
-from langchain.chat_models import init_chat_model
+import requests
 from typesafe_sdk import RetryPolicy, TypeSafeClient
 
-from benchmark.pricing import BudgetExceeded, cost
+from benchmark.pricing import cost
 from benchmark.methods.common import validate_probabilities
 
 
-KEYS = {"vercel": "AI_GATEWAY_API_KEY", "openai": "OPENAI_API_KEY",
-        "anthropic": "ANTHROPIC_API_KEY", "typesafe": "TYPESAFE_API_KEY"}
+KEYS = {"vercel": "AI_GATEWAY_API_KEY", "typesafe": "TYPESAFE_API_KEY"}
+GATEWAY = "https://ai-gateway.vercel.sh/v1"
 
 
 def require_key(provider):
@@ -33,17 +32,11 @@ def jev_client(config):
     return TypeSafeClient(**kwargs)
 
 
-def chat_client(config):
-    provider = config["provider"]
-    kwargs = {"api_key": require_key(provider), "timeout": config.get("timeout_seconds", 120),
-              "max_retries": 0, "max_tokens": config.get("max_tokens", 4096)}
-    if config.get("temperature") is not None:
-        kwargs["temperature"] = config["temperature"]
-    if config.get("reasoning_effort"):
-        kwargs["reasoning_effort"] = config["reasoning_effort"]
-    if provider == "vercel":
-        kwargs["base_url"] = "https://ai-gateway.vercel.sh/v1"
-    return init_chat_model(config["model"], model_provider="openai" if provider == "vercel" else provider, **kwargs)
+class GatewayError(RuntimeError):
+    """An HTTP error status from the gateway; the status decides whether to retry."""
+    def __init__(self, status_code):
+        super().__init__(f"Gateway returned HTTP {status_code}")
+        self.status_code = status_code
 
 
 class CallFailed(RuntimeError):
@@ -63,9 +56,9 @@ def retryable(error):
 
 
 class Runtime:
-    def __init__(self, config, price, budget, chat=None, jev=None):
+    def __init__(self, config, price, budget, post=requests.post, jev=None):
         self.config, self.price, self.budget = config, price, budget
-        self.chat = chat
+        self.post = post
         self.jev_api = jev
         self.calls = []
         self.lock = threading.Lock()
@@ -94,9 +87,6 @@ class Runtime:
                 # Provider exception messages may contain headers; retain type/status only.
                 entry["error_type"] = type(error).__name__
                 entry["status_code"] = getattr(error, "status_code", getattr(error, "status", None))
-                if isinstance(error, RuntimeError) and "client has been closed" in str(error).lower():
-                    # Local transport refusal happens before any request is sent.
-                    entry.update(input_tokens=0, output_tokens=0, cost_usd=0.0, local_failure=True)
                 if not retryable(error) or attempt == self.config.get("attempts", 3) - 1:
                     raise CallFailed(f"Provider call failed: {type(error).__name__}", fatal=not retryable(error)) from error
             finally:
@@ -107,24 +97,28 @@ class Runtime:
             time.sleep(min(2 ** attempt, 4))
 
     def llm(self, system, payload, schema):
-        with self.lock:
-            if self.chat is None:
-                self.chat = chat_client(self.config)
+        """One chat completion through the Vercel AI Gateway; any gateway model works by name."""
+        key = require_key("vercel")
         schema_bytes = len(json.dumps(schema.model_json_schema()).encode())
         input_bound = len((system + json.dumps(payload)).encode()) + schema_bytes + 2048
         bound = cost({"input_tokens": input_bound, "output_tokens": self.config.get("max_tokens", 4096)}, self.price)
+        request = {"model": self.config["model"], "max_completion_tokens": self.config.get("max_tokens", 4096),
+                   "messages": [{"role": "system", "content": system},
+                                {"role": "user", "content": json.dumps(payload, sort_keys=True)}],
+                   "response_format": {"type": "json_schema", "json_schema": {
+                       "name": schema.__name__, "schema": schema.model_json_schema(), "strict": True}}}
+        request |= {key: self.config[key] for key in ("temperature", "reasoning_effort") if self.config.get(key) is not None}
 
         def execute():
-            response = self.chat.with_structured_output(schema, include_raw=True).invoke(
-                [("system", system), ("user", json.dumps(payload, sort_keys=True))])
-            raw = response["raw"].model_dump(mode="json")
-            usage = response["raw"].usage_metadata or {}
-            evidence = (raw, {"input_tokens": usage.get("input_tokens"), "output_tokens": usage.get("output_tokens"),
-                              "usage_details": usage})
+            response = self.post(f"{GATEWAY}/chat/completions", json=request, timeout=self.config.get("timeout_seconds", 120),
+                                 headers={"Authorization": f"Bearer {key}"})
+            if response.status_code >= 400:
+                raise GatewayError(response.status_code)
+            body = response.json()
+            usage = body.get("usage") or {}
+            evidence = (body, {"input_tokens": usage.get("prompt_tokens"), "output_tokens": usage.get("completion_tokens")})
             try:
-                if response.get("parsing_error") or response.get("parsed") is None:
-                    raise ValueError("Structured output failed validation")
-                parsed = schema.model_validate(response["parsed"])
+                parsed = schema.model_validate_json(body["choices"][0]["message"]["content"] or "")
             except Exception as error:
                 error.call_evidence = evidence
                 raise
@@ -172,5 +166,3 @@ class Runtime:
     def close(self):
         if self.jev_api is not None:
             self.jev_api.close()
-        # LangChain shares its default HTTP transport across model instances.
-        # Closing a per-record root client closes that shared pool for later records.

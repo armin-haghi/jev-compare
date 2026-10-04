@@ -43,7 +43,3 @@ def is_correct(prediction, reference, case_config):
 
 def rules(payload, candidates, case_config):
     return MethodResult(prediction=payload["label"], confidence=1, confidence_kind="rule_fired")
-
-
-def metadata_scores(payload, candidates, case_config):
-    return {c["id"]: 2 for c in candidates}

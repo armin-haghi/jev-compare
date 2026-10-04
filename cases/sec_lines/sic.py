@@ -1,4 +1,4 @@
-"""Fetch and pin the SEC Standard Industrial Classification list."""
+"""Fetch and pin the SEC Standard Industrial Classification list: python -m cases.sec_lines.sic"""
 import json
 import os
 import re

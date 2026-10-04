@@ -4,9 +4,7 @@ version = "0.1.0"
 description = "Reproducible decision benchmark for Jev and conventional language models"
 requires-python = ">=3.12,<3.13"
 dependencies = [
-  "pandas", "pyarrow", "pydantic", "pyyaml", "requests",
-  "langchain==1.4.0", "langchain-openai==1.6.2",
-  "langchain-anthropic==1.7.2", "typesafe-sdk==0.7.2",
+  "pandas", "pyarrow", "pydantic", "pyyaml", "requests", "typesafe-sdk==0.7.2",
 ]
 
 [dependency-groups]

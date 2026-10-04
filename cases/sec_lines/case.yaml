@@ -36,14 +36,3 @@ descriptions:
   long_term_debt: Borrowings due beyond the current period.
   other_noncurrent_liabilities: Long-term obligations outside long-term borrowings.
   total_equity: The owners' residual interest in assets after liabilities.
-metadata:
-  default: {signs: [positive, zero], range: [0, 1]}
-  revenue: {signs: [positive], range: [0.8, 1.2]}
-  gross_profit: {signs: [positive, negative, zero], range: [0, 1]}
-  operating_income: {signs: [positive, negative, zero], range: [0, 1]}
-  net_income: {signs: [positive, negative, zero], range: [0, 1]}
-  other_operating: {signs: [positive, negative, zero], range: [0, 0.5]}
-  other_nonoperating: {signs: [positive, negative, zero], range: [0, 0.5]}
-  total_nonoperating: {signs: [positive, negative, zero], range: [0, 0.5]}
-  income_tax: {signs: [positive, negative, zero], range: [0, 0.5]}
-  total_equity: {signs: [positive, negative, zero], range: [0, 1]}

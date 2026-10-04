@@ -1,6 +1,5 @@
 import json
 import zipfile
-from pathlib import Path
 import pandas as pd
 from benchmark.config import file_hash
 from cases.sec_lines import dataset

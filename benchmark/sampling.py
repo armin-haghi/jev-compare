@@ -45,9 +45,6 @@ def samples(records, config, profile, smoke_per_line=None):
         main = smoke
         if not main:
             raise ValueError("No held-out smoke records; prepare more data or reduce full records_per_line before freezing")
-    composite_limit = min(5, selected_profile["composite_records"]) if smoke_per_line is not None else selected_profile["composite_records"]
-    composite = stratified(main, min(len(main), composite_limit), seed, "composite")
-    # Use composite intersection for both repeated and shuffled comparisons across all methods.
-    repeat = stratified(composite, selected_profile["repeat_records"], seed, "repeat")
-    shuffle = stratified(composite, selected_profile["shuffle_records"], seed, "shuffle")
-    return {"main": main, "composite": composite, "repeat": repeat, "shuffle": shuffle, "dropped": dropped}
+    repeat = stratified(main, selected_profile["repeat_records"], seed, "repeat")
+    shuffle = stratified(main, selected_profile["shuffle_records"], seed, "shuffle")
+    return {"main": main, "repeat": repeat, "shuffle": shuffle, "dropped": dropped}

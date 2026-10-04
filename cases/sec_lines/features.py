@@ -12,11 +12,6 @@ def rules_config():
     return read_yaml(ROOT / "rules.yaml")
 
 
-@lru_cache(maxsize=1)
-def metadata_config():
-    return read_yaml(ROOT / "case.yaml")["metadata"]
-
-
 def normalize(text):
     return " ".join(re.sub(r"[^\w\s]", " ", str(text).lower()).split())
 
@@ -45,17 +40,3 @@ def rules(payload, candidates, case_config):
     prediction = hit if hit in available else hits[0] if len(hits) == 1 else "ABSTAIN"
     return MethodResult(prediction=prediction, confidence=1.0 if prediction != "ABSTAIN" else 0,
                         confidence_kind="rule_fired", diagnostics={"rule_hits": hits, "position_rule": hit})
-
-
-def metadata_scores(payload, candidates, case_config):
-    config = metadata_config()
-    scores = {}
-    for candidate in candidates:
-        expected = config.get(candidate["id"], config["default"])
-        sign = payload.get("sign")
-        scale = payload.get("scale_ratio")
-        # Each known dimension contributes 0 or 2; absent dimensions contribute 1.
-        a = 1 if sign is None else 2 if sign in expected["signs"] else 0
-        b = 1 if scale is None else 2 if expected["range"][0] <= scale <= expected["range"][1] else 0
-        scores[candidate["id"]] = a + b
-    return scores

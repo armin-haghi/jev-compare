@@ -4,15 +4,13 @@ prompts: cases/sec_lines/prompts.yaml
 pricing: config/pricing.yaml
 seed: 20261001
 record_concurrency: 1
-question_concurrency: 2
 attempts: 3
-bootstrap_samples: 50
 conventional_llm:
   small: {provider: vercel, model: openai/gpt-5-mini}
   frontier: {provider: vercel, model: anthropic/claude-sonnet-4.6}
 jev: {provider: vercel, model: typesafe-ai/jev}
-methods: [rules_baseline, direct_llm, decomposed_llm_matrix, decomposed_llm_parallel, jev_direct, jev_composite_concurrent, jev_composite_fanout]
+methods: [rules_baseline, direct_llm, jev_direct]
 context_regimes: [label_only, with_context]
 profiles:
-  small: {records_per_line: 2, composite_records: 4, repeat_records: 2, repeat_count: 2, shuffle_records: 2}
-  full: {records_per_line: 6, composite_records: 8, repeat_records: 4, repeat_count: 3, shuffle_records: 4, minimum_eligible: 2}
+  small: {records_per_line: 2, repeat_records: 2, repeat_count: 2, shuffle_records: 2}
+  full: {records_per_line: 6, repeat_records: 4, repeat_count: 3, shuffle_records: 4, minimum_eligible: 2}

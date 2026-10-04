@@ -1,10 +1,7 @@
 """Exercise the real pinned SDK over local HTTP transports, without credentials."""
 import json
 import httpx2
-import httpx
 from typesafe_sdk import TypeSafeClient, Choice, Score, RetryPolicy
-from langchain.chat_models import init_chat_model
-from pydantic import BaseModel
 from benchmark.runtime import Runtime
 from benchmark.pricing import Budget
 
@@ -38,29 +35,34 @@ def test_typesafe_gateway_preserves_native_probabilities_and_extensions():
     runtime.close()
 
 
-def test_langchain_gateway_uses_structured_output_and_keeps_usage():
+def test_gateway_request_matches_the_structured_output_format(monkeypatch):
+    """The body the 2026-10-02 run sent through LangChain, now sent as a plain request."""
+    monkeypatch.setenv("AI_GATEWAY_API_KEY", "fixture")
+    from typing import Literal
+    from pydantic import Field, create_model
     seen = []
-    class Answer(BaseModel):
-        category: str
-        confidence: float
-    def handle(request):
-        body = json.loads(request.content)
-        seen.append(body)
-        return httpx.Response(200, json={
-            "id": "fixture", "object": "chat.completion", "created": 0, "model": "openai/gpt-5-mini",
-            "choices": [{"index": 0, "message": {"role": "assistant", "content": '{"category":"yes","confidence":0.9}'},
-                         "finish_reason": "stop"}],
-            "usage": {"prompt_tokens": 30, "completion_tokens": 8, "total_tokens": 38}})
-    client = init_chat_model("openai/gpt-5-mini", model_provider="openai", api_key="fixture",
-                             base_url="https://ai-gateway.vercel.sh/v1",
-                             http_client=httpx.Client(transport=httpx.MockTransport(handle)), max_retries=0)
-    runtime = Runtime({"max_tokens": 100}, {"input_per_million": .25, "output_per_million": 2},
-                      Budget(1), chat=client)
-    assert runtime.llm("Choose one", {"label": "yes"}, Answer).category == "yes"
-    assert seen[0]["response_format"]["type"] == "json_schema"
-    assert runtime.evidence()["input_tokens"] == 30
-    assert runtime.evidence()["output_tokens"] == 8
-    runtime.close()
-    second = Runtime({"max_tokens": 100}, {"input_per_million": .25, "output_per_million": 2},
-                     Budget(1), chat=client)
-    assert second.llm("Choose one", {"label": "yes"}, Answer).category == "yes"
+    class Reply:
+        status_code = 200
+        def json(self):
+            return {"choices": [{"message": {"content": '{"category":"a","confidence":0.9}'}}],
+                    "usage": {"prompt_tokens": 30, "completion_tokens": 8}}
+    def post(url, json, headers, timeout):
+        seen.append((url, json, headers, timeout))
+        return Reply()
+    schema = create_model("DirectChoice", __config__={"extra": "forbid"}, category=(Literal[("a", "b")], ...),
+                          confidence=(float, Field(ge=0, le=1, allow_inf_nan=False)))
+    runtime = Runtime({"model": "openai/gpt-5-mini", "max_tokens": 1024, "reasoning_effort": "minimal", "temperature": None},
+                      {"input_per_million": .25, "output_per_million": 2}, Budget(1), post=post)
+    assert runtime.llm("S", {"u": 1}, schema).category == "a"
+    url, body, headers, timeout = seen[0]
+    assert url == "https://ai-gateway.vercel.sh/v1/chat/completions"
+    assert headers == {"Authorization": "Bearer fixture"} and timeout == 120
+    assert body == {"model": "openai/gpt-5-mini", "max_completion_tokens": 1024, "reasoning_effort": "minimal",
+                    "messages": [{"role": "system", "content": "S"}, {"role": "user", "content": '{"u": 1}'}],
+                    "response_format": {"type": "json_schema", "json_schema": {
+                        "name": "DirectChoice", "strict": True, "schema": {
+                            "additionalProperties": False, "required": ["category", "confidence"], "title": "DirectChoice",
+                            "type": "object", "properties": {
+                                "category": {"enum": ["a", "b"], "title": "Category", "type": "string"},
+                                "confidence": {"maximum": 1, "minimum": 0, "title": "Confidence", "type": "number"}}}}}}
+    assert runtime.evidence()["input_tokens"] == 30 and runtime.evidence()["output_tokens"] == 8
