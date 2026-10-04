@@ -1,20 +1,20 @@
-# Jev lowers statement-mapping costs
+# Jev compare
 
-This benchmark compares Jev, TypeSafe's fixed-choice decision model, with conventional language models and programmed rules for finance data management. The completed study maps financial-statement labels into 29 standard categories.
+This repository compares Jev, TypeSafe's model that answers a fixed question by choosing from predefined answers, with a conventional language model and programmed rules on repeated finance data-management decisions. Each study reports one case; the methodology applies to other cases.
 
-**[Read the factsheet](reports/statement-mapping-2026-10-02/factsheet.md).** On 2,900 records, Jev achieved 95.76% agreement with filed tags versus GPT-5 mini's 95.24%, at 77% lower direct-call cost. An accuracy advantage is not established. **The full run cost $4.1840 at list prices.**
+**Latest study:** statement mapping, run of 2 October 2026 — [summary](reports/statement-mapping-2026-10-02/summary.md), [detailed report](reports/statement-mapping-2026-10-02/report.md), [appendix: methods and data](reports/statement-mapping-2026-10-02/appendix.md).
 
-| Read or inspect | Purpose |
+| Document | Purpose |
 | --- | --- |
-| [Factsheet](reports/statement-mapping-2026-10-02/factsheet.md) | Findings, examples, recommendation and total run cost |
-| [Methodology](docs/methodology.md) | What the comparisons test and how results are scored |
-| [Evidence](reports/statement-mapping-2026-10-02/evidence.json) | Metrics, configurations, selected records, source hashes and cost ledger |
-| [Report format](docs/report-format.md) | Rules for future factsheets and the repository cleanup record |
-| [Archive](docs/archive/) | Original brief, design review, build history and preliminary validation |
+| [Methodology](docs/methodology.md) | Comparisons, patterns, metrics and how reports are written |
+| [Statement mapping case](docs/cases/statement-mapping.md) | Decision, answer key, test scope and decisions for the next run |
+| [Backlog](docs/backlog.md) | Open methodology questions |
+| [Development notes](docs/development.md) | Problems found in earlier runs and how to avoid them |
+| [Archive](docs/archive/) | Original proposal, build brief, design review and build history |
 
-## Python runs the benchmark
+## Setup
 
-Use the installed Python 3.12 environment. Dependencies are pinned in uv.lock; credentials stay in the ignored .env file.
+Python 3.12 with dependencies pinned in uv.lock. Credentials stay in the ignored .env file.
 
 ```bash
 uv sync --locked
@@ -23,89 +23,29 @@ uv run pytest
 uv run python -m benchmark.cli demo
 ```
 
-The demo uses synthetic responses and incurs no model charges. For live runs, set AI_GATEWAY_API_KEY and SEC_USER_AGENT (requester name and contact email). Both tested models use Vercel AI Gateway; a separate TypeSafe key is optional.
+The demo uses synthetic responses and makes no model calls. Live runs need AI_GATEWAY_API_KEY and SEC_USER_AGENT (requester name and contact email). Every model is called through the Vercel AI Gateway; changing the model name in the settings file switches to any model the gateway offers, such as Anthropic or Google models.
 
-## Commands preserve the study evidence
+## Commands
 
 ```bash
-uv run python -m benchmark.cli prepare --case sec_lines
-uv run python -m benchmark.cli plan --experiment config/experiments/sec_lines_economy.yaml --profile full
-# Regenerate the completed factsheet without model calls:
-uv run python -m benchmark.cli report --run-id 20261002T232137Z-571ebdd4 --publish-dir reports/statement-mapping-2026-10-02
+uv run python -m benchmark.cli prepare --case sec_lines            # download and prepare SEC data
+uv run python -m benchmark.cli plan --experiment config/experiments/sec_lines.yaml --profile full
+uv run python -m benchmark.cli run --experiment config/experiments/sec_lines.yaml --profile small --budget-usd 1
+uv run python -m benchmark.cli report --run-id RUN_ID --publish-dir reports/STUDY   # refresh generated blocks, no model calls
 ```
 
-The internal sec_lines_economy.yaml name identifies the frozen GPT-5 mini/Jev configuration. Published reports use the task and run date. The original sec_lines.yaml includes a frontier model; inference requires explicit authorization through --allow-frontier. No frontier run is authorized.
+Paid runs require --budget-usd; spending limits reserve for calls in progress. Frontier models need --allow-frontier.
 
-Live smoke, prerequisite and full runs require an explicit --budget-usd. A full run requires a matching completed small run. Spending limits reserve for in-flight calls; recorded token costs are estimates, not invoices. See [archived execution decisions](docs/archive/review.md).
+Each run writes results/RUN_ID/ with predictions, raw responses, configuration, prices, prompts and an evidence file. The report command refreshes the generated tables and charts in a study's documents from those results. Downloaded data, results and .venv stay outside Git.
 
-Local results/RUN_ID/ directories retain predictions, raw responses, configuration, pricing, prompts and provenance. The report command creates one factsheet and a consolidated evidence file for sharing. Downloaded sources under data/, local results/ and .venv/ stay outside Git.
+## Code
 
-## Cases supply their decision rules
+| Path | Role |
+| --- | --- |
+| benchmark/runner.py | Samples records, calls each method, records answers, usage and cost |
+| benchmark/methods/ | One module per method: rules, Jev, conventional model |
+| benchmark/metrics.py | Every number the reports use, computed from saved results |
+| benchmark/report.py | Fills the generated blocks and charts in a study's documents |
+| cases/sec_lines/ | The statement mapping case: data preparation, template, rules, prompts |
 
-Each case implements prepare, load_records, build_payload, candidates and is_correct. Rules and combined-score workflows also use rules and metadata_scores. Shared runner and metric modules remain independent of the financial-statement case; the synthetic fixture exercises that contract.
-
-## The README preserves the proposal
-
-Source: [original parent evaluation plan](https://app.notion.com/p/3ec785996df481d3898adc68e3049fb2?pvs=204). The proposal below is historical: the implemented template has 29 categories, and recommendations follow measured tradeoffs rather than its original acceptance targets. The [build brief](docs/archive/build-brief.md) and [design review](docs/archive/review.md) preserve those decisions.
-
-<details>
-<summary>The original proposal records the intent</summary>
-
-**What:** Evaluation plan for Jev, TypeSafe's decision model, against conventional LLM workflows on repeated finance data decisions. The aim is to find the kind of decision where Jev is the better building block, not to replace LLMs in general.
-**Status:** Case 1 (mapping company financial-statement lines to a standard template, using public SEC data) agreed on 2 Oct 2026 and specified in the build brief below. Earlier ESEF framing retired.
-**Next step:** Hand the build brief to a coding agent. Run the small profile first.
-# Objective: find where Jev beats LLMs
-Jev reads text or structured data and answers a fixed question with one of a fixed list of options, a probability for each option, and a confidence number. It writes no explanation. TypeSafe positions it as a component inside ordinary software: code owns the workflow and the rules, and Jev supplies the small judgments the code cannot make, such as which category a messy record belongs to.
-This evaluation tests whether that component beats a conventional LLM call on the decisions a finance data-management team makes thousands of times: matching, classifying and mapping records that arrive with inconsistent wording.
-Reference: [TypeSafe: How to build with TypeSafe](https://docs.typesafe.ai/concepts/how-to-build-with-system-one)
-## Hypothesis: Jev wins on bounded, repeated decisions
-Jev should do well when:
-- the answer comes from a fixed list;
-- the same decision repeats across many records;
-- several separate clues contribute, and code can combine them;
-- the confidence number is reliable enough to decide which answers need a person.
-The comparison is against four alternatives on the same records: a rules baseline (keyword and position rules, no model), a small LLM, a frontier LLM, and Jev. The LLMs run two ways: one direct call, and a decomposed version that scores clues separately and lets code combine them, which is Jev's own pattern.
-# Case 1: map statement lines to a template
-Every US listed company files annual financial statements with the SEC. Each line on those statements carries two things: the company's own wording, and a standard tag the company attached to say what the line is. The tag is public but, in this test, hidden from the model.
-**The question:** given one line as the company wrote it, which of 28 standard template lines is it?
-**The answer key:** the company's own tag, mapped to a template line.
-## How the test works
-1. Download the SEC tables that hold every statement line, its wording and its tag.
-2. Build one record per line and hide the tag.
-3. Ask each system the same question: which template line is this?
-4. Reveal the tag and score every answer.
-5. Compare the systems on accuracy, cost, speed, repeatability, and whether their confidence separates right answers from wrong ones.
-The run starts small, a few hundred records, to prove the mechanism, then moves to the full set for results.
-## Example: one wording, two answers
-Real lines from FY2024 annual reports. Both companies wrote "Other income, net". The neighbouring lines decide what it is.
-| Company | Lines as filed, in order | Template line | Why |
-| --- | --- | --- | --- |
-| NETGEAR | Income (loss) from operations 12,216 → Other income, net 12,672 → Income (loss) before income taxes 24,888 | Total non-operating income | The only line between operating income and pre-tax income, so it includes interest |
-| Veru | Operating loss → Interest expense 607,470 → Other income, net 861,619 → Total non-operating income (expenses) (160,928) → Loss before income taxes | Other non-operating income | A component listed beside interest expense, under a separate total |
-| SITE Centers | Under the heading "Revenues from operations": Fee and other income 8,181 | Revenue | "Other income" under a revenue heading is revenue |
-## Why this case is hard enough
-- **Close neighbours.** The 28 template lines sit a few rows apart within one statement. "Accrued expenses and other current liabilities" fits two lines that share the same section, sign and period; wording and position must separate them.
-- **Measured ambiguity.** Thousands of companies use the same wording. Where they attach different tags to it, the data itself marks the label as ambiguous and records how the companies split. Jev's probabilities can be checked against that split.
-- **Rules first.** A keyword-and-position baseline runs before any model. Every method is scored on the records the baseline gets wrong, which is where a model earns its place.
-## Why it resembles real work
-Portfolio companies and borrowers send management accounts with their own line wording. Analysts map those lines into a fixed template before any analysis. The decision, the ambiguity and the volume are the same as in this case.
-## Success: the pass rule
-Jev passes when its accuracy is within 2 points of the best LLM, on enough records that the gap is not chance (the statistical test is in the build brief), and at least one of the following holds:
-- cost per 1,000 records at most one fifth of that LLM's;
-- higher accuracy at 80% coverage, when each method sets aside its least confident fifth of answers.
-The benchmark also reports failure rate (calls that return nothing usable), repeatability across runs, and latency, so the result reads as an engineering comparison rather than an accuracy table alone.
-# Later cases: same harness, new question
-The harness is built so a new case replaces case 1 without changing the runner, methods or metrics.
-| Case | Question | Answer key | Example |
-| --- | --- | --- | --- |
-| 2. Entity matching | Is this reported name the same legal entity as this register record? Yes or no. | The legal entity identifier (LEI) a fund reported alongside the name | "HCA, Inc., 3.50%, 9/1/30" as reported by a fund, against the register's HCA Healthcare Inc. (the parent) and HCA Inc. (the subsidiary that issues the bonds) |
-| 3. Loan type | What type of loan is this: first lien, second lien, unitranche, subordinated, preferred equity, common equity, other? | The lending fund's own type label, mapped to the fixed list | Doxim, Inc., L + 6.00%, 1.00% floor, matures 02/28/24, filed by Goldman Sachs BDC as "1st Lien/Last-Out Unitranche" |
-# Outputs: evidence, summary, chart
-- A benchmark run with record-level predictions, so any aggregate can be recomputed and any individual decision inspected.
-- A management summary file with the plain-words case description, counts, results by method and by slice, the pass-rule outcome, cost and latency, and representative examples.
-- The headline chart: share of records a system decides on its own (x axis) against its error rate on those records (y axis), one line per method.
-# Build brief
-The sub-page below specifies repository structure, data retrieval, the 28-line template, method implementations, metrics, result schemas, commands and acceptance checks, so a coding agent can build the benchmark without choosing experiment semantics.
-[Build Brief: Reusable Jev Benchmark](https://app.notion.com/p/3ec785996df481a7b824fde702c5614d)
-
-</details>
+A case implements prepare, load_records, build_payload, candidates, is_correct and rules. The runner and metrics do not depend on the statement mapping case; a synthetic test case checks that.
